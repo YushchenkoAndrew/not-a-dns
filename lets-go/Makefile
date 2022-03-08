@@ -1,5 +1,5 @@
 build: 
-	go build -o ./build/lets-go ./build/main.go
+	go build -o ./out/lets-go ./src/main.go
 
 dns: 
 	# PAUSE DNS SERVICE
