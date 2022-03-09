@@ -7,7 +7,7 @@ import (
 
 func main() {
 	fmt.Println("HELLO WORLD")
-	var dns, err = dns.NewDNS("udp", "0.0.0.0:53", "./", "config")
+	var dns, err = dns.NewDNS("udp", "0.0.0.0:53", "./config", "config")
 	if err != nil {
 		panic(err)
 	}

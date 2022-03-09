@@ -13,14 +13,14 @@ const (
 
 type Zone struct {
 	Name    string
-	TTL     uint16
-	Records map[string]record
+	TTL     uint32
+	Records map[string][]record
 }
 
 type Record struct {
 	Name  string `mapstructure:"name"`
 	Type  string `mapstructure:"type"`
-	TTL   uint16 `mapstructure:"ttl"`
+	TTL   uint32 `mapstructure:"ttl"`
 	Value string `mapstructure:"value"`
 }
 
@@ -28,7 +28,7 @@ type FileStruct struct {
 	DNS   []string `mapstructure:"dns"`
 	Zones []struct {
 		Name    string   `mapstructure:"name"`
-		TTL     uint16   `mapstructure:"ttl"`
+		TTL     uint32   `mapstructure:"ttl"`
 		Records []Record `mapstructure:"records"`
 	} `mapstructure:"zones"`
 }
@@ -51,50 +51,54 @@ func (s *dnsConfig) Load() error {
 
 	viper.AutomaticEnv()
 	if err := viper.ReadInConfig(); err != nil {
-		return fmt.Errorf("Failed on reading operations file")
+		return fmt.Errorf("Failed on reading dns config file")
 	}
 
 	// TODO: Save DNS && ZOne in Cache !!
 	var config FileStruct
 	if err := viper.Unmarshal(&config); err != nil {
-		return fmt.Errorf("Failed on reading operation file")
+		return fmt.Errorf("Failed on reading dns config file")
 	}
 
 	// Form map
 	s.DNS = config.DNS
 	for _, cfg := range config.Zones {
-		var records = make(map[string]record)
+		var records = make(map[string][]record)
 		for _, record := range cfg.Records {
-			var name = PREFIX + record.Name
+			var name = PREFIX + record.Type
+			// if _, ok := records[name]; !ok {
+			// 	records[name] = make([]record, 0)
+			// }
+
 			switch record.Type {
 			case "A":
-				records[name] = &ARecord{record}
+				records[name] = append(records[name], &ARecord{record})
 
 			case "NS":
-				records[name] = &NSRecord{record}
+				records[name] = append(records[name], &NSRecord{record})
 
 			case "CNAME":
-				records[name] = &CNAMERecord{record}
+				records[name] = append(records[name], &CNAMERecord{record})
 
 			case "PTR":
-				records[name] = &PTRRecord{record}
+				records[name] = append(records[name], &PTRRecord{record})
 
 			case "MX":
-				records[name] = &MXRecord{record}
+				records[name] = append(records[name], &MXRecord{record})
 
 			case "AAAA":
-				records[name] = &AAAARecord{record}
+				records[name] = append(records[name], &AAAARecord{record})
 
 			case "TXT":
-				records[name] = &TXTRecord{record}
+				records[name] = append(records[name], &TXTRecord{record})
 
 				// TODO:
 			default:
-				records[name] = &EmptyResource{}
+				records[name] = append(records[name], &EmptyResource{})
 			}
 		}
 
-		s.Zones[cfg.Name] = Zone{Name: cfg.Name, TTL: cfg.TTL, Records: records}
+		s.Zones[cfg.Name+"."] = Zone{Name: cfg.Name, TTL: cfg.TTL, Records: records}
 	}
 
 	return nil

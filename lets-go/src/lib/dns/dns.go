@@ -1,6 +1,7 @@
 package dns
 
 import (
+	"fmt"
 	"net"
 
 	"golang.org/x/net/dns/dnsmessage"
@@ -59,19 +60,33 @@ func (s *DNS) Run() error {
 func (s *DNS) handler(addr net.Addr, message dnsmessage.Message) {
 	if message.Header.Response {
 		// TODO: Use cacheing to get IP addr !!!!
-		go s.res(&net.UDPAddr{IP: net.ParseIP("127.0.0.1")}, message)
+		// go s.res(&net.UDPAddr{IP: net.ParseIP("127.0.0.1")}, message)
 		return
 	}
+
+	fmt.Printf("%#v\n\n", message)
 
 	for _, question := range message.Questions {
 		if zone, ok := s.config.Zones[question.Name.String()]; ok {
 			if record, ok := zone.Records[question.Type.String()]; ok {
 
-				message.Answers = append(message.Answers, dnsmessage.Resource{
-					Header: dnsmessage.ResourceHeader{Name: question.Name, Type: question.Type, Class: question.Class, TTL: 3600},
-					Body:   record.res(),
-				})
+				for _, r := range record {
+					body, ttl, rCode := r.res()
+					if rCode != dnsmessage.RCodeSuccess {
+						message.Header.RCode = rCode
+						break
+					}
 
+					if ttl == 0 {
+						ttl = zone.TTL
+					}
+
+					message.Answers = append(message.Answers, dnsmessage.Resource{
+						Header: dnsmessage.ResourceHeader{Name: question.Name, Type: question.Type, Class: question.Class, TTL: ttl},
+						Body:   body,
+					})
+
+				}
 				continue
 			}
 		}
