@@ -1,37 +1,20 @@
 mod lib;
 
-use lib::dns::dns;
-use lib::dns::dns::DNS;
-
-use std::env;
-use std::net::SocketAddr;
-use std::thread;
-
-const PORT: u16 = 53;
+use lib::map::hash::HashMap;
+use std::string::String;
 
 fn main() {
     println!("Hello {}!", "world");
 
-    // TODO: Maybe add some args checking ....
-    let args: Vec<String> = env::args().collect();
-    let dns: dns::UDP = DNS::new(SocketAddr::from(([0, 0, 0, 0], PORT)), &args[1]);
-    // dns.run();
-    thread::spawn(move || {
-        dns.run();
-    });
+    let mut map = HashMap::new();
+    map.set(String::from("HELLO"), String::from("WORLD"));
+    // map.set(&String::from("WORLD"), 7);
+    // map.set(&String::from("HELLO WORLD"), 6);
+    // map.set(&String::from("TEST"), 5);
 
-    // for i in 0..5 {
-    // }
-
-    // dns.connect2();
-    // lib::DNS
-
-    // let addr =
-    // let socket = UdpSocket::bind(&addr).expect("couldn't bind to address");
-    // let mut buf = [0; 512];
-
-    // loop {
-    //     let (amt, _) = socket.recv_from(&mut buf).expect("Didn't receive data");
-    //     println!("RECEIVED: {:x?}", &mut buf[..amt]);
-    // }
+    for key in map.keys.iter() {
+        if let Some(value) = map.get(key.to_owned()) {
+            println!("'{}': '{}'", key, value);
+        }
+    }
 }
