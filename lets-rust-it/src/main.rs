@@ -1,19 +1,18 @@
 mod lib;
 
-use lib::map::hash::HashMap;
+use lib::map::map::HashMap;
 use std::string::String;
 
 fn main() {
     println!("Hello {}!", "world");
 
     let mut map = HashMap::new();
-    map.set(String::from("HELLO"), String::from("WORLD"));
-    // map.set(&String::from("WORLD"), 7);
-    // map.set(&String::from("HELLO WORLD"), 6);
-    // map.set(&String::from("TEST"), 5);
+    map.set(String::from("HELLO"), "WORLD");
+    map.set(String::from("WORLD"), "TEST");
+    map.set(String::from("HELLO WORLD"), "YESS");
 
-    for key in map.keys.iter() {
-        if let Some(value) = map.get(key.to_owned()) {
+    for key in map.keys() {
+        if let Some(value) = map.get(key) {
             println!("'{}': '{}'", key, value);
         }
     }

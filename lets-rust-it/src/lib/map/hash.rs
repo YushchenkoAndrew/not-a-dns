@@ -1,57 +1,33 @@
-use super::list::List;
-
 use std::string::String;
 
-pub const HASH_MAP_SIZE: i64 = 32;
-
-pub fn hash(s: &String) -> i64 {
-  const P: i32 = 53;
-  const M: i32 = i32::pow(1, 9) + 9;
-
-  let mut res: i64 = 0;
-  let mut p_pow: i64 = 1;
-
-  for ch in s.chars() {
-    res = (res + (ch as i64 - 'a' as i64 + 1) * p_pow) % M as i64;
-    p_pow = (p_pow * P as i64) % M as i64;
+pub trait Hash<T> {
+  fn hash(_val: &T) -> u32 {
+    0
   }
-
-  return res;
 }
 
-#[inline]
-fn index(s: &String) -> usize {
-  (hash(s) as usize) % (HASH_MAP_SIZE as usize)
-}
-
-pub struct Pair<T, U> {
-  key: T,
-  value: U,
-}
-
-// TODO: Use generics !!!
-pub struct HashMap<T> {
-  pub keys: List<String>,
-  values: [Option<Pair<String, T>>; HASH_MAP_SIZE as usize],
-}
-
-impl<T> HashMap<T> {
-  pub fn new() -> Self {
-    return HashMap {
-      keys: List::new(),
-      values: Default::default(),
-    };
+impl Hash<u32> for u32 {
+  fn hash(val: &u32) -> u32 {
+    let mut res = ((*val >> 16) ^ *val) * 0x45d9f3b;
+    res = ((res >> 16) ^ res) * 0x45d9f3b;
+    res = (res >> 16) ^ res;
+    return res;
   }
+}
 
-  pub fn set(&mut self, ref key: String, value: T) {
-    self.keys.push(key.clone());
-    self.values[index(key)] = Some(Pair {
-      key: key.clone(),
-      value,
-    });
-  }
+impl Hash<String> for String {
+  fn hash(val: &String) -> u32 {
+    const P: i32 = 53;
+    const M: i32 = i32::pow(1, 9) + 9;
 
-  pub fn get(&self, ref key: String) -> Option<&T> {
-    self.values[index(key)].as_ref().map(|node| &node.value)
+    let mut res: i32 = 0;
+    let mut p_pow: i32 = 1;
+
+    for ch in val.chars() {
+      res = (res + (ch as i32 - 'a' as i32 + 1) * p_pow) % M;
+      p_pow = (p_pow * P) % M;
+    }
+
+    return res as u32;
   }
 }
