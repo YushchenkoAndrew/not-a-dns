@@ -1,0 +1,51 @@
+dns:
+  - "8.8.8.8"
+  - "8.8.4.4"
+zones:
+  - name: test.net
+    ttl: 3600
+    records:
+      - name: "@"
+        type: "A"
+        ttl: 400
+        value: "255.255.255.255"
+
+      - name: "@"
+        type: "A"
+        # ttl: 400
+        value: "127.0.0.1"
+
+    # SOA:
+    #   mname: ns1.howcode.org
+    #   rname: admin.howcode.org
+    #   serial: 1111111111
+    #   refresh: 3600
+    #   retry: 600
+    #   expire: 604800
+    #   minimum: 86400
+
+    # NS:
+    #   - host: ns1.test.net
+    #   - host: ns2.test.net
+
+    # A:
+    #   - name: "@"
+    #     type: "A"
+    #     ttl: 400
+    #     value: "255.255.255.255"
+
+    #   - name: "@"
+    #     ttl: 400
+    #     value: "127.0.0.1"
+
+    #   - name: "@"
+    #     ttl: 400
+    #     value: "127.0.0.1"
+
+    #   - name: "@"
+    #     ttl: 400
+    #     value: "127.0.0.1"
+
+    #   - name: "@"
+    #     ttl: 400
+    #     value: "10.10.10.10"
