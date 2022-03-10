@@ -1,3 +1,7 @@
+// Resources:
+//  https://rust-unofficial.github.io/too-many-lists/second.html
+//  https://stackoverflow.com/a/12996028
+
 pub struct Node<T> {
   next: Option<Box<Node<T>>>,
   value: T,
@@ -52,5 +56,63 @@ impl<T> List<T> {
     Iter {
       next: self.head.as_deref(),
     }
+  }
+}
+
+#[cfg(test)]
+mod test {
+  use super::List;
+
+  #[test]
+  fn basics() {
+    let mut list = List::new();
+
+    // Check empty list behaves right
+    assert_eq!(list.pop(), None);
+
+    // Populate list
+    list.push(1);
+    list.push(2);
+    list.push(3);
+
+    // Check normal removal
+    assert_eq!(list.pop(), Some(3));
+    assert_eq!(list.pop(), Some(2));
+
+    // Push some more just to make sure nothing's corrupted
+    list.push(4);
+    list.push(5);
+
+    // Check normal removal
+    assert_eq!(list.pop(), Some(5));
+    assert_eq!(list.pop(), Some(4));
+
+    // Check exhaustion
+    assert_eq!(list.pop(), Some(1));
+    assert_eq!(list.pop(), None);
+  }
+
+  #[test]
+  fn peek() {
+    let mut list = List::new();
+    assert_eq!(list.peek(), None);
+    list.push(1);
+    list.push(2);
+    list.push(3);
+
+    assert_eq!(list.peek(), Some(&3));
+  }
+
+  #[test]
+  fn iter() {
+    let mut list = List::new();
+    list.push(1);
+    list.push(2);
+    list.push(3);
+
+    let mut iter = list.iter();
+    assert_eq!(iter.next(), Some(&3));
+    assert_eq!(iter.next(), Some(&2));
+    assert_eq!(iter.next(), Some(&1));
   }
 }
