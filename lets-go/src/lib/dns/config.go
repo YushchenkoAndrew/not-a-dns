@@ -8,7 +8,6 @@ import (
 
 const (
 	PREFIX = "Type"
-	TYPE   = "yaml"
 )
 
 type Zone struct {
@@ -34,20 +33,20 @@ type FileStruct struct {
 }
 
 type dnsConfig struct {
-	path, name string
+	path, name, ext string
 
 	DNS   []string
 	Zones map[string]Zone
 }
 
-func NewConfig(path, name string) dnsConfig {
-	return dnsConfig{path: path, name: name, DNS: []string{}, Zones: make(map[string]Zone)}
+func NewConfig(path, name, ext string) dnsConfig {
+	return dnsConfig{path: path, name: name, ext: ext, DNS: []string{}, Zones: make(map[string]Zone)}
 }
 
 func (s *dnsConfig) Load() error {
 	viper.AddConfigPath(s.path)
 	viper.SetConfigName(s.name)
-	viper.SetConfigType(TYPE)
+	viper.SetConfigType(s.ext)
 
 	viper.AutomaticEnv()
 	if err := viper.ReadInConfig(); err != nil {

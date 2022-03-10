@@ -9,7 +9,9 @@ clean:
 	# RESTART DNS SERVICE
 	sudo systemctl restart systemd-resolved
 
+test: build
+	./out/lets-go 0.0.0.0:53535 ./config/config_test.yaml
+
 dev: build dns
 	# THIS PROGRAM SHOULD BE LAUNCHED WITH ROOT PERMISSIONS
-	sudo ./out/lets-go ./config/config.yaml
-
+	sudo ./out/lets-go 0.0.0.0:53 ./config/config.yaml
