@@ -5,6 +5,7 @@ use std::string::String;
 
 pub trait Hash<T> {
   fn hash(_val: &T) -> u32;
+  fn eq(a: &T, b: &T) -> bool;
 }
 
 impl Hash<i32> for i32 {
@@ -14,6 +15,10 @@ impl Hash<i32> for i32 {
     res = (((res >> 16) ^ res) as i64 * 0x45d9f3b) as i32;
     return ((res >> 16) ^ res) as u32;
   }
+
+  fn eq(a: &i32, b: &i32) -> bool {
+    a == b
+  }
 }
 
 impl Hash<u32> for u32 {
@@ -22,6 +27,10 @@ impl Hash<u32> for u32 {
     res = (((res >> 16) ^ res) as u64 * 0x45d9f3b) as u32;
     res = (((res >> 16) ^ res) as u64 * 0x45d9f3b) as u32;
     return (res >> 16) ^ res;
+  }
+
+  fn eq(a: &u32, b: &u32) -> bool {
+    a == b
   }
 }
 
@@ -40,6 +49,10 @@ impl Hash<String> for String {
 
     return res as u32;
   }
+
+  fn eq(a: &String, b: &String) -> bool {
+    a == b
+  }
 }
 
 impl Hash<&str> for &str {
@@ -57,12 +70,17 @@ impl Hash<&str> for &str {
 
     return res as u32;
   }
+
+  fn eq(a: &&str, b: &&str) -> bool {
+    a == b
+  }
 }
 
 macro_rules! impl_T {
     (for $($t:ty),+) => {
         $(impl Hash<$t> for $t {
             fn hash(_val: &$t)-> u32 { 0 }
+            fn eq(a: &$t, b: &$t) -> bool { false }
         })*
     }
 }

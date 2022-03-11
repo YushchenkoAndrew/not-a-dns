@@ -10,6 +10,7 @@ fn main() {
     map.set(String::from("HELLO"), "WORLD");
     map.set(String::from("WORLD"), "TEST");
     map.set(String::from("HELLO WORLD"), "YESS");
+    map.set(String::from("TEST"), "5555");
 
     for key in map.keys() {
         if let Some(value) = map.get(key) {

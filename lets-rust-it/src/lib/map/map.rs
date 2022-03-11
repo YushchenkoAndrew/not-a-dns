@@ -4,24 +4,30 @@
 use super::hash::Hash;
 use super::list::{Iter, List};
 
+use std::rc::Rc;
+
 pub const HASH_MAP_SIZE: usize = 500;
 
 pub struct Pair<T, U> {
-  key: T,
-  value: U,
+  pub key: T,
+  pub value: U,
 }
 
 pub struct HashMap<T, U> {
   keys: List<T>,
-  values: [Option<Pair<T, U>>; HASH_MAP_SIZE],
+
+  recent_value: List<Rc<Pair<T, U>>>,
+  // values: [Option<Pair<T, U>>; HASH_MAP_SIZE],
+  values: [Option<List<Rc<Pair<T, U>>>>; HASH_MAP_SIZE],
 }
 
 impl<T, U> HashMap<T, U> {
-  const NONE: Option<Pair<T, U>> = None;
+  const NONE: Option<List<Rc<Pair<T, U>>>> = None;
 
   pub fn new() -> Self {
     return HashMap {
       keys: List::new(),
+      recent_value: List::new(),
       values: [HashMap::NONE; HASH_MAP_SIZE],
     };
   }
@@ -31,17 +37,57 @@ impl<T, U> HashMap<T, U> {
     T: Hash<T> + Clone,
   {
     self.keys.push(key.clone());
+
     let index = (T::hash(&key) as usize) % HASH_MAP_SIZE;
-    self.values[index] = Some(Pair { key, value })
+    let pair = Rc::new(Pair { key, value });
+
+    self.recent_value.push(Rc::clone(&pair));
+    match &mut self.values[index] {
+      Some(list) => list.push(pair),
+      None => {
+        let mut list = List::new();
+        list.push(pair);
+
+        self.values[index] = Some(list);
+      }
+    };
   }
 
   pub fn get(&self, key: &T) -> Option<&U>
   where
     T: Hash<T> + Clone,
   {
-    self.values[(T::hash(key) as usize) % HASH_MAP_SIZE]
-      .as_ref()
-      .map(|node| &node.value)
+    match &self.values[(T::hash(key) as usize) % HASH_MAP_SIZE] {
+      Some(list) => {
+        for item in list.iter() {
+          if T::eq(&item.key, key) {
+            return Some(&item.value);
+          }
+        }
+        return None;
+      }
+      None => {
+        return None;
+      }
+    }
+  }
+
+  pub fn del(&self, key: &T)
+  where
+    T: Hash<T> + Clone,
+  {
+    match &self.values[(T::hash(key) as usize) % HASH_MAP_SIZE] {
+      Some(list) => {
+        for item in list.iter() {
+          if T::eq(&item.key, key) {
+            // TODO: !!!
+            // Some(&item.value);
+            break;
+          }
+        }
+      }
+      None => (),
+    }
   }
 
   pub fn keys(&self) -> Iter<'_, T> {
