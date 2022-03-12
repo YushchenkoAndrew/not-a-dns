@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"lets-go/src/lib/cache"
 	"lets-go/src/lib/dns"
 	"os"
 )
@@ -19,6 +20,13 @@ func main() {
 
 	// TODO: Use logger instead !!!
 	fmt.Println("HELLO WORLD")
+
+	defer func() {
+		if err := cache.Conn().Close(); err != nil {
+			// TODO: Use logger instead !!!
+			fmt.Printf("%v", err)
+		}
+	}()
 
 	dns, err := dns.NewDNS("udp", args[ADDR], args[CONFIG])
 	if err != nil {

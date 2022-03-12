@@ -1,20 +1,24 @@
 mod lib;
 
+// #[path = "./pb/cache.rs"]
+// mod pb;
+
+use tonic::{transport::Server, Request, Response, Status};
+
+// use pb::cache_service_server::CacheServiceServer;
+
 use lib::map::map::HashMap;
+use std::env;
 use std::string::String;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     println!("Hello {}!", "world");
 
-    let mut map = HashMap::new();
-    map.set(String::from("HELLO"), "WORLD");
-    map.set(String::from("WORLD"), "TEST");
-    map.set(String::from("HELLO WORLD"), "YESS");
-    map.set(String::from("TEST"), "5555");
+    let args: Vec<String> = env::args().collect();
 
-    for key in map.keys() {
-        if let Some(value) = map.get(key) {
-            println!("'{}': '{}'", key, value);
-        }
-    }
+    // Server::builder()
+    //     .add_service(CacheServiceServer::new())
+    //     .serve(args[1].parse().expect("Incorrect server address style"))
+    //     .await;
 }
