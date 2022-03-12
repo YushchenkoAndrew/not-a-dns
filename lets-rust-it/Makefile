@@ -1,8 +1,10 @@
-build: 
-	cargo build
+.PHONY: build test clean dev
 
 clean:
-	# RESTART DNS SERVICE
+	rm -rf src/pb/*
+
+build: clean
+	cargo build
 
 test: 
 	cargo test
