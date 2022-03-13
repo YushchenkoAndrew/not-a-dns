@@ -18,9 +18,21 @@ func Client() cache.CacheServiceClient {
 	return client
 }
 
+const (
+	ADDR_KEY     = "CACHE_ADDR"
+	DEFAULT_ADDR = "[::1]:50051"
+)
+
 func init() {
 	var err error
-	if conn, err = grpc.Dial(os.Getenv("CACHE_ADDR"), []grpc.DialOption{}); err != nil {
+
+	if value, ok := os.LookupEnv(ADDR_KEY); ok {
+		conn, err = grpc.Dial(value, grpc.WithInsecure())
+	} else {
+		conn, err = grpc.Dial(DEFAULT_ADDR, grpc.WithInsecure())
+	}
+
+	if err != nil {
 		panic(err)
 	}
 
