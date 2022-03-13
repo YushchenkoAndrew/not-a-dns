@@ -4,6 +4,7 @@ import (
 	"context"
 	"lets-go/src/lib/cache"
 	pb "lets-go/src/pb/cache"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -31,22 +32,38 @@ func TestBasic(t *testing.T) {
 		{Key: "HELLO WORLD", Value: "cccccc"},
 	}
 
+	var wg sync.WaitGroup
+
 	// Set values
 	for i := 0; i < len(values); i++ {
-		go func() {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
 			res, err := cache.Client().Set(ctx, &values[i])
 			require.NoError(t, err)
-			require.Equal(t, pb.Response_OK, res.Status)
-		}()
+			require.Equal(t, pb.Status_OK, res.Status)
+		}(i)
 	}
+
+	wg.Wait()
 
 	// Check values
 	for i := 0; i < len(values); i++ {
-		go func() {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
 			res, err := cache.Client().Get(ctx, &pb.GetRequest{Key: values[i].Key})
 			require.NoError(t, err)
-			require.Equal(t, pb.Response_OK, res.Status)
+			require.Equal(t, pb.Status_OK, res.Status)
 			require.Equal(t, values[i].Value, res.Result)
-		}()
+		}(i)
 	}
+
+	wg.Wait()
+
+	res, err := cache.Client().Keys(ctx, &pb.Request{Key: "TEST"})
+	require.NoError(t, err)
+	require.Equal(t, pb.Status_OK, res.Status)
+	require.NotEmpty(t, res.Result)
+	require.Equal(t, 9, len(res.Result))
 }

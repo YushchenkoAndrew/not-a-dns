@@ -80,7 +80,7 @@ macro_rules! impl_T {
     (for $($t:ty),+) => {
         $(impl Hash<$t> for $t {
             fn hash(_val: &$t)-> u32 { 0 }
-            fn eq(a: &$t, b: &$t) -> bool { false }
+            fn eq(_a: &$t, _b: &$t) -> bool { false }
         })*
     }
 }

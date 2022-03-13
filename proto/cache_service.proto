@@ -3,6 +3,11 @@ syntax = "proto3";
 package cache;
 option go_package = "./cache";
 
+enum Status {
+  OK = 0;
+  ERR = 1;
+}
+
 message SetRequest {
   string key = 1;
   string value = 2;
@@ -14,23 +19,30 @@ message GetRequest {
   string default = 2;
 }
 
-message KeysRequest {
+message Request {
   string key = 1;
 }
 
-message Response {
-  enum Status {
-    OK = 0;
-    ERR = 1;
-  }
+message StatResponse {
+  Status status = 1;
+  string message = 2;
+}
+
+message ValueResponse {
   Status status = 1;
   string message = 2;
   string result = 3;
 }
 
+message ListResponse {
+  Status status = 1;
+  string message = 2;
+  repeated string result = 3;
+}
+
 service CacheService {
-  rpc Set(SetRequest) returns (Response) {};
-  rpc Get(GetRequest) returns (Response) {};
-  rpc Del(KeysRequest) returns (Response) {};
-  rpc Keys(KeysRequest) returns (Response) {};
+  rpc Set(SetRequest) returns (StatResponse) {};
+  rpc Get(GetRequest) returns (ValueResponse) {};
+  rpc Del(Request) returns (StatResponse) {};
+  rpc Keys(Request) returns (ListResponse) {};
 }

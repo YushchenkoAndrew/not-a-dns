@@ -4,7 +4,8 @@
 use super::hash::Hash;
 use super::list::{Iter, List};
 
-use std::rc::Rc;
+// use std::rc::Rc;
+use std::sync::Arc;
 
 pub const HASH_MAP_SIZE: usize = 500;
 
@@ -16,13 +17,13 @@ pub struct Pair<T, U> {
 pub struct HashMap<T, U> {
   keys: List<T>,
 
-  recent_value: List<Rc<Pair<T, U>>>,
+  recent_value: List<Arc<Pair<T, U>>>,
   // values: [Option<Pair<T, U>>; HASH_MAP_SIZE],
-  values: [Option<List<Rc<Pair<T, U>>>>; HASH_MAP_SIZE],
+  values: [Option<List<Arc<Pair<T, U>>>>; HASH_MAP_SIZE],
 }
 
 impl<T, U> HashMap<T, U> {
-  const NONE: Option<List<Rc<Pair<T, U>>>> = None;
+  const NONE: Option<List<Arc<Pair<T, U>>>> = None;
 
   pub fn new() -> Self {
     return HashMap {
@@ -39,9 +40,9 @@ impl<T, U> HashMap<T, U> {
     self.keys.push(key.clone());
 
     let index = (T::hash(&key) as usize) % HASH_MAP_SIZE;
-    let pair = Rc::new(Pair { key, value });
+    let pair = Arc::new(Pair { key, value });
 
-    self.recent_value.push(Rc::clone(&pair));
+    self.recent_value.push(Arc::clone(&pair));
     match &mut self.values[index] {
       Some(list) => list.push(pair),
       None => {
