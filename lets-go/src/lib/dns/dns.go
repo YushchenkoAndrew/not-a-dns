@@ -1,9 +1,11 @@
 package dns
 
 import (
+	"fmt"
 	"net"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"golang.org/x/net/dns/dnsmessage"
@@ -11,13 +13,18 @@ import (
 
 const (
 	BUF_SIZE = 1024
-	TIMEOUT  = 50 * time.Millisecond
+	TIMEOUT  = 100 * time.Millisecond
 )
 
 type DNS struct {
 	config dnsConfig
 	socket net.PacketConn
+
+	mu       sync.Mutex
+	redirect map[uint16]net.Addr
 }
+
+// var reqStore = make(map[uint16]net.IP)
 
 func NewDNS(network, addr, path string) (*DNS, error) {
 	var err error
@@ -36,7 +43,7 @@ func NewDNS(network, addr, path string) (*DNS, error) {
 		return nil, err
 	}
 
-	return &DNS{config, socket}, nil
+	return &DNS{config: config, socket: socket, redirect: make(map[uint16]net.Addr)}, nil
 }
 
 func (s *DNS) Close() {
@@ -60,11 +67,34 @@ func (s *DNS) Run() {
 		}
 
 		go func() {
-			// if message.Header.Response {
-			// 	// TODO: Use cacheing to get IP addr !!!!
-			// 	// go s.res(&net.UDPAddr{IP: net.ParseIP("127.0.0.1")}, message)
-			// 	return
-			// }
+			fmt.Printf("%#v\n\n", req)
+
+			if req.Response {
+				// res, err := cache.Client().Get(context.Background(), &pb.GetRequest{Key: fmt.Sprintf("ID:%d", req.ID)})
+				// if res.Status != pb.Status_OK || err != nil {
+				// 	// TODO: Log error !!
+				// 	return
+				// }
+
+				// addr, e := net.ResolveIPAddr("", res.Result)
+				// fmt.Printf("%s => %v %v\n", res.Result, addr, e)
+				// go s.Response(addr, &req, time.Time{})
+				// addr := strings.Split(res.Result, " ")
+				// port, _ := strconv.Atoi(addr[1])
+
+				s.mu.Lock()
+				defer s.mu.Unlock()
+
+				if addr, ok := s.redirect[req.ID]; ok {
+					// TODO: Save request in cache !!
+					// cache.Client().Set(context.Background(), &pb.SetRequest{ Key: req.Questions[0].Name.String(), Value: req.Answers[0].Body })
+
+					go s.Response(addr, &req, time.Time{})
+					delete(s.redirect, req.ID)
+				}
+
+				return
+			}
 
 			if RCode, answers := s.ReqHandler(req.Questions); RCode != dnsmessage.RCodeNameError {
 				go s.Response(addr, &dnsmessage.Message{
@@ -87,7 +117,7 @@ func (s *DNS) Run() {
 				return
 			}
 
-			go s.ReqRedirect(&req)
+			go s.ReqRedirect(addr, &req)
 		}()
 	}
 }
@@ -123,7 +153,25 @@ func (s *DNS) ReqHandler(questions []dnsmessage.Question) (dnsmessage.RCode, []d
 	return dnsmessage.RCodeSuccess, answers
 }
 
-func (s *DNS) ReqRedirect(req *dnsmessage.Message) {
+func (s *DNS) ReqRedirect(addr net.Addr, req *dnsmessage.Message) {
+	go func() {
+		s.mu.Lock()
+		defer s.mu.Unlock()
+
+		s.redirect[req.ID] = addr
+
+		// cache.Client().Set(
+		// 	context.Background(),
+		// 	&pb.SetRequest{
+		// 		Key:   fmt.Sprintf("ID:%d", req.ID),
+		// 		Value: fmt.Sprintf("%s %d", addr.(*net.UDPAddr).IP.String(), addr.(*net.UDPAddr).Port),
+		// 	})
+		// if  res.Status != pb.Status_OK || err != nil {
+		// 	// TODO: Log !!!
+		// 	return
+		// }
+	}()
+
 	for _, dns := range s.config.DNS {
 		// If we got a time out error then just try another DNS
 		err := s.Response(&net.UDPAddr{IP: net.ParseIP(dns), Port: 53}, req, time.Now().Add(TIMEOUT))
@@ -153,25 +201,3 @@ func (s *DNS) Response(addr net.Addr, message *dnsmessage.Message, timeout time.
 
 	return nil
 }
-
-// func (s *DNS) redirect(message dnsmessage.Message) []uint8 {
-// 	// var err error
-// 	// var socket net.Conn
-
-// 	// res := make([]uint8, 1024)
-
-// 	// // if socket, err = net.Dial("udp", "1.1.1.1:53"); err != nil {
-// 	// // 	panic(err)
-// 	// // }
-
-// 	// defer socket.Close()
-
-// 	// socket.Write(buf)
-// 	// amount, _ := socket.Read(res)
-// 	// // this.socket.WriteTo(buf, &net.UDPAddr{IP: net.ParseIP("8.8.8.8"), Port: 53})
-// 	// // amount, _, _ := this.socket.ReadFrom(res)
-
-// 	// // fmt.Println(this.format.ShowHeader(res))
-// 	// // fmt.Println(this.format.ShowQuestion(res[12:]))
-// 	// return res[:amount]
-// }
