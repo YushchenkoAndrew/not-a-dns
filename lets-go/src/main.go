@@ -1,38 +1,36 @@
 package main
 
 import (
-	"fmt"
 	"lets-go/src/lib/cache"
 	"lets-go/src/lib/dns"
+	"lets-go/src/lib/log"
 	"os"
 )
 
 const (
-	ADDR   = 0
-	CONFIG = 1
+	ADDR   = 1
+	CONFIG = 2
 )
 
 func main() {
-	args := os.Args[1:]
-	if len(args) < 2 {
-		panic(fmt.Errorf("Expected 2 command line args but %d was given", len(args)))
-	}
+	var logger = log.GetLogger()
 
-	// TODO: Use logger instead !!!
-	fmt.Println("HELLO WORLD")
+	if len(os.Args) < 3 {
+		logger.Panicf("Expected 2 command line args but %d was given", len(os.Args)-1)
+	}
 
 	defer func() {
 		if err := cache.Conn().Close(); err != nil {
-			// TODO: Use logger instead !!!
-			fmt.Printf("%v", err)
+			logger.Errorf("Failed on closing gRPC connection: %v", err)
 		}
 	}()
 
-	dns, err := dns.NewDNS("udp", args[ADDR], args[CONFIG])
+	dns, err := dns.NewDNS("udp", os.Args[ADDR], os.Args[CONFIG])
 	if err != nil {
-		panic(err)
+		logger.Panicf("Failed on starting up DNS Server: %v", err)
 	}
 
+	logger.Infof("DNS Server has been started: '%s'", os.Args[ADDR])
 	defer dns.Close()
 	dns.Run()
 }

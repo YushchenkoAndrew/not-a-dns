@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"lets-go/src/lib/log"
 	"lets-go/src/pb/cache"
 	"os"
 
@@ -33,7 +34,7 @@ func init() {
 	}
 
 	if err != nil {
-		panic(err)
+		log.GetLogger().Panicf("Failed to connect to gRPC Server: %v", err)
 	}
 
 	client = cache.NewCacheServiceClient(conn)
