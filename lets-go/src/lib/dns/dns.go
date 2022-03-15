@@ -1,7 +1,7 @@
 package dns
 
 import (
-	"fmt"
+	"lets-go/src/lib/log"
 	"net"
 	"path/filepath"
 	"strings"
@@ -12,19 +12,24 @@ import (
 )
 
 const (
-	BUF_SIZE = 1024
-	TIMEOUT  = 100 * time.Millisecond
+	BUF_SIZE       = 1024
+	TIMEOUT        = 100 * time.Millisecond
+	RECORD_TIMEOUT = time.Second
 )
+
+type addrRecord struct {
+	created_at time.Time
+	addr       net.Addr
+}
 
 type DNS struct {
 	config dnsConfig
 	socket net.PacketConn
+	logger log.Logger
 
 	mu       sync.Mutex
-	redirect map[uint16]net.Addr
+	redirect map[uint16]addrRecord
 }
-
-// var reqStore = make(map[uint16]net.IP)
 
 func NewDNS(network, addr, path string) (*DNS, error) {
 	var err error
@@ -43,7 +48,12 @@ func NewDNS(network, addr, path string) (*DNS, error) {
 		return nil, err
 	}
 
-	return &DNS{config: config, socket: socket, redirect: make(map[uint16]net.Addr)}, nil
+	return &DNS{
+		config:   config,
+		socket:   socket,
+		logger:   log.GetLogger(),
+		redirect: make(map[uint16]addrRecord),
+	}, nil
 }
 
 func (s *DNS) Close() {
@@ -57,45 +67,44 @@ func (s *DNS) Run() {
 		var req dnsmessage.Message
 		amount, addr, err := s.socket.ReadFrom(buf)
 		if err != nil {
-			// TODO: Log error !!!
+			s.logger.Errorf("Failed on receiving a message from addr '%s': %v\n", addr, err)
 			continue
 		}
 
 		if err = req.Unpack(buf[:amount]); err != nil {
-			// TODO: Log error !!!
+			s.logger.Errorf("Failed to unpack a message: %v\n", err)
 			continue
 		}
 
 		go func() {
-			fmt.Printf("%#v\n\n", req)
+			s.mu.Lock()
+			defer s.mu.Unlock()
+			for key, record := range s.redirect {
+				if record.created_at.Sub(time.Now()) >= RECORD_TIMEOUT {
+					delete(s.redirect, key)
+				}
+			}
+		}()
 
+		go func() {
 			if req.Response {
-				// res, err := cache.Client().Get(context.Background(), &pb.GetRequest{Key: fmt.Sprintf("ID:%d", req.ID)})
-				// if res.Status != pb.Status_OK || err != nil {
-				// 	// TODO: Log error !!
-				// 	return
-				// }
-
-				// addr, e := net.ResolveIPAddr("", res.Result)
-				// fmt.Printf("%s => %v %v\n", res.Result, addr, e)
-				// go s.Response(addr, &req, time.Time{})
-				// addr := strings.Split(res.Result, " ")
-				// port, _ := strconv.Atoi(addr[1])
+				s.logger.Debugf("DNS RESPONSE '%s' QUESTION: '%s' \n", addr, req.Questions[0].Name)
 
 				s.mu.Lock()
 				defer s.mu.Unlock()
 
-				if addr, ok := s.redirect[req.ID]; ok {
+				if record, ok := s.redirect[req.ID]; ok {
 					// TODO: Save request in cache !!
 					// cache.Client().Set(context.Background(), &pb.SetRequest{ Key: req.Questions[0].Name.String(), Value: req.Answers[0].Body })
 
-					go s.Response(addr, &req, time.Time{})
+					go s.Response(record.addr, &req, time.Time{})
 					delete(s.redirect, req.ID)
 				}
 
 				return
 			}
 
+			s.logger.Debugf("DNS REQUEST  '%s' QUESTION: '%s' \n", addr, req.Questions[0].Name)
 			if RCode, answers := s.ReqHandler(req.Questions); RCode != dnsmessage.RCodeNameError {
 				go s.Response(addr, &dnsmessage.Message{
 					Header: dnsmessage.Header{
@@ -125,29 +134,24 @@ func (s *DNS) Run() {
 func (s *DNS) ReqHandler(questions []dnsmessage.Question) (dnsmessage.RCode, []dnsmessage.Resource) {
 	var answers = []dnsmessage.Resource{}
 	for _, question := range questions {
-		if zone, ok := s.config.Zones[question.Name.String()]; ok {
-			if record, ok := zone.Records[question.Type.String()]; ok {
-				for _, r := range record {
-					body, ttl, rCode := r.res()
-					if rCode != dnsmessage.RCodeSuccess {
-						return rCode, []dnsmessage.Resource{}
-					}
-
-					if ttl == 0 {
-						ttl = zone.TTL
-					}
-
-					answers = append(answers, dnsmessage.Resource{
-						Header: dnsmessage.ResourceHeader{Name: question.Name, Type: question.Type, Class: question.Class, TTL: ttl},
-						Body:   body,
-					})
-
-				}
-				continue
-			}
+		records := s.config.Get(question.Name.String(), question.Type.String())
+		if len(records) == 0 {
+			return dnsmessage.RCodeNameError, []dnsmessage.Resource{}
 		}
 
-		return dnsmessage.RCodeNameError, []dnsmessage.Resource{}
+		for _, record := range records {
+			body, ttl, rCode := record.res()
+			if rCode != dnsmessage.RCodeSuccess {
+				s.logger.Warnf("Return an error RCODE: %d\n", rCode)
+				return rCode, []dnsmessage.Resource{}
+			}
+
+			answers = append(answers, dnsmessage.Resource{
+				Header: dnsmessage.ResourceHeader{Name: question.Name, Type: question.Type, Class: question.Class, TTL: ttl},
+				Body:   body,
+			})
+
+		}
 	}
 
 	return dnsmessage.RCodeSuccess, answers
@@ -158,46 +162,35 @@ func (s *DNS) ReqRedirect(addr net.Addr, req *dnsmessage.Message) {
 		s.mu.Lock()
 		defer s.mu.Unlock()
 
-		s.redirect[req.ID] = addr
-
-		// cache.Client().Set(
-		// 	context.Background(),
-		// 	&pb.SetRequest{
-		// 		Key:   fmt.Sprintf("ID:%d", req.ID),
-		// 		Value: fmt.Sprintf("%s %d", addr.(*net.UDPAddr).IP.String(), addr.(*net.UDPAddr).Port),
-		// 	})
-		// if  res.Status != pb.Status_OK || err != nil {
-		// 	// TODO: Log !!!
-		// 	return
-		// }
+		s.redirect[req.ID] = addrRecord{addr: addr, created_at: time.Now()}
 	}()
 
-	for _, dns := range s.config.DNS {
+	for _, dns := range s.config.DNS() {
 		// If we got a time out error then just try another DNS
-		err := s.Response(&net.UDPAddr{IP: net.ParseIP(dns), Port: 53}, req, time.Now().Add(TIMEOUT))
-		if err == nil {
+		if ok := s.Response(&net.UDPAddr{IP: net.ParseIP(dns), Port: 53}, req, time.Now().Add(TIMEOUT)); !ok {
 			break
 		}
 	}
 }
 
-func (s *DNS) Response(addr net.Addr, message *dnsmessage.Message, timeout time.Time) error {
+func (s *DNS) Response(addr net.Addr, message *dnsmessage.Message, timeout time.Time) bool {
 	var err error
 	var buf []byte
 
 	if buf, err = message.Pack(); err != nil {
-		// TODO: Log !!!
-		return nil
+		s.logger.Errorf("Failed on packing a message: %v\n", err)
+		return false
 	}
 
 	if err = s.socket.SetWriteDeadline(timeout); err != nil {
-		// TODO: Log !!!
-		return nil
+		s.logger.Errorf("Failed to set transmit timeout: %v\n", err)
+		return false
 	}
 
-	if _, err = s.socket.WriteTo(buf, addr); err != nil && !timeout.IsZero() {
-		return err
+	if _, err = s.socket.WriteTo(buf, addr); err != nil {
+		s.logger.Errorf("Failed to send message to addr '%s': %v\n", addr, err)
+		return !timeout.IsZero()
 	}
 
-	return nil
+	return false
 }

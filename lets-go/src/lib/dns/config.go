@@ -1,7 +1,14 @@
 package dns
 
 import (
+	"context"
 	"fmt"
+	"lets-go/src/lib/cache"
+	"lets-go/src/lib/log"
+	"strconv"
+	"strings"
+
+	pb "lets-go/src/pb/cache"
 
 	"github.com/spf13/viper"
 )
@@ -9,12 +16,6 @@ import (
 const (
 	PREFIX = "Type"
 )
-
-type Zone struct {
-	Name    string
-	TTL     uint32
-	Records map[string][]record
-}
 
 type Record struct {
 	Name  string `mapstructure:"name"`
@@ -34,13 +35,30 @@ type FileStruct struct {
 
 type dnsConfig struct {
 	path, name, ext string
+	handler         map[string]func([]record, Record) []record
 
-	DNS   []string
-	Zones map[string]Zone
+	logger log.Logger
+
+	// DNS   []string
+	// Zones map[string]Zone
 }
 
 func NewConfig(path, name, ext string) dnsConfig {
-	return dnsConfig{path: path, name: name, ext: ext, DNS: []string{}, Zones: make(map[string]Zone)}
+	return dnsConfig{
+		path:   path,
+		name:   name,
+		ext:    ext,
+		logger: log.GetLogger(),
+		handler: map[string]func([]record, Record) []record{
+			"TypeA":     func(records []record, r Record) []record { return append(records, &ARecord{r}) },
+			"TypeNS":    func(records []record, r Record) []record { return append(records, &NSRecord{r}) },
+			"TypeCNAME": func(records []record, r Record) []record { return append(records, &CNAMERecord{r}) },
+			"TypePTR":   func(records []record, r Record) []record { return append(records, &PTRRecord{r}) },
+			"TypeMX":    func(records []record, r Record) []record { return append(records, &MXRecord{r}) },
+			"TypeAAAA":  func(records []record, r Record) []record { return append(records, &AAAARecord{r}) },
+			"TypeTXT":   func(records []record, r Record) []record { return append(records, &TXTRecord{r}) },
+		},
+	}
 }
 
 func (s *dnsConfig) Load() error {
@@ -50,55 +68,111 @@ func (s *dnsConfig) Load() error {
 
 	viper.AutomaticEnv()
 	if err := viper.ReadInConfig(); err != nil {
-		return fmt.Errorf("Failed on reading dns config file")
+		s.logger.Errorf("Failed on reading dns config file: %v", err)
+		return err
 	}
 
 	// TODO: Save DNS && ZOne in Cache !!
 	var config FileStruct
 	if err := viper.Unmarshal(&config); err != nil {
-		return fmt.Errorf("Failed on reading dns config file")
+		s.logger.Errorf("Failed on reading dns config file: %v", err)
+		return err
 	}
 
 	// Form map
-	s.DNS = config.DNS
+	res, err := cache.Client().Set(
+		context.Background(),
+		&pb.SetRequest{
+			Key:   "DNS",
+			Value: strings.Join(config.DNS, "|"),
+		})
+
+	if err != nil {
+		s.logger.Errorf("Failed with 'set' request: %v", err)
+	}
+
+	if res.Status != pb.Status_OK {
+		s.logger.Errorf("Cached side error: %s", res.Message)
+	}
+
+	var ttl uint32
 	for _, cfg := range config.Zones {
-		var records = make(map[string][]record)
-		for _, record := range cfg.Records {
-			var name = PREFIX + record.Type
-			// if _, ok := records[name]; !ok {
-			// 	records[name] = make([]record, 0)
-			// }
+		for i, record := range cfg.Records {
+			if ttl = record.TTL; ttl == 0 {
+				ttl = cfg.TTL
+			}
 
-			switch record.Type {
-			case "A":
-				records[name] = append(records[name], &ARecord{record})
+			res, err = cache.Client().Set(
+				context.Background(),
+				&pb.SetRequest{
+					Key:   fmt.Sprintf("ZONE:%s.:Type%s:%d", cfg.Name, record.Type, i),
+					Value: fmt.Sprintf("%s|%d|%s", record.Name, ttl, record.Value),
+				})
 
-			case "NS":
-				records[name] = append(records[name], &NSRecord{record})
+			if err != nil {
+				s.logger.Errorf("Failed with 'set' request: %v", err)
+			}
 
-			case "CNAME":
-				records[name] = append(records[name], &CNAMERecord{record})
-
-			case "PTR":
-				records[name] = append(records[name], &PTRRecord{record})
-
-			case "MX":
-				records[name] = append(records[name], &MXRecord{record})
-
-			case "AAAA":
-				records[name] = append(records[name], &AAAARecord{record})
-
-			case "TXT":
-				records[name] = append(records[name], &TXTRecord{record})
-
-				// TODO:
-			default:
-				records[name] = append(records[name], &EmptyResource{})
+			if res.Status != pb.Status_OK {
+				s.logger.Errorf("Cached side error: %s", res.Message)
 			}
 		}
-
-		s.Zones[cfg.Name+"."] = Zone{Name: cfg.Name, TTL: cfg.TTL, Records: records}
 	}
 
 	return nil
+}
+
+func (s *dnsConfig) DNS() []string {
+	res, err := cache.Client().Get(
+		context.Background(),
+		&pb.GetRequest{Key: "DNS"})
+
+	if err != nil {
+		s.logger.Errorf("Failed with 'set' request: %v", err)
+		return []string{}
+	}
+
+	if res.Status != pb.Status_OK {
+		s.logger.Errorf("Cached side error: %s", res.Message)
+		return []string{}
+	}
+
+	return strings.Split(res.Result, "|")
+}
+
+func (s *dnsConfig) Get(domain, rType string) []record {
+	var ctx = context.Background()
+	res, _ := cache.Client().Keys(ctx, &pb.Request{Key: fmt.Sprintf("ZONE:%s:%s", domain, rType)})
+
+	if res.Status != pb.Status_OK {
+		s.logger.Errorf("Cached side error: %s", res.Message)
+		return []record{}
+	}
+
+	var ok bool
+	var records []record
+	var handler func([]record, Record) []record
+
+	if handler, ok = s.handler[rType]; !ok {
+		handler = func(records []record, _ Record) []record { return append(records, &EmptyResource{}) }
+	}
+
+	for _, key := range res.Result {
+		res, _ := cache.Client().Get(ctx, &pb.GetRequest{Key: key})
+		if res.Status != pb.Status_OK {
+			s.logger.Errorf("Cached side error: %s", res.Message)
+			return []record{}
+		}
+
+		var data = strings.Split(res.Result, "|")
+		ttl, _ := strconv.Atoi(data[1])
+		records = handler(records, Record{
+			Name:  data[0],
+			Type:  rType,
+			TTL:   uint32(ttl),
+			Value: data[2],
+		})
+	}
+
+	return records
 }

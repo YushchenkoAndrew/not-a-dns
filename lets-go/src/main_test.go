@@ -62,6 +62,6 @@ func TestClient(t *testing.T) {
 
 	require.NotEmpty(t, resMessage.Answers)
 	require.Equal(t, len(resMessage.Answers), 2)
-	require.Equal(t, resMessage.Answers[0].Body.(*dnsmessage.AResource).A, [4]byte{255, 255, 255, 255})
-	require.Equal(t, resMessage.Answers[1].Body.(*dnsmessage.AResource).A, [4]byte{127, 0, 0, 1})
+	require.Equal(t, resMessage.Answers[0].Body.(*dnsmessage.AResource).A, [4]byte{127, 0, 0, 1})
+	require.Equal(t, resMessage.Answers[1].Body.(*dnsmessage.AResource).A, [4]byte{255, 255, 255, 255})
 }

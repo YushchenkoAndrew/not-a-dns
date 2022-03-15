@@ -34,8 +34,8 @@ func TestExistedDNSRecord(t *testing.T) {
 
 	require.NotEmpty(t, answers)
 	require.Equal(t, len(answers), 2)
-	require.Equal(t, answers[0].Body.(*dnsmessage.AResource).A, [4]byte{255, 255, 255, 255})
-	require.Equal(t, answers[1].Body.(*dnsmessage.AResource).A, [4]byte{127, 0, 0, 1})
+	require.Equal(t, answers[0].Body.(*dnsmessage.AResource).A, [4]byte{127, 0, 0, 1})
+	require.Equal(t, answers[1].Body.(*dnsmessage.AResource).A, [4]byte{255, 255, 255, 255})
 }
 
 func TestNotExistedDNSRecord(t *testing.T) {
