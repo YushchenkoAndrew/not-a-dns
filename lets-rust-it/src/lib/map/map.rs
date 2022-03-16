@@ -4,7 +4,6 @@
 use super::hash::Hash;
 use super::list::{Iter, List};
 
-// use std::rc::Rc;
 use std::sync::Arc;
 
 pub const HASH_MAP_SIZE: usize = 500;
@@ -18,11 +17,14 @@ pub struct HashMap<T, U> {
   keys: List<T>,
 
   recent_value: List<Arc<Pair<T, U>>>,
-  // values: [Option<Pair<T, U>>; HASH_MAP_SIZE],
   values: [Option<List<Arc<Pair<T, U>>>>; HASH_MAP_SIZE],
 }
 
-impl<T, U> HashMap<T, U> {
+impl<T, U> HashMap<T, U>
+where
+  T: Clone,
+  U: Clone,
+{
   const NONE: Option<List<Arc<Pair<T, U>>>> = None;
 
   pub fn new() -> Self {
@@ -37,24 +39,25 @@ impl<T, U> HashMap<T, U> {
   where
     T: Hash<T> + Clone,
   {
-    self.keys.push(key.clone());
+    self.keys.push_front(key.clone());
 
     let index = (T::hash(&key) as usize) % HASH_MAP_SIZE;
     let pair = Arc::new(Pair { key, value });
 
-    self.recent_value.push(Arc::clone(&pair));
+    // FIXME: Fix bug with repeated value set
+    self.recent_value.push_front(Arc::clone(&pair));
     match &mut self.values[index] {
-      Some(list) => list.push(pair),
+      Some(list) => list.push_front(pair),
       None => {
         let mut list = List::new();
-        list.push(pair);
+        list.push_front(pair);
 
         self.values[index] = Some(list);
       }
     };
   }
 
-  pub fn get(&self, key: &T) -> Option<&U>
+  pub fn get(&self, key: &T) -> Option<U>
   where
     T: Hash<T> + Clone,
   {
@@ -62,36 +65,27 @@ impl<T, U> HashMap<T, U> {
       Some(list) => {
         for item in list.iter() {
           if T::eq(&item.key, key) {
-            return Some(&item.value);
+            return Some(item.value.clone());
           }
         }
         return None;
       }
-      None => {
-        return None;
-      }
+      None => None,
     }
   }
 
-  pub fn del(&self, key: &T)
+  pub fn del(&mut self, key: &T)
   where
     T: Hash<T> + Clone,
   {
-    match &self.values[(T::hash(key) as usize) % HASH_MAP_SIZE] {
-      Some(list) => {
-        for item in list.iter() {
-          if T::eq(&item.key, key) {
-            // TODO: !!!
-            // Some(&item.value);
-            break;
-          }
-        }
-      }
-      None => (),
-    }
+    self.keys.del(|v| T::eq(v, key));
+    self.recent_value.del(|v| T::eq(&v.key, key));
+    self.values[(T::hash(key) as usize) % HASH_MAP_SIZE]
+      .as_mut()
+      .map(|item| item.del(|v| T::eq(&v.key, key)));
   }
 
-  pub fn keys(&self) -> Iter<'_, T> {
+  pub fn keys(&self) -> Iter<T> {
     self.keys.iter()
   }
 }
@@ -112,10 +106,13 @@ mod test {
     map.set(&"WORLD", 4);
     map.set(&"TEST_", 3);
 
+    // Rewrite value
+    map.set(&"TEST_", 2);
+
     // Check value receiving
-    assert_eq!(map.get(&"HELLO"), Some(&5));
-    assert_eq!(map.get(&"WORLD"), Some(&4));
-    assert_eq!(map.get(&"TEST_"), Some(&3));
+    assert_eq!(map.get(&"HELLO"), Some(5));
+    assert_eq!(map.get(&"WORLD"), Some(4));
+    assert_eq!(map.get(&"TEST_"), Some(2));
 
     // TODO: Check normal removal
 
@@ -139,8 +136,8 @@ mod test {
     map.set(&"TEST_", 3);
 
     let mut iter = map.keys();
-    assert_eq!(iter.next(), Some(&"TEST_"));
-    assert_eq!(iter.next(), Some(&"WORLD"));
-    assert_eq!(iter.next(), Some(&"HELLO"));
+    assert_eq!(iter.next(), Some("TEST_"));
+    assert_eq!(iter.next(), Some("WORLD"));
+    assert_eq!(iter.next(), Some("HELLO"));
   }
 }

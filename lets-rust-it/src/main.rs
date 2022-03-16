@@ -63,7 +63,7 @@ impl CacheService for CacheServiceImpl {
                 Some(value) => Ok(tonic::Response::new(pb::ValueResponse {
                     status: pb::Status::Ok as i32,
                     message: String::from("Success !!"),
-                    result: value.clone(),
+                    result: value,
                 })),
 
                 None => Ok(tonic::Response::new(pb::ValueResponse {
@@ -98,7 +98,7 @@ impl CacheService for CacheServiceImpl {
         &self,
         request: tonic::Request<pb::Request>,
     ) -> Result<tonic::Response<pb::ListResponse>, tonic::Status> {
-        println!("Key: {}", request.get_ref().key);
+        print!("Key: {} => ", request.get_ref().key);
 
         match self.cache.lock() {
             Ok(ref cache) => {
@@ -106,10 +106,11 @@ impl CacheService for CacheServiceImpl {
 
                 for key in cache.keys() {
                     if key.starts_with(&request.get_ref().key) {
-                        keys.push(key.clone());
+                        keys.push(key);
                     }
                 }
 
+                println!("{:?}", keys);
                 Ok(tonic::Response::new(pb::ListResponse {
                     status: pb::Status::Ok as i32,
                     message: String::from("Success !!"),
