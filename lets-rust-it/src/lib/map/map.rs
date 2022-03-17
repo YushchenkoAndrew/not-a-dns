@@ -39,22 +39,39 @@ where
   where
     T: Hash<T> + Clone,
   {
-    self.keys.push_front(key.clone());
-
     let index = (T::hash(&key) as usize) % HASH_MAP_SIZE;
-    let pair = Arc::new(Pair { key, value });
+    let pair = Arc::new(Pair {
+      key: key.clone(),
+      value,
+    });
 
-    // FIXME: Fix bug with repeated value set
-    self.recent_value.push_front(Arc::clone(&pair));
     match &mut self.values[index] {
-      Some(list) => list.push_front(pair),
+      Some(list) => {
+        for item in list.iter() {
+          if T::eq(&item.key, &key) {
+            list.del(|v| T::eq(&v.key, &key));
+            self.recent_value.del(|v| T::eq(&v.key, &key));
+
+            list.push_front(Arc::clone(&pair));
+            self.recent_value.push_front(pair);
+            return;
+          }
+        }
+
+        self.keys.push_front(key);
+
+        list.push_front(Arc::clone(&pair));
+        self.recent_value.push_front(pair);
+      }
       None => {
         let mut list = List::new();
-        list.push_front(pair);
+        list.push_front(Arc::clone(&pair));
 
+        self.keys.push_front(key);
+        self.recent_value.push_front(pair);
         self.values[index] = Some(list);
       }
-    };
+    }
   }
 
   pub fn get(&self, key: &T) -> Option<U>
@@ -74,15 +91,20 @@ where
     }
   }
 
-  pub fn del(&mut self, key: &T)
+  pub fn del(&mut self, key: &T) -> Option<U>
   where
     T: Hash<T> + Clone,
   {
+    let index = (T::hash(key) as usize) % HASH_MAP_SIZE;
     self.keys.del(|v| T::eq(v, key));
-    self.recent_value.del(|v| T::eq(&v.key, key));
-    self.values[(T::hash(key) as usize) % HASH_MAP_SIZE]
+    self.values[index]
       .as_mut()
       .map(|item| item.del(|v| T::eq(&v.key, key)));
+
+    self
+      .recent_value
+      .del(|v| T::eq(&v.key, key))
+      .map(|item| item.value.clone())
   }
 
   pub fn keys(&self) -> Iter<T> {
@@ -114,13 +136,29 @@ mod test {
     assert_eq!(map.get(&"WORLD"), Some(4));
     assert_eq!(map.get(&"TEST_"), Some(2));
 
-    // TODO: Check normal removal
+    // Check normal removal
+    assert_eq!(map.del(&"WORLD"), Some(4));
+    assert_eq!(map.get(&"WORLD"), None);
 
-    // TODO: Push some more just to make sure nothing's corrupted
+    // Push some more just to make sure nothing's corrupted
+    map.set(&"WORLD", 6);
+    map.set(&"TEST_", 7);
 
-    // TODO: Check normal removal
+    assert_eq!(map.get(&"HELLO"), Some(5));
+    assert_eq!(map.get(&"WORLD"), Some(6));
+    assert_eq!(map.get(&"TEST_"), Some(7));
 
-    // TODO: Check exhaustion
+    // Check normal removal
+    assert_eq!(map.del(&"WORLD2"), None);
+    assert_eq!(map.del(&"WORLD3"), None);
+
+    // Check exhaustion
+    assert_eq!(map.del(&"HELLO"), Some(5));
+    assert_eq!(map.del(&"WORLD"), Some(6));
+    assert_eq!(map.del(&"TEST_"), Some(7));
+
+    let mut iter = map.keys();
+    assert_eq!(iter.next(), None);
   }
 
   #[test]
@@ -133,6 +171,7 @@ mod test {
     // Populate map
     map.set(&"HELLO", 5);
     map.set(&"WORLD", 4);
+    map.set(&"TEST_", 3);
     map.set(&"TEST_", 3);
 
     let mut iter = map.keys();

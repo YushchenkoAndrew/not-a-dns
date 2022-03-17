@@ -85,21 +85,20 @@ where
       let mut node = old_head.lock().unwrap();
       match node.next.take() {
         Some(new_head) => {
-          node.prev.take().map(|prev| {
-            // if !Arc::ptr_eq(&new_head, &prev) {
-            prev.lock().unwrap().next = Some(Arc::clone(&new_head));
-            new_head.lock().unwrap().prev = Some(prev);
-            // } else {
-            //   new_head.lock().unwrap().prev.take();
-            // }
-          });
+          match node.prev.take() {
+            Some(prev) => {
+              prev.lock().unwrap().next = Some(Arc::clone(&new_head));
+              new_head.lock().unwrap().prev = Some(prev);
+            }
+            None => {
+              new_head.lock().unwrap().prev.take();
+            }
+          }
 
           self.head = Some(new_head);
         }
 
         None => {
-          // self.head = self.tail.take();
-          // assert_eq!(2, 3);
           self.tail.take();
         }
       }
@@ -113,14 +112,15 @@ where
       let mut node = old_tail.lock().unwrap();
       match node.prev.take() {
         Some(new_tail) => {
-          node.next.take().map(|next| {
-            // if !Arc::ptr_eq(&new_tail, &next) {
-            next.lock().unwrap().prev = Some(Arc::clone(&new_tail));
-            new_tail.lock().unwrap().next = Some(next);
-            // } else {
-            //   new_tail.lock().unwrap().next.take();
-            // }
-          });
+          match node.next.take() {
+            Some(next) => {
+              next.lock().unwrap().prev = Some(Arc::clone(&new_tail));
+              new_tail.lock().unwrap().next = Some(next);
+            }
+            None => {
+              new_tail.lock().unwrap().next.take();
+            }
+          }
 
           self.tail = Some(new_tail);
         }
@@ -150,6 +150,11 @@ where
   pub fn iter(&self) -> Iter<T> {
     Iter {
       next: self.head.as_ref().map(|head| Arc::clone(head)),
+    }
+  }
+
+  pub fn iter_rev(&self) -> IterRev<T> {
+    IterRev {
       prev: self.tail.as_ref().map(|tail| Arc::clone(tail)),
     }
   }
@@ -167,7 +172,6 @@ where
       }
     }
 
-    // FIXME: FAILED DEL Test !!!!
     let prev_head = self.head.as_ref().map(|head| Arc::clone(head));
 
     loop {
@@ -179,20 +183,18 @@ where
             return Some(item);
           }
 
-          if Arc::ptr_eq(self.head.as_ref().unwrap(), self.tail.as_ref().unwrap()) {
-            self.head = prev_head;
-            return None;
-          }
-
-          self.head = match &self.head {
+          self.head = match self.head.take() {
             Some(head) => {
               let node = head.lock().unwrap();
-              node.next.as_ref().map(|head| Arc::clone(head))
+              node.next.as_ref().map(|node| Arc::clone(node))
             }
             None => return None,
           }
         }
-        None => return None,
+        None => {
+          self.head = prev_head;
+          return None;
+        }
       }
     }
   }
@@ -200,7 +202,6 @@ where
 
 pub struct Iter<T> {
   next: Option<Arc<Mutex<Node<T>>>>,
-  prev: Option<Arc<Mutex<Node<T>>>>,
 }
 
 impl<T> Iterator for Iter<T>
@@ -216,11 +217,19 @@ where
   }
 }
 
-impl<T> DoubleEndedIterator for Iter<T>
+// NOTE: There was some strange bug with DoubleEndedIterator
+// therefor creating a different Iter for prev is much MUCH
+// easer approach for me (at least right now)
+pub struct IterRev<T> {
+  prev: Option<Arc<Mutex<Node<T>>>>,
+}
+
+impl<T> Iterator for IterRev<T>
 where
   T: Clone,
 {
-  fn next_back(&mut self) -> Option<T> {
+  type Item = T;
+  fn next(&mut self) -> Option<T> {
     self.prev.take().map(|tail| {
       self.prev = tail.lock().unwrap().prev.take();
       tail.lock().unwrap().value.clone()
@@ -317,7 +326,7 @@ mod test {
     list.push_front(2);
     list.push_front(3);
 
-    let mut iter_rev = list.iter().rev();
+    let mut iter_rev = list.iter_rev();
     assert_eq!(iter_rev.next(), Some(1));
     assert_eq!(iter_rev.next(), Some(2));
     assert_eq!(iter_rev.next(), Some(3));
@@ -341,21 +350,18 @@ mod test {
     assert_eq!(iter.next(), Some(1));
     assert_eq!(iter.next(), None);
 
-    let mut iter_rev = list.iter().rev();
+    let mut iter_rev = list.iter_rev();
     assert_eq!(iter_rev.next(), Some(1));
     assert_eq!(iter_rev.next(), Some(3));
     assert_eq!(iter_rev.next(), None);
 
     assert_eq!(list.del(|&x| x == 1), Some(1));
 
-    // list.push_front(4);
+    list.push_front(4);
 
-    iter_rev = list.iter().rev();
-    // FIXME: ????
-    // assert_eq!(iter.next(), Some(4));
-    assert_eq!(iter.next(), Some(3));
-
-    // assert_eq!(list.del(|&x| x == 5), None);
+    iter = list.iter();
+    assert_eq!(iter.next(), Some(4));
+    assert_eq!(iter.next(), None);
   }
 
   #[test]
@@ -368,12 +374,8 @@ mod test {
     assert_eq!(list.del(|&x| x == 2), Some(2));
     assert_eq!(list.del(|&x| x == 1), Some(1));
 
-    // let mut iter = list.iter();
-    // assert_eq!(iter.next(), Some(1));
-    // assert_eq!(iter.next(), None);
-
     let mut iter = list.iter();
-    iter = list.iter();
+    assert_eq!(iter.next(), None);
     assert_eq!(iter.next(), None);
   }
 }
