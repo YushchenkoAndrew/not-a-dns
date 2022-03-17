@@ -10,6 +10,7 @@ export const config = {
 
   kit: {
     adapter: adapter(),
+    paths: { base: "/dns" },
 
     // Override http methods in the Todo forms
     methodOverride: {

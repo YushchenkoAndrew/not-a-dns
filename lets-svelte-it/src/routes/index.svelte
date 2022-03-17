@@ -7,7 +7,7 @@
 </script>
 
 <svelte:head>
-  <title>Home</title>
+  <title>DNS Service</title>
 </svelte:head>
 
 <section>
