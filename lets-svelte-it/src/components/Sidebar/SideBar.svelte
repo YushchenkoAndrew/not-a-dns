@@ -1,8 +1,7 @@
-<script lang="ts">
-</script>
+<script lang="ts"></script>
 
 <div
-  class="flex flex-col px-4 w-96 pt-4 text-black bg-gray-50 border-r-2 h-screen"
+  class="flex flex-col p-4 text-gray-900 bg-gray-50 w-full sm:w-96 sm:h-screen"
 >
   <ul class="flex flex-wrap flex-col mb-auto">
     <slot />
