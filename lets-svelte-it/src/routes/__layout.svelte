@@ -9,40 +9,31 @@
   import NavBarItem from "../components/NavBar/NavBarItem.svelte";
 
   const NAV_BAR = [
-    { name: "/mortis-greamreaper", href: "home" },
-    { name: "/grape", href: "test" },
-    { name: "/void", href: "t" },
-    { name: "/botodachi", href: "#" },
+    { name: "/mortis-greamreaper", href: "home", target: "_blank" },
+    { name: "/grape", href: "test", target: "_blank" },
+    { name: "/void", href: "t", target: "_blank" },
+    { name: "/botodachi", href: "#", target: "_blank" },
   ];
 
-  const MAIN_CHAPTER = [
-    { icon: "fa-solid fa-house", name: "home" },
-    { icon: "fa-solid fa-user", name: "users" },
-    { icon: "fa-solid fa-question", name: "colors" },
-    { icon: "fa-solid fa-question", name: "orders" },
-  ];
-
-  const TEST_CHAPTER = [
-    { icon: "fa-solid fa-house", name: "home test" },
-    { icon: "fa-solid fa-user", name: "users test" },
-    { icon: "fa-solid fa-question", name: "colors test" },
-    { icon: "fa-solid fa-question", name: "orders test" },
-  ];
+  const CHAPTERS = {
+    records: [
+      { on: "fa-circle", off: "fa-dot-circle", name: "A Records" },
+      { on: "fa-circle", off: "fa-dot-circle", name: "AAAA Records" },
+      { on: "fa-circle", off: "fa-dot-circle", name: "CNAME Records" },
+      { on: "fa-circle", off: "fa-dot-circle", name: "PTR Records" },
+      { on: "fa-circle", off: "fa-dot-circle", name: "MX Records" },
+      { on: "fa-circle", off: "fa-dot-circle", name: "TXT Records" },
+    ],
+  };
 
   let view: string;
   const setView = (s: string) => (view = s);
   onMount(() => (view = window.location.href.split("#")[1] || "general"));
 </script>
 
-<svelte:head>
-  <script
-    src="https://kit.fontawesome.com/b63ee8483a.js"
-    crossorigin="anonymous"></script>
-</svelte:head>
-
 <NavBar name="lets-dns-it">
-  {#each NAV_BAR as { name, href }}
-    <NavBarItem {name} {href} />
+  {#each NAV_BAR as options}
+    <NavBarItem {...options} />
   {/each}
 </NavBar>
 
@@ -53,31 +44,23 @@
       General</SideBarItem
     >
 
-    <SideBarChapter name="main">
-      {#each MAIN_CHAPTER as { icon, name }}
-        <SideBarItem
-          selection={name}
-          selected={view === name.replace(/ /g, "_")}
-          {setView}
-        >
-          <i class="{icon} mr-2" />
-          {CapitalizeString(name)}</SideBarItem
-        >
-      {/each}
-    </SideBarChapter>
-
-    <SideBarChapter name="test">
-      {#each TEST_CHAPTER as { icon, name }}
-        <SideBarItem
-          selection={name}
-          selected={view === name.replace(/ /g, "_")}
-          {setView}
-        >
-          <i class="{icon} mr-2" />
-          {CapitalizeString(name)}</SideBarItem
-        >
-      {/each}
-    </SideBarChapter>
+    {#each Object.keys(CHAPTERS) as key}
+      <SideBarChapter name={key}>
+        {#each CHAPTERS[key] as { on, off, name }}
+          {#if view === name.replace(/ /g, "_")}
+            <SideBarItem selection={name} selected {setView}>
+              <i class="fa-solid {on} mr-2" />
+              {CapitalizeString(name)}</SideBarItem
+            >
+          {:else}
+            <SideBarItem selection={name} {setView}>
+              <i class="fa-solid {off || on} mr-2" />
+              {CapitalizeString(name)}</SideBarItem
+            >
+          {/if}
+        {/each}
+      </SideBarChapter>
+    {/each}
   </SideBar>
   <slot />
 </div>

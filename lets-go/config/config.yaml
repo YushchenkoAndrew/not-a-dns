@@ -34,6 +34,8 @@ zones:
         type: "A"
         ttl: 400
         value: "66.254.114.41"
+
+    #  TODO:
     # SOA:
     #   mname: ns1.howcode.org
     #   rname: admin.howcode.org
@@ -43,6 +45,7 @@ zones:
     #   expire: 604800
     #   minimum: 86400
 
+    #  TODO:
     # NS:
     #   - host: ns1.test.net
     #   - host: ns2.test.net
