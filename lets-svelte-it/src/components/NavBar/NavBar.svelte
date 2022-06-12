@@ -5,7 +5,7 @@
   const onCollapse = (v: boolean) => (collapse = v);
 </script>
 
-<nav class="px-2 sm:px-4 py-2.5 bg-gray-800">
+<nav class="px-2 relative z-10 sm:px-4 py-2.5 bg-gray-800 dark:bg-slate-900">
   <div class="container flex flex-wrap justify-between items-center mx-auto">
     <span
       class="self-center text-xl px-3 font-bold whitespace-nowrap text-gray-50"

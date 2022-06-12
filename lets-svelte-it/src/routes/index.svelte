@@ -69,14 +69,18 @@
   <title>DNS Service</title>
 </svelte:head>
 
-<div class="w-full h-full p-4 m-8 overflow-y-auto">
+<div class="w-full h-full p-4 overflow-y-auto">
   <div class="flex flex-col items-center justify-center py-2">
-    <div class="flex flex-col my-6 w-full">
+    <div class="flex flex-col mt-2 mb-6 w-full">
       <p class="group text-2xl font-bold my-2">
-        <a name="general" href="#general">General</a>
-        <i class="fas fa-link text-gray-600 invisible group-hover:visible" />
+        <a name="general" class="text-gray-900 dark:text-white" href="#general"
+          >General</a
+        >
+        <i
+          class="fas fa-link text-gray-600 dark:text-gray-400 invisible group-hover:visible"
+        />
       </p>
-      <p>Some text</p>
+      <p class="text-gray-900 dark:text-gray-100">Some text</p>
     </div>
 
     {#each data as { name, keys, values }, index}

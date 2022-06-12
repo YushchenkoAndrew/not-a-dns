@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { BG_COLORS, DECORATION_COLORS } from "../constant";
+  import { BG_COLORS, DECORATION_COLORS } from "../config";
 
   export let index = 0;
   export let section: string;
@@ -12,15 +12,20 @@
 
 <div class="flex flex-col my-6 w-full">
   <p class="group text-2xl font-bold my-2">
-    <a {name} href="#{name}">{section}</a>
-    <i class="fas fa-link text-gray-600 invisible group-hover:visible" />
+    <a {name} href="#{name}" class="text-gray-900 dark:text-white">{section}</a>
+    <i
+      class="fas fa-link text-gray-600 dark:text-gray-400 invisible group-hover:visible"
+    />
   </p>
 
   <table class="border-collapse table-auto">
     <thead>
       <tr class={BG_COLORS[index]}>
         {#each keys as key}
-          <th class="font-medium px-4 py-2 text-left">{key}</th>
+          <th
+            class="font-medium text-gray-900 dark:text-gray-100 px-4 py-2 text-left"
+            >{key}</th
+          >
         {/each}
       </tr>
     </thead>
@@ -32,7 +37,7 @@
         >
           {#each Object.values(row) as value}
             <td
-              class="p-4 decoration-2 group-hover:underline {DECORATION_COLORS[
+              class="text-gray-900 dark:text-gray-100 p-4 decoration-2 group-hover:underline {DECORATION_COLORS[
                 index
               ]}">{value}</td
             >
@@ -44,7 +49,7 @@
         {#each keys as key}
           <!-- TODO: -->
           <td
-            class="p-4 decoration-2 group-hover:underline {DECORATION_COLORS[
+            class="text-gray-900 dark:text-gray-100 p-4 decoration-2 group-hover:underline {DECORATION_COLORS[
               index
             ]}">{key}</td
           >
