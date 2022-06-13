@@ -28,6 +28,16 @@ export const BG_COLORS = [
   "bg-yellow-200 dark:bg-transparent dark:border-b-4 dark:border-yellow-300",
 ];
 
+export const BORDER_COLORS = [
+  "border-red-300 dark:border-red-400",
+  "border-orange-300 dark:border-orange-400",
+  "border-green-300 dark:border-green-400",
+  "border-teal-300 dark:border-teal-400",
+  "border-indigo-300 dark:border-indigo-400",
+  "border-blue-300 dark:border-blue-400",
+  "border-yellow-200 dark:border-yellow-300",
+];
+
 export const DECORATION_COLORS = [
   "group-hover:decoration-red-300 dark:group-hover:decoration-red-400",
   "group-hover:decoration-orange-300 dark:group-hover:decoration-orange-400",

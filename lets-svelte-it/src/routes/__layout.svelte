@@ -19,7 +19,7 @@
     mode.set(Number(localStorage.getItem("mode") || AppMode.light));
     mode.subscribe((value) => {
       localStorage.setItem("mode", value + "");
-      fetch("/dns/mode", { method: "POST", body: value + "" });
+      fetch("/dns/api/mode", { method: "POST", body: `${value}` });
     });
   });
 </script>
@@ -49,6 +49,10 @@
         {/each}
 
         <SideBarChapter name="settings">
+          <SideBarItem name="Modify Record" bind:view>
+            <i class="fa-solid fa-sliders mr-3" />
+          </SideBarItem>
+
           <SideBarItem onClick={() => mode.set(Number(!$mode))}>
             <div
               class="group-hover:text-blue-600 dark:group-hover:text-yellow-200"

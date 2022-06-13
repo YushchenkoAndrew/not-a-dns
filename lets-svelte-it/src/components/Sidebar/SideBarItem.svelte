@@ -1,9 +1,11 @@
 <script lang="ts">
+  import { SectionFormat } from "../../lib/string";
+
   export let name = "";
   export let view = "";
   export let onClick = (s: string) => ((view = s), null);
 
-  const section = name.replace(/ /g, "_").toLowerCase();
+  const section = SectionFormat(name);
 </script>
 
 <li class="my-1">

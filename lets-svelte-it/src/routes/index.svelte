@@ -60,7 +60,8 @@
 </script>
 
 <script lang="ts">
-  import Record from "../components/Record.svelte";
+  import RecordView from "../components/NavBar/Record/RecordView.svelte";
+  import RecordLabel from "../components/NavBar/Record/RecordLabel.svelte";
 
   export let data: { name: string; keys: string[]; values: any[][] }[];
 </script>
@@ -72,20 +73,19 @@
 <div class="w-full h-full p-4 overflow-y-auto">
   <div class="flex flex-col items-center justify-center py-2">
     <div class="flex flex-col mt-2 mb-6 w-full">
-      <p class="group text-2xl font-bold my-2">
-        <a name="general" class="text-gray-900 dark:text-white" href="#general"
-          >General</a
-        >
-        <i
-          class="fas fa-link text-gray-600 dark:text-gray-400 invisible group-hover:visible"
-        />
-      </p>
+      <RecordLabel label="General" />
       <p class="text-gray-900 dark:text-gray-100">Some text</p>
     </div>
 
     {#each data as { name, keys, values }, index}
-      <Record {index} section={name} {keys} {values} />
+      <RecordView {index} label={name} {keys} {values} />
     {/each}
+
+    <!-- TODO:  Create RecordModifier -->
+    <div class="flex flex-col mt-6 py-6 w-full border-t-2 border-gray-200">
+      <RecordLabel label="Modify Record" />
+      <p class="text-gray-900 dark:text-gray-100">Some text</p>
+    </div>
   </div>
 </div>
 
