@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { SectionFormat } from "../../../lib/string";
+  import { SectionFormat } from "../../lib/string";
 
   export let label: string;
 

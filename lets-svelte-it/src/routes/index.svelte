@@ -60,10 +60,17 @@
 </script>
 
 <script lang="ts">
-  import RecordView from "../components/NavBar/Record/RecordView.svelte";
-  import RecordLabel from "../components/NavBar/Record/RecordLabel.svelte";
+  import RecordView from "../components/Record/RecordView.svelte";
+  import RecordLabel from "../components/Record/RecordLabel.svelte";
+  import RecordModifier from "../components/Record/RecordModifier.svelte";
+  import type { ObjectLiteral } from "../types";
+  import { writable } from "svelte/store";
 
   export let data: { name: string; keys: string[]; values: any[][] }[];
+
+  const names = data.map(({ name }) => name);
+  const keys = data.map(({ keys }) => keys);
+  let record = writable<ObjectLiteral>({});
 </script>
 
 <svelte:head>
@@ -78,14 +85,10 @@
     </div>
 
     {#each data as { name, keys, values }, index}
-      <RecordView {index} label={name} {keys} {values} />
+      <RecordView {index} label={name} {keys} {values} bind:record />
     {/each}
 
-    <!-- TODO:  Create RecordModifier -->
-    <div class="flex flex-col mt-6 py-6 w-full border-t-2 border-gray-200">
-      <RecordLabel label="Modify Record" />
-      <p class="text-gray-900 dark:text-gray-100">Some text</p>
-    </div>
+    <RecordModifier label="Modify Record" {keys} {names} bind:record />
   </div>
 </div>
 
