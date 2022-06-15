@@ -63,14 +63,16 @@
   import RecordView from "../components/Record/RecordView.svelte";
   import RecordLabel from "../components/Record/RecordLabel.svelte";
   import RecordModifier from "../components/Record/RecordModifier.svelte";
-  import type { ObjectLiteral } from "../types";
+  import type { ObjectLiteral, RecordData, RecordTableType } from "../types";
   import { writable } from "svelte/store";
+  import RecordHead from "../components/Record/RecordHead.svelte";
 
-  export let data: { name: string; keys: string[]; values: any[][] }[];
+  export let data: RecordData[];
 
-  const names = data.map(({ name }) => name);
-  const keys = data.map(({ keys }) => keys);
-  let record = writable<ObjectLiteral>({});
+  let record = writable<RecordTableType>({
+    index: 0,
+    data: {} as ObjectLiteral,
+  });
 </script>
 
 <svelte:head>
@@ -81,14 +83,16 @@
   <div class="flex flex-col items-center justify-center py-2">
     <div class="flex flex-col mt-2 mb-6 w-full">
       <RecordLabel label="General" />
-      <p class="text-gray-900 dark:text-gray-100">Some text</p>
+      <p class="text-gray-900 dark:text-gray-200">Some text</p>
     </div>
 
     {#each data as { name, keys, values }, index}
-      <RecordView {index} label={name} {keys} {values} bind:record />
+      <RecordHead {index} label={name} {keys}
+        ><RecordView {index} {keys} {values} bind:record /></RecordHead
+      >
     {/each}
 
-    <RecordModifier label="Modify Record" {keys} {names} bind:record />
+    <RecordModifier label="Modify Record" bind:data bind:record />
   </div>
 </div>
 

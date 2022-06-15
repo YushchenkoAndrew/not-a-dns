@@ -1,18 +1,24 @@
 <script lang="ts">
   import type { Writable } from "svelte/store";
+  import { SectionFormat } from "../../lib/string";
 
-  import type { ObjectLiteral } from "../../types";
+  import type {
+    DefaultResponse,
+    RecordData,
+    RecordTableType,
+  } from "../../types";
+  import RecordHead from "./RecordHead.svelte";
+  import RecordInput from "./RecordInput.svelte";
 
   import RecordLabel from "./RecordLabel.svelte";
 
   export let label: string;
-  export let names: string[];
-  export let keys: string[][];
-  export let record: Writable<ObjectLiteral>;
+  export let data: RecordData[];
+  export let record: Writable<RecordTableType>;
 
   let disabled = true;
-  record.subscribe((next: ObjectLiteral) => {
-    const values = Object.values(next);
+  record.subscribe(({ data }: RecordTableType) => {
+    const values = Object.values(data);
     disabled = values.reduce((acc, curr) => acc || !curr, !values.length);
   });
 
@@ -27,9 +33,35 @@
       "bg-yellow-200 hover:bg-yellow-300 dark:bg-transparent dark:text-yellow-300 hover:dark:bg-yellow-400 hover:dark:text-gray-50",
     ],
   };
+
+  async function onSubmit() {
+    try {
+      const res = await fetch("/dns/api/record", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify($record.data),
+      });
+
+      const response = (await res.json()) as DefaultResponse;
+      if (response.status == "ERR" || !Array.isArray(response.result)) {
+        // TODO: Display an error
+        return;
+      }
+
+      const name = SectionFormat(data[$record.index].name);
+      const el = document.getElementsByName(name)?.[0];
+      if (el) setTimeout(() => el.scrollIntoView({ behavior: "smooth" }), 0);
+
+      data = response.result;
+      $record = { index: 0, data: {} };
+    } catch (err) {
+      // TODO: Display an error
+    }
+  }
 </script>
 
 <div
+  id="#test"
   class="flex flex-col mt-6 py-6 w-full border-t-2 border-gray-200 dark:border-gray-600"
 >
   <RecordLabel {label} />
@@ -41,22 +73,26 @@
       Records
     </p>
 
-    <!-- TODO: Change behavior on md & sm -->
+    <!-- FIXME: Change behavior on md & sm -->
     <div class="flex flex-row pb-4">
       <span class="mr-auto">
-        {#each names as name, i}
+        {#each data as { name, keys }, i}
           <button
             class="px-3 py-2 m-2 rounded-md {styles.button[i] ||
-              ''} hover:drop-shadow-md dark:bg-gray-700 text-gray-900 dark:text-gray-200"
-            >{name}</button
+              ''} hover:scale-105 hover:drop-shadow-md active:scale-100 active:drop-shadow-none dark:bg-gray-700 text-gray-900 dark:text-gray-200"
+            on:click={() =>
+              ($record = {
+                index: i,
+                data: keys.reduce((acc, key) => ({ ...acc, [key]: "" }), {}),
+              })}>{name}</button
           >
         {/each}
-        <!-- <button on:click={() => (disabled = !disabled)}>CLICK</button> -->
       </span>
 
       <button
-        class="flex flex-row mx-3 my-auto px-3 py-2 rounded-md text-gray-50 bg-green-500 dark:bg-green-600  hover:bg-green-600 dark:hover:bg-green-700 disabled:bg-yellow-200 disabled:dark:bg-gray-700 disabled:text-gray-600 disabled:dark:text-yellow-200"
+        class="flex flex-row mx-3 my-auto px-3 py-2 rounded-md hover:scale-105 hover:drop-shadow-md active:scale-100 active:drop-shadow-none disabled:hover:scale-100 disabled:hover:drop-shadow-none disabled:active:scale-100 text-gray-50 bg-green-500 dark:bg-green-600  hover:bg-green-600 dark:hover:bg-green-700 disabled:bg-yellow-200 disabled:dark:bg-gray-700 disabled:text-gray-600 disabled:dark:text-yellow-200"
         {disabled}
+        on:click={onSubmit}
       >
         <i
           class="fas {disabled ? 'fa-minus' : 'fa-check'} my-auto mr-2"
@@ -65,33 +101,21 @@
     </div>
   </div>
 
-  <table class="border-b-2 {''} my-4 border-collapse table-auto">
-    <thead class={`${""} dark:border-b-4`}>
-      <tr>
-        {#each keys[0] as key}
-          <th
-            class="font-semibold text-gray-900 dark:text-gray-100 px-4 py-2 text-left"
-            >{key}</th
-          >
-        {/each}
-      </tr>
-    </thead>
-    <tbody>
-      <tr
-        class="border-t-2 border-red-300 text-gray-900 dark:text-gray-100 w-1/2"
+  {#if Object.keys($record.data).length}
+    <!-- TODO: Add pop up window -->
+
+    <div
+      class="flex flex-col border-2 border-gray-100 dark:border-gray-700 rounded-md pb-5 px-5 my-2"
+    >
+      <RecordHead
+        index={$record.index}
+        label={data[$record.index].name}
+        keys={Object.keys($record.data)}
       >
-        {#each Object.keys($record) as key}
-          <td class="p-4">
-            <input
-              class="border-2 rounded-md border-gray-200 w-1/2"
-              bind:value={$record[key]}
-            />
-          </td>
-        {/each}
-      </tr>
-    </tbody>
-  </table>
-  <!-- <p class="text-gray-900 dark:text-gray-100">Some text</p> -->
+        <RecordInput {record} />
+      </RecordHead>
+    </div>
+  {/if}
 </div>
 
 <style></style>

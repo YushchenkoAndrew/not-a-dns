@@ -3,7 +3,8 @@
 
   export let label: string;
 
-  const name = SectionFormat(label);
+  let name: string;
+  $: name = SectionFormat(label);
 </script>
 
 <p class="group text-2xl font-bold my-2">
