@@ -3,6 +3,13 @@ export enum AppMode {
   dark,
 }
 
+export enum AlertType {
+  success,
+  error,
+  warning,
+  pending,
+}
+
 export type ObjectLiteral = { [key: string]: any };
 
 export type RecordData = { name: string; keys: string[]; values: any[][] };

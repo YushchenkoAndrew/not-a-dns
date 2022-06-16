@@ -7,6 +7,7 @@
     RecordData,
     RecordTableType,
   } from "../../types";
+  import Alert from "../Alert/Alert.svelte";
   import RecordHead from "./RecordHead.svelte";
   import RecordInput from "./RecordInput.svelte";
 
@@ -117,5 +118,8 @@
     </div>
   {/if}
 </div>
+
+<!-- TODO: Use AlertStack !! -->
+<Alert title="title" desc="desc" />
 
 <style></style>
