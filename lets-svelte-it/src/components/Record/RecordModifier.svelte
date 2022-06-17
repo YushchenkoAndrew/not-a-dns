@@ -2,12 +2,16 @@
   import type { Writable } from "svelte/store";
   import { SectionFormat } from "../../lib/string";
 
-  import type {
-    DefaultResponse,
-    RecordData,
-    RecordTableType,
+  import {
+    AlertType,
+    type AlertProps,
+    type DefaultResponse,
+    type RecordData,
+    type RecordTableType,
   } from "../../types";
   import Alert from "../Alert/Alert.svelte";
+
+  import AlertStack from "../Alert/AlertStack.svelte";
   import RecordHead from "./RecordHead.svelte";
   import RecordInput from "./RecordInput.svelte";
 
@@ -16,6 +20,8 @@
   export let label: string;
   export let data: RecordData[];
   export let record: Writable<RecordTableType>;
+
+  let alert: AlertStack;
 
   let disabled = true;
   record.subscribe(({ data }: RecordTableType) => {
@@ -37,6 +43,12 @@
 
   async function onSubmit() {
     try {
+      // console.log(alert);
+      const index = alert.push({
+        title: new Date().getTime().toString(),
+        desc: "desc",
+        status: AlertType.pending,
+      });
       const res = await fetch("/dns/api/record", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -55,6 +67,8 @@
 
       data = response.result;
       $record = { index: 0, data: {} };
+
+      alert.update(index, { status: AlertType.success });
     } catch (err) {
       // TODO: Display an error
     }
@@ -120,6 +134,7 @@
 </div>
 
 <!-- TODO: Use AlertStack !! -->
-<Alert title="title" desc="desc" />
+<AlertStack bind:this={alert} />
 
+<!-- <Alert title="title" desc="desc" /> -->
 <style></style>
