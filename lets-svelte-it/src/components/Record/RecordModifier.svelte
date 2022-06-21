@@ -9,9 +9,8 @@
     type RecordData,
     type RecordTableType,
   } from "../../types";
-  import Alert from "../Alert/Alert.svelte";
 
-  import AlertStack from "../Alert/AlertStack.svelte";
+  import Alert from "../Alert.svelte";
   import RecordHead from "./RecordHead.svelte";
   import RecordInput from "./RecordInput.svelte";
 
@@ -21,7 +20,7 @@
   export let data: RecordData[];
   export let record: Writable<RecordTableType>;
 
-  let alert: AlertStack;
+  let alert: AlertProps = null;
 
   let disabled = true;
   record.subscribe(({ data }: RecordTableType) => {
@@ -31,24 +30,23 @@
 
   const styles = {
     button: [
-      "bg-red-300 hover:bg-red-400 dark:bg-transparent dark:text-red-400 hover:dark:bg-red-400 hover:dark:text-gray-50",
-      "bg-orange-300 hover:bg-orange-400 dark:bg-transparent dark:text-orange-400 hover:dark:bg-orange-400 hover:dark:text-gray-50",
-      "bg-green-300 hover:bg-green-400 dark:bg-transparent dark:text-green-400 hover:dark:bg-green-400 hover:dark:text-gray-800",
-      "bg-teal-300 hover:bg-teal-400 dark:bg-transparent dark:text-teal-400 hover:dark:bg-teal-400 hover:dark:text-gray-800",
-      "bg-indigo-300 hover:bg-indigo-400 dark:bg-transparent dark:text-indigo-400 hover:dark:bg-indigo-400 hover:dark:text-gray-50",
-      "bg-blue-300 hover:bg-blue-400 dark:bg-transparent dark:text-blue-400 hover:dark:bg-blue-400 hover:dark:text-gray-50",
-      "bg-yellow-200 hover:bg-yellow-300 dark:bg-transparent dark:text-yellow-300 hover:dark:bg-yellow-400 hover:dark:text-gray-50",
+      "bg-red-300 hover:bg-red-400 dark:text-red-400 hover:dark:bg-red-400 hover:dark:text-gray-50",
+      "bg-orange-300 hover:bg-orange-400 dark:text-orange-400 hover:dark:bg-orange-400 hover:dark:text-gray-50",
+      "bg-green-300 hover:bg-green-400 dark:text-green-400 hover:dark:bg-green-400 hover:dark:text-gray-800",
+      "bg-teal-300 hover:bg-teal-400 dark:text-teal-400 hover:dark:bg-teal-400 hover:dark:text-gray-800",
+      "bg-indigo-300 hover:bg-indigo-400 dark:text-indigo-400 hover:dark:bg-indigo-400 hover:dark:text-gray-50",
+      "bg-blue-300 hover:bg-blue-400 dark:text-blue-400 hover:dark:bg-blue-400 hover:dark:text-gray-50",
+      "bg-yellow-200 hover:bg-yellow-300 dark:text-yellow-300 hover:dark:bg-yellow-400 hover:dark:text-gray-50",
     ],
   };
 
   async function onSubmit() {
     try {
-      // console.log(alert);
-      const index = alert.push({
+      alert = {
         title: new Date().getTime().toString(),
         desc: "desc",
         status: AlertType.pending,
-      });
+      };
       const res = await fetch("/dns/api/record", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -68,7 +66,7 @@
       data = response.result;
       $record = { index: 0, data: {} };
 
-      alert.update(index, { status: AlertType.success });
+      // alert = { ...alert, status: AlertType.success };
     } catch (err) {
       // TODO: Display an error
     }
@@ -134,7 +132,9 @@
 </div>
 
 <!-- TODO: Use AlertStack !! -->
-<AlertStack bind:this={alert} />
+{#if alert}
+  <Alert {...alert} onClose={() => (alert = null)} />
+{/if}
 
 <!-- <Alert title="title" desc="desc" /> -->
 <style></style>

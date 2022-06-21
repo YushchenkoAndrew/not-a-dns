@@ -27,4 +27,8 @@ export type DefaultResponseERR = {
   result?: any;
 };
 
-export type AlertProps = { status: AlertType; title: string; desc: string };
+export type AlertProps = {
+  status: AlertType;
+  title: string;
+  desc: string;
+};
