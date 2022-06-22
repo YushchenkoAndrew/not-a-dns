@@ -43,10 +43,11 @@
   async function onSubmit() {
     try {
       alert = {
-        title: new Date().getTime().toString(),
-        desc: "desc",
+        title: "Creating new Record",
+        desc: "Loading ...",
         status: AlertType.pending,
       };
+
       const res = await fetch("/dns/api/record", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -54,9 +55,12 @@
       });
 
       const response = (await res.json()) as DefaultResponse;
-      if (response.status == "ERR" || !Array.isArray(response.result)) {
-        // TODO: Display an error
-        return;
+      if (response.status == "ERR") {
+        return (alert = {
+          ...alert,
+          desc: response.message,
+          status: AlertType.error,
+        });
       }
 
       const name = SectionFormat(data[$record.index].name);
@@ -66,9 +70,17 @@
       data = response.result;
       $record = { index: 0, data: {} };
 
-      // alert = { ...alert, status: AlertType.success };
+      alert = {
+        ...alert,
+        desc: "New record was added",
+        status: AlertType.success,
+      };
     } catch (err) {
-      // TODO: Display an error
+      alert = {
+        ...alert,
+        desc: "Server Side error: " + String(err),
+        status: AlertType.error,
+      };
     }
   }
 </script>
@@ -115,8 +127,6 @@
   </div>
 
   {#if Object.keys($record.data).length}
-    <!-- TODO: Add pop up window -->
-
     <div
       class="flex flex-col border-2 border-gray-100 dark:border-gray-700 rounded-md pb-5 px-5 my-2"
     >
@@ -131,10 +141,9 @@
   {/if}
 </div>
 
-<!-- TODO: Use AlertStack !! -->
 {#if alert}
+  <!-- TODO: Use AlertStack !! -->
   <Alert {...alert} onClose={() => (alert = null)} />
 {/if}
 
-<!-- <Alert title="title" desc="desc" /> -->
 <style></style>

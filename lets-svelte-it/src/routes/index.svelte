@@ -1,6 +1,7 @@
 <script context="module" lang="ts">
   // export const prerender = true;
   export async function load() {
+    // FIXME: Use proto to retrive data !!!
     return {
       props: {
         data: [
