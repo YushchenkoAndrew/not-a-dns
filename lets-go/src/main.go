@@ -32,5 +32,4 @@ func main() {
 
 	logger.Infof("DNS Server has been started: '%s'", os.Args[ADDR])
 	defer dns.Close()
-	dns.Run()
 }

@@ -1,4 +1,4 @@
-dns:
+nameservers:
   - "8.8.8.8"
   - "8.8.4.4"
   - "9.9.9.9"
@@ -24,7 +24,7 @@ zones:
 
       - name: "@"
         type: "A"
-        # ttl: 400
+        ttl: 400
         value: "127.0.0.1"
 
   - name: google.com
