@@ -2,7 +2,7 @@
 
 dns: 
 	# PAUSE DNS SERVICE
-	sudo systemctl stop systemd-resolved
+	# sudo systemctl stop systemd-resolved
 
 restart:
 	# RESTART DNS SERVICE
@@ -20,7 +20,7 @@ build:
 dev: build dns
 	# THIS PROGRAM SHOULD BE LAUNCHED WITH ROOT PERMISSIONS
 	set CACHE_ADDR=127.0.0.1:50031
-	sudo ./out/lets-go 0.0.0.0:53 ./config/config.yaml
+	./out/lets-go 0.0.0.0:50053 ./config/config.yaml
 
 test: build
 	mkdir -p pb/cache
