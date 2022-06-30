@@ -5,67 +5,56 @@ import (
 	"fmt"
 	"lets-go/src/lib/cache"
 	pb "lets-go/src/pb/cache"
-	"strconv"
 	"strings"
+
+	"github.com/miekg/dns"
 )
 
 const (
 	NAMESERVERS_KEY = "NAMESERVERS"
+	NAMESERVERS_SEP = "|"
+
+	ZONE_KEY = "ZONE"
 )
 
-func Nameservers() []string {
+func getNameservers() []string {
 	res, err := cache.Client().Get(
 		context.Background(),
 		&pb.GetRequest{Key: NAMESERVERS_KEY})
 
-	if err != nil {
-		logger.Errorf("Failed with 'set' request: %v", err)
+	logger.Debugf("Cache nameservers %+v\n", res)
+	if err != nil || res.Status != pb.Status_OK {
+		logger.Errorf("Cache error: %s %v", res.Message, err)
 		return []string{}
 	}
 
-	if res.Status != pb.Status_OK {
-		logger.Errorf("Cached side error: %s", res.Message)
-		return []string{}
-	}
-
-	return strings.Split(res.Result, "|")
+	return strings.Split(res.Result, NAMESERVERS_SEP)
 }
 
-func getRecord(domain string, qType uint16) []record {
-	var ctx = context.Background()
-	res, _ := cache.Client().Keys(ctx, &pb.Request{Key: fmt.Sprintf("ZONE:%s:%d", domain, qType)})
-
-	if res.Status != pb.Status_OK {
-		logger.Errorf("Cached side error: %s", res.Message)
-		return []record{}
-	}
-
-	var ok bool
-	var records []record
-	var handler func([]record, ConfigRecord) []record
-
-	if handler, ok = RecordHandler[qType]; !ok {
-		handler = func(records []record, _ ConfigRecord) []record { return append(records, &EmptyResource{}) }
+func getRecord(domain string, qType uint16) (result []dns.RR) {
+	res, err := cache.Client().Keys(context.Background(), &pb.Request{Key: fmt.Sprintf("%s:%s:%d", ZONE_KEY, domain, qType)})
+	if err != nil || res.Status != pb.Status_OK {
+		logger.Errorf("Cache error: %s %v", res.Message, err)
+		return
 	}
 
 	for _, key := range res.Result {
-		res, _ := cache.Client().Get(ctx, &pb.GetRequest{Key: key})
-		logger.Debugf("Cache %+v\n", res)
+		res, err := cache.Client().Get(context.Background(), &pb.GetRequest{Key: key})
+		logger.Debugf("Cache record %+v\n", res)
 
-		if res.Status != pb.Status_OK {
-			logger.Errorf("Cached side error: %s", res.Message)
-			return []record{}
+		if err != nil || res.Status != pb.Status_OK {
+			logger.Errorf("Cache error: %s %v", res.Message, err)
+			continue
 		}
 
-		var data = strings.Split(res.Result, "|")
-		ttl, _ := strconv.Atoi(data[1])
-		records = handler(records, ConfigRecord{
-			Name: data[0],
-			// 	Type:  qType,
-			TTL:   uint32(ttl),
-			Value: data[2],
-		})
+		r, err := dns.NewRR(res.Result)
+		if err != nil {
+			logger.Errorf("RR error: %v", err)
+			continue
+		}
+
+		result = append(result, r)
 	}
 
-	return records
+	return
 }

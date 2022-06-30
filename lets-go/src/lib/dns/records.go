@@ -8,41 +8,30 @@ import (
 )
 
 type record interface {
-	res() (dns.RR, int)
+	res() string
 }
 
-type ARecord struct {
-	ConfigRecord
-}
-
-func (s *ARecord) res() (dns.RR, int) {
-	var ip = net.ParseIP(s.Value)
+func ARecordConv(c *ConfigRecord) string {
+	var ip = net.ParseIP(c.Value)
 	if ip == nil {
-		return nil, dns.RcodeServerFailure
+		return ""
 	}
 
-	return &dns.A{
-		Hdr: dns.RR_Header{Name: s.Name, Rrtype: RRTypeToInt[s.Type], Class: dns.ClassINET, Ttl: s.TTL},
+	a := dns.A{
+		Hdr: dns.RR_Header{Name: c.Name, Rrtype: RRTypeToInt[c.Type], Class: dns.ClassINET, Ttl: c.TTL},
 		A:   ip[12:16],
-	}, dns.RcodeSuccess
+	}
+
+	return a.String()
 }
 
-type NSRecord struct {
-	ConfigRecord
-}
+func NSRecordConv(c *ConfigRecord) string {
+	ns := dns.NS{
+		Hdr: dns.RR_Header{Name: c.Name, Rrtype: RRTypeToInt[c.Type], Class: dns.ClassINET, Ttl: c.TTL},
+		Ns:  c.Value,
+	}
 
-func (s *NSRecord) res() (dns.RR, int) {
-	// FIXME:
-	// NS, err := dnsmessage.NewName(s.Value)
-	// if err != nil {
-	// 	return nil, dns.RcodeServerFailure
-	// }
-
-	// return &dnsmessage.NSResource{NS: NS}, s.TTL, dns.RcodeSuccess
-
-	return &dns.MX{
-		Hdr: dns.RR_Header{Name: s.Name, Rrtype: RRTypeToInt[s.Type], Class: dns.ClassINET, Ttl: s.TTL},
-	}, dns.RcodeSuccess
+	return ns.String()
 }
 
 type CNAMERecord struct {

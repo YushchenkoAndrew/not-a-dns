@@ -2,14 +2,12 @@ package dns
 
 import (
 	"lets-go/src/lib/log"
-	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/miekg/dns"
 )
 
-var logger log.Logger
+var logger = log.GetLogger()
 
 const (
 	TIMEOUT        = 100 * time.Millisecond
@@ -20,29 +18,17 @@ type letsDnsIt struct {
 	server *dns.Server
 }
 
-func NewDNS(network, addr, path string) (*letsDnsIt, error) {
-	err := LoadConfig(
-		filepath.Dir(path),
-		strings.TrimSuffix(filepath.Base(path),
-			filepath.Ext(path)), strings.Trim(filepath.Ext(path), "."),
-	)
-
-	if err != nil {
-		return nil, err
-	}
-
-	result := &letsDnsIt{server: &dns.Server{Addr: addr, Net: "udp"}}
-
-	dns.HandleFunc(".", result.handle)
-	if err := result.server.ListenAndServe(); err != nil {
-		return nil, err
-	}
-
-	return result, nil
+func NewDNS(network, addr string) *letsDnsIt {
+	return &letsDnsIt{server: &dns.Server{Addr: addr, Net: "udp"}}
 }
 
 func (s *letsDnsIt) Close() {
 	s.server.Shutdown()
+}
+
+func (s *letsDnsIt) Run() error {
+	dns.HandleFunc(".", s.handle)
+	return s.server.ListenAndServe()
 }
 
 func (s *letsDnsIt) handle(w dns.ResponseWriter, req *dns.Msg) {
@@ -59,7 +45,7 @@ func (s *letsDnsIt) handle(w dns.ResponseWriter, req *dns.Msg) {
 	if req.Response {
 
 		// FIXME:
-		// s.logger.Debugf("DNS RESPONSE '%s' QUESTION: '%s' \n", addr, req.Question[0].Name)
+		logger.Debugf("DNS RESPONSE QUESTION: '%s' \n", req.Question[0].Name)
 
 		// s.mu.Lock()
 		// defer s.mu.Unlock()
@@ -76,16 +62,15 @@ func (s *letsDnsIt) handle(w dns.ResponseWriter, req *dns.Msg) {
 	}
 
 	logger.Debugf("DNS QUESTION: '%s' \n", req.Question[0].Name)
-	if rCode, answers := s.getAnswers(req.Question); rCode != dns.RcodeNameError {
+	rCode, answers := s.getAnswers(req.Question)
+	res.MsgHdr.Rcode = rCode
+	res.Answer = append(req.Answer, answers...)
 
-		res.MsgHdr.Rcode = rCode
-		res.Answer = append(req.Answer, answers...)
+	w.WriteMsg(&res)
+	// 	return
+	// }
 
-		w.WriteMsg(&res)
-		return
-	}
-
-	s.checkNameservers(req)
+	// s.checkAnotherNameservers(req)
 	// }()
 
 }
@@ -94,33 +79,22 @@ func (s *letsDnsIt) getAnswers(questions []dns.Question) (int, []dns.RR) {
 	var answers = []dns.RR{}
 	for _, question := range questions {
 		records := getRecord(question.Name, question.Qtype)
-		if len(records) == 0 {
-			return dns.RcodeNameError, nil
-		}
+		// if len(records) == 0 {
+		// return dns.RcodeNameError, nil
+		// fmt.Println(getNameservers())
+		// return dns.RcodeSuccess, []dns.RR{
+		// 	&dns.NS{
+		// 		Hdr: dns.RR_Header{Name: question.Name, Rrtype: question.Qtype, Class: question.Qclass},
+		// 		Ns:  getNameservers()[0],
+		// 	},
+		// }
 
-		for _, record := range records {
-			res, rCode := record.res()
-			if rCode != dns.RcodeSuccess {
-				logger.Warnf("Return an error RCODE: %d\n", rCode)
-				return rCode, []dns.RR{}
-			}
+		// NOTE: Maybe not to return anything
+		// return dns.RcodeNameError, []dns.RR{}
+		// }
 
-			answers = append(answers, res)
-		}
+		answers = append(answers, records...)
 	}
 
 	return dns.RcodeSuccess, answers
-}
-
-func (s *letsDnsIt) checkNameservers(req *dns.Msg) {
-	// for _, dns := range s.config.Nameservers() {
-	// 	// If we got a time out error then just try another DNS
-	// 	if ok := s.Response(&net.UDPAddr{IP: net.ParseIP(dns), Port: 53}, req, time.Now().Add(TIMEOUT)); !ok {
-	// 		break
-	// 	}
-	// }
-}
-
-func init() {
-	logger = log.GetLogger()
 }

@@ -15,9 +15,9 @@ var (
 		"TXT":   dns.TypeTXT,
 	}
 
-	RecordHandler = map[uint16]func([]record, ConfigRecord) []record{
-		dns.TypeA:  func(records []record, r ConfigRecord) []record { return append(records, &ARecord{r}) },
-		dns.TypeNS: func(records []record, r ConfigRecord) []record { return append(records, &NSRecord{r}) },
+	ConfigRecordToString = map[uint16]func(*ConfigRecord) string{
+		dns.TypeA:  func(r *ConfigRecord) string { return ARecordConv(r) },
+		dns.TypeNS: func(r *ConfigRecord) string { return NSRecordConv(r) },
 		// dns.TypeCNAME: func(records []record, r Record) []record { return append(records, &CNAMERecord{r}) },
 		// dns.TypePTR:   func(records []record, r Record) []record { return append(records, &PTRRecord{r}) },
 		// dns.TypeMX:    func(records []record, r Record) []record { return append(records, &MXRecord{r}) },
@@ -34,6 +34,16 @@ type ConfigRecord struct {
 	Priority uint16 `mapstructure:"priority"`
 }
 
+func (c *ConfigRecord) copy() *ConfigRecord {
+	return &ConfigRecord{
+		Name:     c.Name,
+		Type:     c.Type,
+		TTL:      c.TTL,
+		Value:    c.Value,
+		Priority: c.Priority,
+	}
+}
+
 type ConfigDNS struct {
 	Nameservers []string `mapstructure:"nameservers"`
 	Zones       []struct {
@@ -41,6 +51,4 @@ type ConfigDNS struct {
 		TTL     uint32         `mapstructure:"ttl"`
 		Records []ConfigRecord `mapstructure:"records"`
 	} `mapstructure:"zones"`
-
-	dns.Type
 }

@@ -17,10 +17,10 @@ zones:
   - name: test.net
     ttl: 3600
     records:
-      - name: "@"
-        type: "A"
-        ttl: 400
-        value: "255.255.255.255"
+      # - name: "@"
+      #   type: "A"
+      #   ttl: 400
+      #   value: "255.255.255.255"
 
       - name: "@"
         type: "A"
@@ -34,6 +34,22 @@ zones:
         type: "A"
         ttl: 400
         value: "66.254.114.41"
+
+  - name: test2.net
+    ttl: 3600
+    records:
+      - name: "@"
+        type: "A"
+        ttl: 400
+        value: "66.254.114.41"
+
+  - name: yes.com
+    ttl: 3600
+    records:
+      - name: "@"
+        type: "A"
+        ttl: 400
+        value: "127.0.0.1:8003"
 
     #  TODO:
     # SOA:

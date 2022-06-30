@@ -8,7 +8,6 @@ import (
 
 	pb "lets-go/src/pb/cache"
 
-	"github.com/miekg/dns"
 	"github.com/spf13/viper"
 )
 
@@ -34,35 +33,36 @@ func LoadConfig(path, name, ext string) error {
 		context.Background(),
 		&pb.SetRequest{
 			Key:   NAMESERVERS_KEY,
-			Value: strings.Join(config.Nameservers, "|"),
+			Value: strings.Join(config.Nameservers, NAMESERVERS_SEP),
 		})
 
 	if err != nil || res.Status != pb.Status_OK {
 		logger.Errorf("Cache error: %s %v", res.Message, err)
 	}
 
-	var ttl uint32
 	for _, cfg := range config.Zones {
 		for i, record := range cfg.Records {
-			if ttl = record.TTL; ttl == 0 {
-				ttl = cfg.TTL
+			r := record.copy()
+			r.Name = trimHost(strings.ReplaceAll(r.Name, "@", trimHost(cfg.Name)))
+
+			if r.TTL == 0 {
+				r.TTL = cfg.TTL
+			}
+
+			if conv, ok := ConfigRecordToString[RRTypeToInt[record.Type]]; !ok || conv(r) == "" {
+				logger.Errorf("Unsupported type: %s '%s'", record.Type, r.Name)
+				continue
 			}
 
 			res, err = cache.Client().Set(
 				context.Background(),
 				&pb.SetRequest{
-
-					// TODO: Use dns toString()
-					Key:   fmt.Sprintf("ZONE:%s.:%d:%d", cfg.Name, RRTypeToInt[record.Type], i),
-					Value: fmt.Sprintf("%s|%d|%s", record.Name, ttl, record.Value),
+					Key:   fmt.Sprintf("%s:%s:%d:%d", ZONE_KEY, r.Name, RRTypeToInt[r.Type], i),
+					Value: ConfigRecordToString[RRTypeToInt[record.Type]](r),
 				})
 
-			if err != nil {
-				logger.Errorf("Failed with 'set' request: %v", err)
-			}
-
-			if res.Status != pb.Status_OK {
-				logger.Errorf("Cached side error: %s", res.Message)
+			if err != nil || res.Status != pb.Status_OK {
+				logger.Errorf("Cache error: %s %v", res.Message, err)
 			}
 		}
 	}
@@ -70,11 +70,6 @@ func LoadConfig(path, name, ext string) error {
 	return nil
 }
 
-func init() {
-	r := new(dns.MX)
-	r.Hdr = dns.RR_Header{Name: "miek.nl.", Rrtype: dns.TypeMX, Class: dns.ClassINET, Ttl: 3600}
-	r.Preference = 10
-	r.Mx = "mx.miek.nl."
-
-	fmt.Printf("TEST: %s", r.String())
+func trimHost(host string) string {
+	return strings.TrimRight(host, ".") + "."
 }
