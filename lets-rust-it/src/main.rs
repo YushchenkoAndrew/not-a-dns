@@ -56,15 +56,18 @@ impl CacheService for CacheServiceImpl {
     &self,
     request: tonic::Request<pb::GetRequest>,
   ) -> Result<tonic::Response<pb::ValueResponse>, tonic::Status> {
-    println!("Get: {}", request.get_ref().key);
+    print!("Get: {} => ", request.get_ref().key);
 
     match self.cache.lock() {
       Ok(ref cache) => match cache.get(&request.get_ref().key) {
-        Some(value) => Ok(tonic::Response::new(pb::ValueResponse {
-          status: pb::Status::Ok as i32,
-          message: String::from("Success !!"),
-          result: value,
-        })),
+        Some(value) => {
+          println!("'{}'", value);
+          Ok(tonic::Response::new(pb::ValueResponse {
+            status: pb::Status::Ok as i32,
+            message: String::from("Success !!"),
+            result: value,
+          }))
+        }
 
         None => Ok(tonic::Response::new(pb::ValueResponse {
           status: pb::Status::Err as i32,
@@ -138,7 +141,7 @@ impl CacheService for CacheServiceImpl {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-  println!("Hello {}!", "world");
+  println!("Cache system is started !!");
 
   let args: Vec<String> = env::args().collect();
 
