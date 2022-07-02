@@ -2,11 +2,14 @@
 //  https://medium.com/@narengowda/designing-the-caching-system-e42c6938df6a
 
 use super::hash::Hash;
+use super::history::History;
 use super::list::{Iter, List};
 
+use std::fmt::Display;
 use std::sync::Arc;
 
 pub const HASH_MAP_SIZE: usize = 500;
+pub const HASH_MAP_HISTORY: &str = "./map.history";
 
 pub struct Pair<T, U> {
   pub key: T,
@@ -18,12 +21,14 @@ pub struct HashMap<T, U> {
 
   recent_value: List<Arc<Pair<T, U>>>,
   values: [Option<List<Arc<Pair<T, U>>>>; HASH_MAP_SIZE],
+
+  history: History,
 }
 
 impl<T, U> HashMap<T, U>
 where
-  T: Clone,
-  U: Clone,
+  T: Clone + Display,
+  U: Clone + Display,
 {
   const NONE: Option<List<Arc<Pair<T, U>>>> = None;
 
@@ -32,6 +37,7 @@ where
       keys: List::new(),
       recent_value: List::new(),
       values: [HashMap::NONE; HASH_MAP_SIZE],
+      history: History::new(String::from(HASH_MAP_HISTORY)),
     };
   }
 
