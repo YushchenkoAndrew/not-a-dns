@@ -2,12 +2,15 @@
 //  https://rust-unofficial.github.io/too-many-lists/second.html
 //  https://stackoverflow.com/a/12996028
 
-use std::sync::{Arc, Mutex};
+use std::{
+  ptr::eq,
+  sync::{Arc, Mutex},
+};
 
 pub struct Node<T> {
   next: Option<Arc<Mutex<Node<T>>>>,
   prev: Option<Arc<Mutex<Node<T>>>>,
-  value: T,
+  value: Option<T>,
 }
 
 impl<T> Node<T> {
@@ -15,7 +18,7 @@ impl<T> Node<T> {
     Arc::new(Mutex::new(Node {
       next: None,
       prev: None,
-      value,
+      value: Some(value),
     }))
   }
 }
@@ -81,75 +84,81 @@ where
   }
 
   pub fn pop_front(&mut self) -> Option<T> {
-    self.head.take().map(|old_head| {
-      let mut node = old_head.lock().unwrap();
-      match node.next.take() {
-        Some(new_head) => {
-          match node.prev.take() {
-            Some(prev) => {
-              prev.lock().unwrap().next = Some(Arc::clone(&new_head));
-              new_head.lock().unwrap().prev = Some(prev);
+    match self.head.take() {
+      Some(old_head) => {
+        let mut node = old_head.lock().unwrap();
+        match node.next.take() {
+          Some(new_head) => {
+            match node.prev.take() {
+              Some(prev) => {
+                prev.lock().unwrap().next = Some(Arc::clone(&new_head));
+                new_head.lock().unwrap().prev = Some(prev);
+              }
+              None => {
+                new_head.lock().unwrap().prev.take();
+              }
             }
-            None => {
-              new_head.lock().unwrap().prev.take();
-            }
+
+            self.head = Some(new_head);
           }
 
-          self.head = Some(new_head);
+          None => {
+            self.tail.take();
+          }
         }
 
-        None => {
-          self.tail.take();
-        }
+        node.value.take()
       }
-
-      node.value.clone()
-    })
+      None => None,
+    }
   }
 
   pub fn pop_back(&mut self) -> Option<T> {
-    self.tail.take().map(|old_tail| {
-      let mut node = old_tail.lock().unwrap();
-      match node.prev.take() {
-        Some(new_tail) => {
-          match node.next.take() {
-            Some(next) => {
-              next.lock().unwrap().prev = Some(Arc::clone(&new_tail));
-              new_tail.lock().unwrap().next = Some(next);
+    match self.tail.take() {
+      Some(old_tail) => {
+        let mut node = old_tail.lock().unwrap();
+        match node.prev.take() {
+          Some(new_tail) => {
+            match node.next.take() {
+              Some(next) => {
+                next.lock().unwrap().prev = Some(Arc::clone(&new_tail));
+                new_tail.lock().unwrap().next = Some(next);
+              }
+              None => {
+                new_tail.lock().unwrap().next.take();
+              }
             }
-            None => {
-              new_tail.lock().unwrap().next.take();
-            }
+
+            self.tail = Some(new_tail);
           }
+          None => {
+            self.head.take();
+          }
+        }
 
-          self.tail = Some(new_tail);
-        }
-        None => {
-          self.head.take();
-        }
+        node.value.take()
       }
-
-      node.value.clone()
-    })
+      None => None,
+    }
   }
 
   pub fn peek_front(&self) -> Option<T> {
-    self
-      .head
-      .as_ref()
-      .map(|node| node.lock().unwrap().value.clone())
+    match self.head.as_ref() {
+      Some(node) => node.lock().unwrap().value.clone(),
+      None => None,
+    }
   }
 
   pub fn peek_back(&self) -> Option<T> {
-    self
-      .tail
-      .as_ref()
-      .map(|node| node.lock().unwrap().value.clone())
+    match self.tail.as_ref() {
+      Some(node) => node.lock().unwrap().value.clone(),
+      None => None,
+    }
   }
 
   pub fn iter(&self) -> Iter<T> {
     Iter {
-      next: self.head.as_ref().map(|head| Arc::clone(head)),
+      next: self.head.as_ref().as_ref().map(|head| Arc::clone(head)),
     }
   }
 
@@ -178,9 +187,9 @@ where
       match self.peek_front() {
         Some(item) => {
           if eq(&item) {
-            self.pop_front();
+            let result = self.pop_front();
             self.head = prev_head;
-            return Some(item);
+            return result;
           }
 
           self.head = match self.head.take() {
@@ -210,10 +219,20 @@ where
 {
   type Item = T;
   fn next(&mut self) -> Option<Self::Item> {
-    self.next.take().map(|head| {
-      self.next = head.lock().unwrap().next.take();
-      head.lock().unwrap().value.clone()
-    })
+    let value = match self.next.as_ref() {
+      Some(head) => head.lock().unwrap().value.clone(),
+      None => None,
+    };
+
+    self.next = match self.next.as_ref() {
+      Some(head) => match head.lock().unwrap().next.as_ref() {
+        Some(head) => Some(Arc::clone(head)),
+        None => None,
+      },
+      None => None,
+    };
+
+    value
   }
 }
 
@@ -230,10 +249,20 @@ where
 {
   type Item = T;
   fn next(&mut self) -> Option<T> {
-    self.prev.take().map(|tail| {
-      self.prev = tail.lock().unwrap().prev.take();
-      tail.lock().unwrap().value.clone()
-    })
+    let value = match self.prev.as_ref() {
+      Some(tail) => tail.lock().unwrap().value.clone(),
+      None => None,
+    };
+
+    self.prev = match self.prev.as_ref() {
+      Some(tail) => match tail.lock().unwrap().prev.as_ref() {
+        Some(tail) => Some(Arc::clone(tail)),
+        None => None,
+      },
+      None => None,
+    };
+
+    value
   }
 }
 
@@ -361,7 +390,13 @@ mod test {
 
     iter = list.iter();
     assert_eq!(iter.next(), Some(4));
+    assert_eq!(iter.next(), Some(3));
     assert_eq!(iter.next(), None);
+
+    iter_rev = list.iter_rev();
+    assert_eq!(iter_rev.next(), Some(3));
+    assert_eq!(iter_rev.next(), Some(4));
+    assert_eq!(iter_rev.next(), None);
   }
 
   #[test]
