@@ -6,10 +6,11 @@ use super::history::History;
 use super::list::{Iter, List};
 
 use std::fmt::Display;
+use std::str::FromStr;
 use std::sync::Arc;
 
-pub const HASH_MAP_SIZE: usize = 500;
-pub const HASH_MAP_HISTORY: &str = "./map.history";
+const HASH_MAP_SIZE: usize = 500;
+const HASH_MAP_HISTORY: &str = "./map.history";
 
 pub struct Pair<T, U> {
   pub key: T,
@@ -27,8 +28,8 @@ pub struct HashMap<T, U> {
 
 impl<T, U> HashMap<T, U>
 where
-  T: Clone + Display,
-  U: Clone + Display,
+  T: Clone + Display + FromStr,
+  U: Clone + Display + FromStr,
 {
   const NONE: Option<List<Arc<Pair<T, U>>>> = None;
 
@@ -127,41 +128,41 @@ mod test {
     let mut map = HashMap::new();
 
     // Check empty map behaves right
-    assert_eq!(map.get(&"HELLO"), None);
+    assert_eq!(map.get(&String::from("HELLO")), None);
 
     // Populate map
-    map.set(&"HELLO", 5);
-    map.set(&"WORLD", 4);
-    map.set(&"TEST_", 3);
+    map.set(String::from("HELLO"), 5);
+    map.set(String::from("WORLD"), 4);
+    map.set(String::from("TEST_"), 3);
 
     // Rewrite value
-    map.set(&"TEST_", 2);
+    map.set(String::from("TEST_"), 2);
 
     // Check value receiving
-    assert_eq!(map.get(&"HELLO"), Some(5));
-    assert_eq!(map.get(&"WORLD"), Some(4));
-    assert_eq!(map.get(&"TEST_"), Some(2));
+    assert_eq!(map.get(&String::from("HELLO")), Some(5));
+    assert_eq!(map.get(&String::from("WORLD")), Some(4));
+    assert_eq!(map.get(&String::from("TEST_")), Some(2));
 
     // Check normal removal
-    assert_eq!(map.del(&"WORLD"), Some(4));
-    assert_eq!(map.get(&"WORLD"), None);
+    assert_eq!(map.del(&String::from("WORLD")), Some(4));
+    assert_eq!(map.get(&String::from("WORLD")), None);
 
     // Push some more just to make sure nothing's corrupted
-    map.set(&"WORLD", 6);
-    map.set(&"TEST_", 7);
+    map.set(String::from("WORLD"), 6);
+    map.set(String::from("TEST_"), 7);
 
-    assert_eq!(map.get(&"HELLO"), Some(5));
-    assert_eq!(map.get(&"WORLD"), Some(6));
-    assert_eq!(map.get(&"TEST_"), Some(7));
+    assert_eq!(map.get(&String::from("HELLO")), Some(5));
+    assert_eq!(map.get(&String::from("WORLD")), Some(6));
+    assert_eq!(map.get(&String::from("TEST_")), Some(7));
 
     // Check normal removal
-    assert_eq!(map.del(&"WORLD2"), None);
-    assert_eq!(map.del(&"WORLD3"), None);
+    assert_eq!(map.del(&String::from("WORLD2")), None);
+    assert_eq!(map.del(&String::from("WORLD3")), None);
 
     // Check exhaustion
-    assert_eq!(map.del(&"HELLO"), Some(5));
-    assert_eq!(map.del(&"WORLD"), Some(6));
-    assert_eq!(map.del(&"TEST_"), Some(7));
+    assert_eq!(map.del(&String::from("HELLO")), Some(5));
+    assert_eq!(map.del(&String::from("WORLD")), Some(6));
+    assert_eq!(map.del(&String::from("TEST_")), Some(7));
   }
 
   #[test]
@@ -169,18 +170,18 @@ mod test {
     let mut map = HashMap::new();
 
     // Check empty map behaves right
-    assert_eq!(map.get(&"HELLO"), None);
+    assert_eq!(map.get(&String::from("HELLO")), None);
 
     // Populate map
-    map.set("HELLO", 5);
-    map.set("WORLD", 4);
-    map.set("TEST_", 3);
-    map.set("TEST_", 3);
+    map.set(String::from("HELLO"), 5);
+    map.set(String::from("WORLD"), 4);
+    map.set(String::from("TEST_"), 3);
+    map.set(String::from("TEST_"), 3);
 
     let mut iter = map.keys();
-    assert_eq!(iter.next(), Some("TEST_"));
-    assert_eq!(iter.next(), Some("WORLD"));
-    assert_eq!(iter.next(), Some("HELLO"));
+    assert_eq!(iter.next(), Some(String::from("TEST_")));
+    assert_eq!(iter.next(), Some(String::from("WORLD")));
+    assert_eq!(iter.next(), Some(String::from("HELLO")));
   }
 
   #[test]
@@ -188,27 +189,27 @@ mod test {
     let mut map = HashMap::new();
 
     // Populate map
-    map.set("HELLO", 5);
-    map.set("WORLD", 4);
-    map.set("TEST_", 3);
+    map.set(String::from("HELLO"), 5);
+    map.set(String::from("WORLD"), 4);
+    map.set(String::from("TEST_"), 3);
 
     let mut iter = map.keys();
 
     // Check value receiving
-    assert_eq!(iter.next(), Some("TEST_"));
-    assert_eq!(iter.next(), Some("WORLD"));
-    assert_eq!(iter.next(), Some("HELLO"));
+    assert_eq!(iter.next(), Some(String::from("TEST_")));
+    assert_eq!(iter.next(), Some(String::from("WORLD")));
+    assert_eq!(iter.next(), Some(String::from("HELLO")));
 
     // Check if keys still exists
-    assert_eq!(map.get(&"HELLO"), Some(5));
-    assert_eq!(map.get(&"WORLD"), Some(4));
-    assert_eq!(map.get(&"TEST_"), Some(3));
+    assert_eq!(map.get(&String::from("HELLO")), Some(5));
+    assert_eq!(map.get(&String::from("WORLD")), Some(4));
+    assert_eq!(map.get(&String::from("TEST_")), Some(3));
 
     iter = map.keys();
 
     // Check value receiving
-    assert_eq!(iter.next(), Some("TEST_"));
-    assert_eq!(iter.next(), Some("WORLD"));
-    assert_eq!(iter.next(), Some("HELLO"));
+    assert_eq!(iter.next(), Some(String::from("TEST_")));
+    assert_eq!(iter.next(), Some(String::from("WORLD")));
+    assert_eq!(iter.next(), Some(String::from("HELLO")));
   }
 }

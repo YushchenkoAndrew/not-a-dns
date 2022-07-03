@@ -55,28 +55,32 @@ impl Hash<String> for String {
   }
 }
 
-impl Hash<&str> for &str {
-  fn hash(val: &&str) -> u32 {
-    const P: i32 = 53;
-    const M: i32 = 1000000009;
+// impl Hash<&str> for &str {
+//   fn hash(val: &&str) -> u32 {
+//     const P: i32 = 53;
+//     const M: i32 = 1000000009;
 
-    let mut res: i64 = 0;
-    let mut p_pow: i64 = 1;
+//     let mut res: i64 = 0;
+//     let mut p_pow: i64 = 1;
 
-    for ch in val.chars() {
-      res = (res + (ch as i64 - 'a' as i64 + 1) * p_pow) % M as i64;
-      p_pow = (p_pow * P as i64) % M as i64;
-    }
+//     for ch in val.chars() {
+//       res = (res + (ch as i64 - 'a' as i64 + 1) * p_pow) % M as i64;
+//       p_pow = (p_pow * P as i64) % M as i64;
+//     }
 
-    return res as u32;
-  }
+//     return res as u32;
+//   }
 
-  fn eq(a: &&str, b: &&str) -> bool {
-    a == b
-  }
-}
+//   fn eq(a: &&str, b: &&str) -> bool {
+//     a == b
+//   }
 
-macro_rules! impl_T {
+//   fn parse(val: &str) -> &str {
+//     val.clone()
+//   }
+// }
+
+macro_rules! impl_iT{
     (for $($t:ty),+) => {
         $(impl Hash<$t> for $t {
             fn hash(_val: &$t)-> u32 { 0 }
@@ -85,7 +89,19 @@ macro_rules! impl_T {
     }
 }
 
-impl_T!(for i8, i16, i64, i128, u8, u16, u64, u128, bool, f32, f64);
+impl_iT!(for i8, i16, i64, i128, u8, u16, u64, u128);
+
+macro_rules! impl_fT {
+    (for $($t:ty),+) => {
+        $(impl Hash<$t> for $t {
+            fn hash(_val: &$t)-> u32 { 0 }
+            fn eq(_a: &$t, _b: &$t) -> bool { false }
+            // fn parse(_val: &str)-> $t { 0.0 }
+        })*
+    }
+}
+
+impl_fT!(for f32, f64);
 
 #[cfg(test)]
 mod test {
@@ -110,7 +126,7 @@ mod test {
 
   #[test]
   fn test_hash_other() {
-    assert_eq!(bool::hash(&false), 0);
+    // assert_eq!(bool::hash(&false), 0);
 
     assert_eq!(i8::hash(&53), 0);
     assert_eq!(u8::hash(&53), 0);

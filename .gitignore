@@ -51,3 +51,5 @@ node_modules
 !.env.example
 .vercel
 .output
+
+*.history
