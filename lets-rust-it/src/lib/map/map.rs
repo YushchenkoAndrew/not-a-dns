@@ -1,6 +1,8 @@
 // Resources:
 //  https://medium.com/@narengowda/designing-the-caching-system-e42c6938df6a
 
+use crate::lib::map::macros::parse_T;
+
 use super::hash::Hash;
 use super::history::History;
 use super::list::{Iter, List};
@@ -9,7 +11,8 @@ use std::fmt::Display;
 use std::str::FromStr;
 use std::sync::Arc;
 
-const HASH_MAP_SIZE: usize = 500;
+const HASH_MAP_SIZE: usize = 100;
+const HASH_MAP_MAX_RECENT: i32 = 20;
 const HASH_MAP_HISTORY: &str = "./map.history";
 
 pub struct Pair<T, U> {
@@ -23,12 +26,12 @@ pub struct HashMap<T, U> {
   recent_value: List<Arc<Pair<T, U>>>,
   values: [Option<List<Arc<Pair<T, U>>>>; HASH_MAP_SIZE],
 
-  history: History,
+  history: String,
 }
 
 impl<T, U> HashMap<T, U>
 where
-  T: Clone + Display + FromStr,
+  T: Hash<T> + Clone + Display + FromStr,
   U: Clone + Display + FromStr,
 {
   const NONE: Option<List<Arc<Pair<T, U>>>> = None;
@@ -38,14 +41,11 @@ where
       keys: List::new(),
       recent_value: List::new(),
       values: [HashMap::NONE; HASH_MAP_SIZE],
-      history: History::new(String::from(HASH_MAP_HISTORY)),
+      history: String::from(HASH_MAP_HISTORY),
     };
   }
 
-  pub fn set(&mut self, key: T, value: U)
-  where
-    T: Hash<T> + Clone,
-  {
+  pub fn set(&mut self, key: T, value: U) {
     let index = (T::hash(&key) as usize) % HASH_MAP_SIZE;
     let pair = Arc::new(Pair {
       key: key.clone(),
@@ -54,54 +54,44 @@ where
 
     match &mut self.values[index] {
       Some(list) => {
-        for item in list.iter() {
-          if T::eq(&item.key, &key) {
-            list.del(|v| T::eq(&v.key, &key));
-            self.recent_value.del(|v| T::eq(&v.key, &key));
-
-            list.push_front(Arc::clone(&pair));
-            self.recent_value.push_front(pair);
-            return;
-          }
+        if let Some(_) = list.del(|v| T::eq(&v.key, &key)) {
+          list.push_front(Arc::clone(&pair));
+          self.recent_value.del(|v| T::eq(&v.key, &key));
+        } else {
+          self.keys.push_front(key);
+          list.push_front(Arc::clone(&pair));
         }
-
-        self.keys.push_front(key);
-
-        list.push_front(Arc::clone(&pair));
-        self.recent_value.push_front(pair);
       }
       None => {
         let mut list = List::new();
         list.push_front(Arc::clone(&pair));
 
         self.keys.push_front(key);
-        self.recent_value.push_front(pair);
         self.values[index] = Some(list);
       }
     }
+
+    if self.recent_value.len() == HASH_MAP_MAX_RECENT {
+      self.recent_value.pop_back();
+    }
+
+    self.recent_value.push_front(pair);
+
+    // TODO: Make in thread / async !!
+    History::screenshot(&self.history.clone(), self);
   }
 
-  pub fn get(&self, key: &T) -> Option<U>
-  where
-    T: Hash<T> + Clone,
-  {
+  pub fn get(&self, key: &T) -> Option<U> {
     match &self.values[(T::hash(key) as usize) % HASH_MAP_SIZE] {
-      Some(list) => {
-        for item in list.iter() {
-          if T::eq(&item.key, key) {
-            return Some(item.value.clone());
-          }
-        }
-        return None;
-      }
+      Some(list) => list
+        .includes(|v| T::eq(&v.key, &key))
+        .0
+        .map(|v| v.value.clone()),
       None => None,
     }
   }
 
-  pub fn del(&mut self, key: &T) -> Option<U>
-  where
-    T: Hash<T> + Clone,
-  {
+  pub fn del(&mut self, key: &T) -> Option<U> {
     let index = (T::hash(key) as usize) % HASH_MAP_SIZE;
     self.keys.del(|v| T::eq(v, key));
     self.values[index]
@@ -116,6 +106,39 @@ where
 
   pub fn keys(&self) -> Iter<T> {
     self.keys.iter()
+  }
+
+  pub fn to_string(&mut self, key: &T) -> Option<String> {
+    let val = self.get(key);
+    let (_, pr) = self.recent_value.includes(|v| T::eq(&v.key, &key));
+
+    if pr == -1 {
+      let index = (T::hash(&key) as usize) % HASH_MAP_SIZE;
+      if let Some(ref mut list) = self.values[index] {
+        list.del(|v| T::eq(&v.key, &key));
+      }
+    }
+
+    val.map(|val| format!("{} {} {}={}\n", pr, key.to_string().len(), key, val))
+  }
+
+  pub fn priority(&self, line: &String) -> i32 {
+    let vec = line.splitn(2, " ").collect::<Vec<_>>();
+    if (vec.len() != 2) {
+      return -1;
+    }
+
+    parse_T!(vec[0], i32)
+  }
+
+  pub fn from_string(&mut self, line: String) {
+    let vec = line.splitn(3, " ").collect::<Vec<_>>();
+    if (vec.len() != 3) {
+      return;
+    }
+
+    let len = parse_T!(vec[1], usize);
+    self.set(parse_T!(vec[2][..len], T), parse_T!(vec[2][len + 1..], U));
   }
 }
 
@@ -211,5 +234,30 @@ mod test {
     assert_eq!(iter.next(), Some(String::from("TEST_")));
     assert_eq!(iter.next(), Some(String::from("WORLD")));
     assert_eq!(iter.next(), Some(String::from("HELLO")));
+  }
+
+  #[test]
+  fn string() {
+    let mut map = HashMap::new();
+
+    // Populate map
+    map.set(String::from("HELLO"), 5);
+    map.set(String::from("WORLD"), 4);
+    map.set(String::from("TEST_"), 3);
+
+    // Check to_string func
+    assert_eq!(
+      map.to_string(&String::from("HELLO")),
+      Some(String::from("-1 5 HELLO=5\n"))
+    );
+
+    assert_eq!(map.to_string(&String::from("HELLO_WORLD")), None);
+
+    // Check from_string func
+    map.from_string(String::from("-1 5 TEST2=6"));
+    map.from_string(String::from(""));
+
+    // Check if value exist
+    assert_eq!(map.get(&String::from("TEST2")), Some(6));
   }
 }

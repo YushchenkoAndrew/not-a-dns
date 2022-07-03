@@ -7,96 +7,65 @@ use std::{
 
 use super::{hash::Hash, map::HashMap};
 
-const KEY_VALUE_SEP: &str = " = ";
-const FORMATTED_KEY_VALUE_SEP: &str = "#=#";
 const TEMP_FILE_SUFFIX: &str = "temp";
 
-pub struct History {
-  pub file: String,
-  temp: String,
-}
+pub struct History {}
 
 impl History {
-  pub fn new(file: String) -> Self {
-    return History {
-      temp: format!("{}.{}", file, TEMP_FILE_SUFFIX),
-      file,
-    };
-  }
-
-  pub fn screenshot<T, U>(&self, map: &HashMap<T, U>)
+  pub fn screenshot<T, U>(path: &String, map: &mut HashMap<T, U>)
   where
     T: Hash<T> + Clone + Display + FromStr,
     U: Clone + Display + FromStr,
   {
-    copy(&self.file, &self.temp).unwrap();
-    let mut f = File::create(&self.file).unwrap();
+    let temp = format!("{}_{}", path, TEMP_FILE_SUFFIX);
+    copy(&path, &temp).unwrap();
+
+    let mut f = File::create(path).unwrap();
 
     for key in map.keys() {
-      if let Some(val) = map.get(&key) {
-        println!("SAVE [{}] -- {}", key, val);
-        match f.write(format!("{}{}{}\n", self.pre_format(key), KEY_VALUE_SEP, val).as_bytes()) {
+      if let Some(line) = map.to_string(&key) {
+        match f.write(line.as_bytes()) {
           Ok(_) => {}
           Err(err) => {
-            if metadata(&self.temp).is_err() {
+            if metadata(&temp).is_err() {
               panic!("{}", err);
             }
 
-            copy(&self.file, &self.temp).unwrap();
-            remove_file(&self.temp).unwrap();
+            copy(path, &temp).unwrap();
+            remove_file(&temp).unwrap();
             panic!("{}", err);
           }
         }
       }
     }
 
-    remove_file(&self.temp).unwrap();
+    remove_file(temp).unwrap();
   }
 
-  pub fn restore<T, U>(&self, map: &mut HashMap<T, U>)
+  pub fn restore<T, U>(path: &String, map: &mut HashMap<T, U>)
   where
     T: Hash<T> + Clone + Display + FromStr,
     U: Clone + Display + FromStr,
   {
-    let f = File::open(&self.file).unwrap();
+    let f = File::open(path).unwrap();
     let buf = BufReader::new(f);
 
-    for l in buf.lines() {
-      let line = l.unwrap();
+    let mut vec = vec![];
 
-      // TODO: Save key length & start splitting from that !!
-      let vec = line.splitn(2, KEY_VALUE_SEP).collect::<Vec<_>>();
-      if (vec.len() != 2) {
-        panic!("Strange value encounter: {:?}", vec);
+    for line in buf.lines() {
+      let line = line.unwrap();
+      let pr = map.priority(&line);
+      if pr != -1 {
+        vec.push((pr, line));
       }
-
-      println!("LOAD [{}] -- {}", self.post_format(vec[0]), vec[1]);
-
-      let key = match vec[0].parse::<T>() {
-        Ok(v) => v,
-        Err(_) => panic!("Ain't be able to parse key string"),
-      };
-
-      let value = match vec[1].parse::<U>() {
-        Ok(v) => v,
-        Err(_) => panic!("Ain't be able to parse value string"),
-      };
-
-      map.set(key, value);
     }
-  }
 
-  #[inline]
-  fn pre_format<T>(&self, value: T) -> String
-  where
-    T: Display,
-  {
-    format!("{}", value).replace(KEY_VALUE_SEP, FORMATTED_KEY_VALUE_SEP)
-  }
+    vec.sort_by(|(a, _), (b, _)| b.cmp(a));
+    println!("{:?}", vec);
 
-  #[inline]
-  fn post_format(&self, value: &str) -> String {
-    value.replace(FORMATTED_KEY_VALUE_SEP, KEY_VALUE_SEP)
+    for (_, line) in vec {
+      map.from_string(line)
+    }
   }
 }
 
@@ -114,16 +83,16 @@ mod test {
     map.set(String::from("WORLD"), 4);
     map.set(String::from("TEST_"), 3);
 
-    let history = History::new(String::from("./map.history"));
+    let path = String::from("./map.history");
 
     // Save current map state to file
-    history.screenshot(&map);
+    History::screenshot(&path, &mut map);
 
     // Create new map
     let mut map = HashMap::new();
 
     // Restore saved state
-    history.restore(&mut map);
+    History::restore(&path, &mut map);
 
     // Check value receiving
     assert_eq!(map.get(&String::from("HELLO")), Some(5));

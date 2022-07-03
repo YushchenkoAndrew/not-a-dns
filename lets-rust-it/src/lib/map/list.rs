@@ -2,10 +2,7 @@
 //  https://rust-unofficial.github.io/too-many-lists/second.html
 //  https://stackoverflow.com/a/12996028
 
-use std::{
-  ptr::eq,
-  sync::{Arc, Mutex},
-};
+use std::sync::{Arc, Mutex};
 
 pub struct Node<T> {
   next: Option<Arc<Mutex<Node<T>>>>,
@@ -24,6 +21,7 @@ impl<T> Node<T> {
 }
 
 pub struct List<T> {
+  len: i32,
   head: Option<Arc<Mutex<Node<T>>>>,
   tail: Option<Arc<Mutex<Node<T>>>>,
 }
@@ -34,12 +32,19 @@ where
 {
   pub fn new() -> Self {
     List {
+      len: 0,
       head: None,
       tail: None,
     }
   }
 
+  pub fn len(&self) -> i32 {
+    self.len
+  }
+
   pub fn push_front(&mut self, value: T) {
+    self.len += 1;
+
     let new_head = Node::new(value);
     match self.head.take() {
       Some(head) => {
@@ -62,6 +67,8 @@ where
   }
 
   pub fn push_back(&mut self, value: T) {
+    self.len += 1;
+
     let new_tail = Node::new(value);
     match self.tail.take() {
       Some(tail) => {
@@ -86,6 +93,8 @@ where
   pub fn pop_front(&mut self) -> Option<T> {
     match self.head.take() {
       Some(old_head) => {
+        self.len -= 1;
+
         let mut node = old_head.lock().unwrap();
         match node.next.take() {
           Some(new_head) => {
@@ -116,6 +125,8 @@ where
   pub fn pop_back(&mut self) -> Option<T> {
     match self.tail.take() {
       Some(old_tail) => {
+        self.len -= 1;
+
         let mut node = old_tail.lock().unwrap();
         match node.prev.take() {
           Some(new_tail) => {
@@ -207,6 +218,16 @@ where
       }
     }
   }
+
+  pub fn includes(&self, eq: impl Fn(&T) -> bool) -> (Option<T>, i32) {
+    for (i, item) in self.iter().enumerate() {
+      if eq(&item) {
+        return (Some(item), i as i32);
+      }
+    }
+
+    return (None, -1);
+  }
 }
 
 pub struct Iter<T> {
@@ -275,28 +296,35 @@ mod test {
     let mut list = List::new();
 
     // Check empty list behaves right
+    assert_eq!(list.len(), 0);
     assert_eq!(list.pop_front(), None);
+    assert_eq!(list.len(), 0);
 
     // Populate list
     list.push_front(1);
     list.push_front(2);
     list.push_front(3);
+    assert_eq!(list.len(), 3);
 
     // Check normal removal
     assert_eq!(list.pop_front(), Some(3));
     assert_eq!(list.pop_front(), Some(2));
+    assert_eq!(list.len(), 1);
 
     // Push some more just to make sure nothing's corrupted
     list.push_front(4);
     list.push_front(5);
+    assert_eq!(list.len(), 3);
 
     // Check normal removal
     assert_eq!(list.pop_front(), Some(5));
     assert_eq!(list.pop_front(), Some(4));
+    assert_eq!(list.len(), 1);
 
     // Check exhaustion
     assert_eq!(list.pop_front(), Some(1));
     assert_eq!(list.pop_front(), None);
+    assert_eq!(list.len(), 0);
 
     // ---- back -----
 
