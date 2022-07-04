@@ -1,7 +1,7 @@
 use std::{
   fmt::Display,
   fs::{copy, metadata, remove_file, File},
-  io::{BufRead, BufReader, Write},
+  io::{BufRead, BufReader, Lines, Write},
   str::FromStr,
 };
 
@@ -22,8 +22,8 @@ impl History {
 
     let mut f = File::create(path).unwrap();
 
-    for key in map.keys() {
-      if let Some(line) = map.to_string(&key) {
+    for (_, key, _) in map.iter() {
+      if let Some(line) = HashMap::to_string(map, &key) {
         match f.write(line.as_bytes()) {
           Ok(_) => {}
           Err(err) => {
@@ -54,17 +54,46 @@ impl History {
 
     for line in buf.lines() {
       let line = line.unwrap();
-      let pr = map.priority(&line);
-      if pr != -1 {
-        vec.push((pr, line));
+      if let Some((pr, key, val)) = HashMap::parse(line) {
+        vec.push((pr, key, val));
       }
     }
 
-    vec.sort_by(|(a, _), (b, _)| b.cmp(a));
-    println!("{:?}", vec);
+    vec.sort_by(|(a, _, _), (b, _, _)| b.cmp(a));
 
-    for (_, line) in vec {
-      map.from_string(line)
+    for (_, key, val) in vec {
+      map.set(key, val);
+    }
+  }
+
+  pub fn iter<T, U>(path: &String) -> Iter<T, U>
+  where
+    T: Hash<T> + Clone + Display + FromStr,
+    U: Clone + Display + FromStr,
+  {
+    Iter {
+      t: None,
+      lines: BufReader::new(File::open(path).unwrap()).lines(),
+    }
+  }
+}
+
+pub struct Iter<T, U> {
+  #[allow(dead_code)]
+  t: Option<HashMap<T, U>>,
+  lines: Lines<BufReader<File>>,
+}
+
+impl<T, U> Iterator for Iter<T, U>
+where
+  T: Hash<T> + Clone + Display + FromStr,
+  U: Clone + Display + FromStr,
+{
+  type Item = (i32, T, U);
+  fn next(&mut self) -> Option<Self::Item> {
+    match self.lines.next() {
+      Some(line) => HashMap::parse(line.unwrap()),
+      None => None,
     }
   }
 }
