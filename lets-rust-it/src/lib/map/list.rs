@@ -4,19 +4,39 @@
 
 use std::sync::{Arc, Mutex};
 
+use super::iter::{ListIter, ListIterRev};
+
 pub struct Node<T> {
   next: Option<Arc<Mutex<Node<T>>>>,
   prev: Option<Arc<Mutex<Node<T>>>>,
   value: Option<T>,
 }
 
-impl<T> Node<T> {
+impl<T> Node<T>
+where
+  T: Clone,
+{
   pub fn new(value: T) -> Arc<Mutex<Node<T>>> {
     Arc::new(Mutex::new(Node {
       next: None,
       prev: None,
       value: Some(value),
     }))
+  }
+
+  #[inline]
+  pub fn next(&self) -> Option<Arc<Mutex<Node<T>>>> {
+    self.next.as_ref().map(|v| Arc::clone(v))
+  }
+
+  #[inline]
+  pub fn prev(&self) -> Option<Arc<Mutex<Node<T>>>> {
+    self.prev.as_ref().map(|v| Arc::clone(v))
+  }
+
+  #[inline]
+  pub fn value(&self) -> Option<T> {
+    self.value.clone()
   }
 }
 
@@ -167,16 +187,12 @@ where
     }
   }
 
-  pub fn iter(&self) -> Iter<T> {
-    Iter {
-      next: self.head.as_ref().as_ref().map(|head| Arc::clone(head)),
-    }
+  pub fn iter(&self) -> ListIter<T> {
+    ListIter::new(self.head.as_ref().as_ref().map(|head| Arc::clone(head)))
   }
 
-  pub fn iter_rev(&self) -> IterRev<T> {
-    IterRev {
-      prev: self.tail.as_ref().map(|tail| Arc::clone(tail)),
-    }
+  pub fn iter_rev(&self) -> ListIterRev<T> {
+    ListIterRev::new(self.tail.as_ref().map(|tail| Arc::clone(tail)))
   }
 
   pub fn del(&mut self, eq: impl Fn(&T) -> bool) -> Option<T> {
@@ -227,63 +243,6 @@ where
     }
 
     return (None, -1);
-  }
-}
-
-pub struct Iter<T> {
-  next: Option<Arc<Mutex<Node<T>>>>,
-}
-
-impl<T> Iterator for Iter<T>
-where
-  T: Clone,
-{
-  type Item = T;
-  fn next(&mut self) -> Option<Self::Item> {
-    let value = match self.next.as_ref() {
-      Some(head) => head.lock().unwrap().value.clone(),
-      None => None,
-    };
-
-    self.next = match self.next.as_ref() {
-      Some(head) => match head.lock().unwrap().next.as_ref() {
-        Some(head) => Some(Arc::clone(head)),
-        None => None,
-      },
-      None => None,
-    };
-
-    value
-  }
-}
-
-// NOTE: There was some strange bug with DoubleEndedIterator
-// therefor creating a different Iter for prev is much MUCH
-// easer approach for me (at least right now)
-pub struct IterRev<T> {
-  prev: Option<Arc<Mutex<Node<T>>>>,
-}
-
-impl<T> Iterator for IterRev<T>
-where
-  T: Clone,
-{
-  type Item = T;
-  fn next(&mut self) -> Option<T> {
-    let value = match self.prev.as_ref() {
-      Some(tail) => tail.lock().unwrap().value.clone(),
-      None => None,
-    };
-
-    self.prev = match self.prev.as_ref() {
-      Some(tail) => match tail.lock().unwrap().prev.as_ref() {
-        Some(tail) => Some(Arc::clone(tail)),
-        None => None,
-      },
-      None => None,
-    };
-
-    value
   }
 }
 

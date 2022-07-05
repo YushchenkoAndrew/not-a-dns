@@ -4,7 +4,8 @@
 use crate::lib::map::macros::parse_T;
 
 use super::hash::Hash;
-use super::history::{History, Iter};
+use super::history::History;
+use super::iter::{KeyIter, ListIter};
 use super::list::List;
 
 use std::fmt::Display;
@@ -104,8 +105,12 @@ where
       .map(|item| item.value.clone())
   }
 
-  pub fn iter(&self) -> Iter<T, U> {
-    History::iter(&self.history)
+  pub fn keys(&self) -> KeyIter<T, U> {
+    KeyIter::new(History::iter(&self.history))
+  }
+
+  pub fn key_iter(&self) -> ListIter<T> {
+    self.keys.iter()
   }
 
   #[inline]
@@ -206,12 +211,11 @@ mod test {
     map.set(String::from("TEST_"), 3);
     map.set(String::from("TEST_"), 3);
 
-    let mut iter = map.iter();
+    let mut iter = map.keys();
 
-    // FIXME:
-    // assert_eq!(iter.next(), Some(String::from("TEST_")));
-    // assert_eq!(iter.next(), Some(String::from("WORLD")));
-    // assert_eq!(iter.next(), Some(String::from("HELLO")));
+    assert_eq!(iter.next(), Some(String::from("TEST_")));
+    assert_eq!(iter.next(), Some(String::from("WORLD")));
+    assert_eq!(iter.next(), Some(String::from("HELLO")));
   }
 
   #[test]
@@ -223,25 +227,24 @@ mod test {
     map.set(String::from("WORLD"), 4);
     map.set(String::from("TEST_"), 3);
 
-    let mut iter = map.iter();
+    let mut iter = map.keys();
 
     // Check value receiving
-    // FIXME:
-    // assert_eq!(iter.next(), Some(String::from("TEST_")));
-    // assert_eq!(iter.next(), Some(String::from("WORLD")));
-    // assert_eq!(iter.next(), Some(String::from("HELLO")));
+    assert_eq!(iter.next(), Some(String::from("TEST_")));
+    assert_eq!(iter.next(), Some(String::from("WORLD")));
+    assert_eq!(iter.next(), Some(String::from("HELLO")));
 
     // Check if keys still exists
     assert_eq!(map.get(&String::from("HELLO")), Some(5));
     assert_eq!(map.get(&String::from("WORLD")), Some(4));
     assert_eq!(map.get(&String::from("TEST_")), Some(3));
 
-    iter = map.iter();
+    iter = map.keys();
 
     // Check value receiving
-    // assert_eq!(iter.next(), Some(String::from("TEST_")));
-    // assert_eq!(iter.next(), Some(String::from("WORLD")));
-    // assert_eq!(iter.next(), Some(String::from("HELLO")));
+    assert_eq!(iter.next(), Some(String::from("TEST_")));
+    assert_eq!(iter.next(), Some(String::from("WORLD")));
+    assert_eq!(iter.next(), Some(String::from("HELLO")));
   }
 
   #[test]

@@ -116,7 +116,7 @@ impl CacheService for CacheServiceImpl {
       Ok(ref cache) => {
         let mut keys = vec![];
 
-        for (_, key, _) in cache.iter() {
+        for key in cache.keys() {
           if key.starts_with(&request.get_ref().key) {
             keys.push(key);
           }

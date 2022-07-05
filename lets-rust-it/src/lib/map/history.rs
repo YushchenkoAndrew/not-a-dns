@@ -1,17 +1,22 @@
 use std::{
   fmt::Display,
   fs::{copy, metadata, remove_file, File},
-  io::{BufRead, BufReader, Lines, Write},
+  io::{BufRead, BufReader, Write},
   str::FromStr,
+  sync::Mutex,
 };
 
-use super::{hash::Hash, map::HashMap};
+use super::{hash::Hash, iter::HistoryIter, map::HashMap};
 
 const TEMP_FILE_SUFFIX: &str = "temp";
+// TODO: Use mutex when working with files
+// const HISTORY_IN_USE: Mutex<i32> = Mutex::new(0);
 
 pub struct History {}
 
 impl History {
+  // let inUse = Option<Arc<Mutex<Node<T>>>>,
+
   pub fn screenshot<T, U>(path: &String, map: &mut HashMap<T, U>)
   where
     T: Hash<T> + Clone + Display + FromStr,
@@ -22,7 +27,7 @@ impl History {
 
     let mut f = File::create(path).unwrap();
 
-    for (_, key, _) in map.iter() {
+    for key in map.key_iter() {
       if let Some(line) = HashMap::to_string(map, &key) {
         match f.write(line.as_bytes()) {
           Ok(_) => {}
@@ -39,7 +44,7 @@ impl History {
       }
     }
 
-    remove_file(temp).unwrap();
+    let _ = remove_file(temp);
   }
 
   pub fn restore<T, U>(path: &String, map: &mut HashMap<T, U>)
@@ -66,35 +71,12 @@ impl History {
     }
   }
 
-  pub fn iter<T, U>(path: &String) -> Iter<T, U>
+  pub fn iter<T, U>(path: &String) -> HistoryIter<T, U>
   where
     T: Hash<T> + Clone + Display + FromStr,
     U: Clone + Display + FromStr,
   {
-    Iter {
-      t: None,
-      lines: BufReader::new(File::open(path).unwrap()).lines(),
-    }
-  }
-}
-
-pub struct Iter<T, U> {
-  #[allow(dead_code)]
-  t: Option<HashMap<T, U>>,
-  lines: Lines<BufReader<File>>,
-}
-
-impl<T, U> Iterator for Iter<T, U>
-where
-  T: Hash<T> + Clone + Display + FromStr,
-  U: Clone + Display + FromStr,
-{
-  type Item = (i32, T, U);
-  fn next(&mut self) -> Option<Self::Item> {
-    match self.lines.next() {
-      Some(line) => HashMap::parse(line.unwrap()),
-      None => None,
-    }
+    HistoryIter::new(BufReader::new(File::open(path).unwrap()).lines())
   }
 }
 
