@@ -3,7 +3,6 @@ use std::{
   fs::{copy, metadata, remove_file, File},
   io::{BufRead, BufReader, Write},
   str::FromStr,
-  sync::Mutex,
 };
 
 use super::{hash::Hash, iter::HistoryIter, map::HashMap};
@@ -22,21 +21,16 @@ impl History {
     T: Hash<T> + Clone + Display + FromStr,
     U: Clone + Display + FromStr,
   {
-    let temp = format!("{}_{}", path, TEMP_FILE_SUFFIX);
+    let temp = History::temp_name(path);
     copy(&path, &temp).unwrap();
 
-    let mut f = File::create(path).unwrap();
+    let mut f = File::create(&temp).unwrap();
 
-    for key in map.key_iter() {
+    for key in map.keys() {
       if let Some(line) = HashMap::to_string(map, &key) {
         match f.write(line.as_bytes()) {
           Ok(_) => {}
           Err(err) => {
-            if metadata(&temp).is_err() {
-              panic!("{}", err);
-            }
-
-            copy(path, &temp).unwrap();
             remove_file(&temp).unwrap();
             panic!("{}", err);
           }
@@ -44,7 +38,8 @@ impl History {
       }
     }
 
-    let _ = remove_file(temp);
+    copy(&temp, path).unwrap();
+    remove_file(temp).unwrap();
   }
 
   pub fn restore<T, U>(path: &String, map: &mut HashMap<T, U>)
@@ -77,6 +72,18 @@ impl History {
     U: Clone + Display + FromStr,
   {
     HistoryIter::new(BufReader::new(File::open(path).unwrap()).lines())
+  }
+
+  fn temp_name(path: &String) -> String {
+    let mut i = 0;
+    loop {
+      let temp = format!("{}_{}.{}", path, TEMP_FILE_SUFFIX, i);
+      if metadata(&temp).is_err() {
+        return temp;
+      }
+
+      i += 1;
+    }
   }
 }
 

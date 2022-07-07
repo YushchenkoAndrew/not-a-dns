@@ -5,7 +5,7 @@ use crate::lib::map::macros::parse_T;
 
 use super::hash::Hash;
 use super::history::History;
-use super::iter::{KeyIter, ListIter};
+use super::iter::KeyIter;
 use super::list::List;
 
 use std::fmt::Display;
@@ -38,12 +38,12 @@ where
   const NONE: Option<List<Arc<Pair<T, U>>>> = None;
 
   pub fn new() -> Self {
-    return HashMap {
+    HashMap {
       keys: List::new(),
       recent_value: List::new(),
       values: [HashMap::NONE; HASH_MAP_SIZE],
       history: String::from(HASH_MAP_HISTORY),
-    };
+    }
   }
 
   pub fn set(&mut self, key: T, value: U) {
@@ -88,7 +88,15 @@ where
         .includes(|v| T::eq(&v.key, &key))
         .0
         .map(|v| v.value.clone()),
-      None => None,
+      None => {
+        for (pr, k, val) in History::iter::<T, U>(&self.history) {
+          if pr == -1 && T::eq(key, &k) {
+            return Some(val);
+          }
+        }
+
+        return None;
+      }
     }
   }
 
@@ -106,11 +114,7 @@ where
   }
 
   pub fn keys(&self) -> KeyIter<T, U> {
-    KeyIter::new(History::iter(&self.history))
-  }
-
-  pub fn key_iter(&self) -> ListIter<T> {
-    self.keys.iter()
+    KeyIter::new(History::iter(&self.history), self.keys.iter())
   }
 
   #[inline]
@@ -200,7 +204,7 @@ mod test {
 
   #[test]
   fn iter() {
-    let mut map = HashMap::new();
+    let mut map = HashMap::<String, i32>::new();
 
     // Check empty map behaves right
     assert_eq!(map.get(&String::from("HELLO")), None);

@@ -113,7 +113,8 @@ where
 }
 
 pub struct KeyIter<T, U> {
-  iter: HistoryIter<T, U>,
+  iter: ListIter<T>,
+  history: HistoryIter<T, U>,
 }
 
 impl<T, U> KeyIter<T, U>
@@ -121,8 +122,8 @@ where
   T: Hash<T> + Clone + Display + FromStr,
   U: Clone + Display + FromStr,
 {
-  pub fn new(iter: HistoryIter<T, U>) -> KeyIter<T, U> {
-    KeyIter { iter }
+  pub fn new(history: HistoryIter<T, U>, iter: ListIter<T>) -> KeyIter<T, U> {
+    KeyIter { history, iter }
   }
 }
 
@@ -136,8 +137,19 @@ where
   #[inline]
   fn next(&mut self) -> Option<Self::Item> {
     match self.iter.next() {
-      Some((_, key, _)) => Some(key),
-      None => None,
+      Some(key) => Some(key),
+      None => loop {
+        match self.history.next() {
+          Some((pr, key, _)) => {
+            if pr == -1 {
+              return Some(key);
+            }
+
+            continue;
+          }
+          None => return None,
+        }
+      },
     }
   }
 }
