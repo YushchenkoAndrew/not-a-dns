@@ -1,12 +1,13 @@
 use std::{
   fmt::Display,
-  fs::File,
-  io::{BufReader, Lines},
+  fs::{copy, metadata, remove_file, File},
+  io::{BufRead, BufReader, Lines},
+  slice::Iter,
   str::FromStr,
   sync::{Arc, Mutex},
 };
 
-use super::{hash::Hash, list::Node, map::HashMap};
+use super::{hash::Hash, list::Node, macros::temp_name, map::HashMap};
 
 pub struct ListIter<T> {
   next: Option<Arc<Mutex<Node<T>>>>,
@@ -85,7 +86,7 @@ where
 
 pub struct HistoryIter<T, U> {
   _type: Option<HashMap<T, U>>,
-  lines: Lines<BufReader<File>>,
+  lines: Vec<String>,
 }
 
 impl<T, U> HistoryIter<T, U>
@@ -93,8 +94,11 @@ where
   T: Hash<T> + Clone + Display + FromStr,
   U: Clone + Display + FromStr,
 {
-  pub fn new(lines: Lines<BufReader<File>>) -> HistoryIter<T, U> {
-    HistoryIter { _type: None, lines }
+  pub fn new(lines: Lines<BufReader<File>>) -> Self {
+    HistoryIter {
+      _type: None,
+      lines: lines.map(|l| l.unwrap()).collect::<Vec<_>>(),
+    }
   }
 }
 
@@ -105,8 +109,8 @@ where
 {
   type Item = (i32, T, U);
   fn next(&mut self) -> Option<Self::Item> {
-    match self.lines.next() {
-      Some(line) => HashMap::parse(line.unwrap()),
+    match self.lines.pop() {
+      Some(line) => HashMap::parse(line),
       None => None,
     }
   }

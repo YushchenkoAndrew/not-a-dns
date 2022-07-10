@@ -1,28 +1,38 @@
 use std::{
   fmt::Display,
-  fs::{copy, metadata, remove_file, File},
+  fs::{copy, remove_file, File},
   io::{BufRead, BufReader, Write},
+  slice::Iter,
   str::FromStr,
 };
 
-use super::{hash::Hash, iter::HistoryIter, map::HashMap};
+use super::{
+  hash::Hash,
+  iter::HistoryIter,
+  macros::temp_name,
+  map::{HashMap, Pair},
+};
 
 const TEMP_FILE_SUFFIX: &str = "temp";
-// TODO: Use mutex when working with files
-// const HISTORY_IN_USE: Mutex<i32> = Mutex::new(0);
 
-pub struct History {}
+pub struct History<T, U> {
+  _type: Option<Pair<T, U>>,
 
-impl History {
-  // let inUse = Option<Arc<Mutex<Node<T>>>>,
+  path: String,
+}
 
-  pub fn screenshot<T, U>(path: &String, map: &mut HashMap<T, U>)
-  where
-    T: Hash<T> + Clone + Display + FromStr,
-    U: Clone + Display + FromStr,
-  {
-    let temp = History::temp_name(path);
-    copy(&path, &temp).unwrap();
+impl<T, U> History<T, U>
+where
+  T: Hash<T> + Clone + Display + FromStr,
+  U: Clone + Display + FromStr,
+{
+  pub fn new(path: String) -> Self {
+    History { path, _type: None }
+  }
+
+  pub fn screenshot(&self, map: &HashMap<T, U>) {
+    let temp = temp_name(&self.path, TEMP_FILE_SUFFIX);
+    copy(&self.path, &temp).unwrap();
 
     let mut f = File::create(&temp).unwrap();
 
@@ -31,6 +41,8 @@ impl History {
         match f.write(line.as_bytes()) {
           Ok(_) => {}
           Err(err) => {
+            drop(f);
+
             remove_file(&temp).unwrap();
             panic!("{}", err);
           }
@@ -38,16 +50,15 @@ impl History {
       }
     }
 
-    copy(&temp, path).unwrap();
+    f.flush().unwrap();
+    drop(f);
+
+    copy(&temp, &self.path).unwrap();
     remove_file(temp).unwrap();
   }
 
-  pub fn restore<T, U>(path: &String, map: &mut HashMap<T, U>)
-  where
-    T: Hash<T> + Clone + Display + FromStr,
-    U: Clone + Display + FromStr,
-  {
-    let f = File::open(path).unwrap();
+  pub fn restore(&self, map: &mut HashMap<T, U>) {
+    let f = File::open(&self.path).unwrap();
     let buf = BufReader::new(f);
 
     let mut vec = vec![];
@@ -66,24 +77,8 @@ impl History {
     }
   }
 
-  pub fn iter<T, U>(path: &String) -> HistoryIter<T, U>
-  where
-    T: Hash<T> + Clone + Display + FromStr,
-    U: Clone + Display + FromStr,
-  {
-    HistoryIter::new(BufReader::new(File::open(path).unwrap()).lines())
-  }
-
-  fn temp_name(path: &String) -> String {
-    let mut i = 0;
-    loop {
-      let temp = format!("{}_{}.{}", path, TEMP_FILE_SUFFIX, i);
-      if metadata(&temp).is_err() {
-        return temp;
-      }
-
-      i += 1;
-    }
+  pub fn iter(&self) -> HistoryIter<T, U> {
+    HistoryIter::new(BufReader::new(File::open(&self.path).unwrap()).lines())
   }
 }
 
@@ -101,16 +96,16 @@ mod test {
     map.set(String::from("WORLD"), 4);
     map.set(String::from("TEST_"), 3);
 
-    let path = String::from("./map.history");
+    let mut history = History::new(String::from("./map.history"));
 
     // Save current map state to file
-    History::screenshot(&path, &mut map);
+    history.screenshot(&mut map);
 
     // Create new map
     let mut map = HashMap::new();
 
     // Restore saved state
-    History::restore(&path, &mut map);
+    history.restore(&mut map);
 
     // Check value receiving
     assert_eq!(map.get(&String::from("HELLO")), Some(5));

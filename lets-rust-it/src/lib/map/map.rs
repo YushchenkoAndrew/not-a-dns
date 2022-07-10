@@ -27,7 +27,7 @@ pub struct HashMap<T, U> {
   recent_value: List<Arc<Pair<T, U>>>,
   values: [Option<List<Arc<Pair<T, U>>>>; HASH_MAP_SIZE],
 
-  history: String,
+  history: History<T, U>,
 }
 
 impl<T, U> HashMap<T, U>
@@ -42,7 +42,7 @@ where
       keys: List::new(),
       recent_value: List::new(),
       values: [HashMap::NONE; HASH_MAP_SIZE],
-      history: String::from(HASH_MAP_HISTORY),
+      history: History::new(String::from(HASH_MAP_HISTORY)),
     }
   }
 
@@ -79,7 +79,7 @@ where
     self.recent_value.push_front(pair);
 
     // TODO: Make in thread / async !!
-    History::screenshot(&self.history.clone(), self);
+    self.history.screenshot(self);
   }
 
   pub fn get(&self, key: &T) -> Option<U> {
@@ -89,7 +89,7 @@ where
         .0
         .map(|v| v.value.clone()),
       None => {
-        for (pr, k, val) in History::iter::<T, U>(&self.history) {
+        for (pr, k, val) in self.history.iter() {
           if pr == -1 && T::eq(key, &k) {
             return Some(val);
           }
@@ -118,7 +118,7 @@ where
   }
 
   #[inline]
-  pub fn to_string(map: &mut HashMap<T, U>, key: &T) -> Option<String>
+  pub fn to_string(map: &HashMap<T, U>, key: &T) -> Option<String>
   where
     T: Hash<T> + Clone + Display + FromStr,
     U: Clone + Display + FromStr,
@@ -126,12 +126,12 @@ where
     let val = map.get(key);
     let (_, pr) = map.recent_value.includes(|v| T::eq(&v.key, &key));
 
-    if pr == -1 {
-      let index = (T::hash(&key) as usize) % HASH_MAP_SIZE;
-      if let Some(ref mut list) = map.values[index] {
-        list.del(|v| T::eq(&v.key, &key));
-      }
-    }
+    // if pr == -1 {
+    //   let index = (T::hash(&key) as usize) % HASH_MAP_SIZE;
+    //   if let Some(ref mut list) = map.values[index] {
+    //     list.del(|v| T::eq(&v.key, &key));
+    //   }
+    // }
 
     val.map(|val| format!("{} {} {}={}\n", pr, key.to_string().len(), key, val))
   }
