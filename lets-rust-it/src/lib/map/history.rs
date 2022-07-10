@@ -2,23 +2,21 @@ use std::{
   fmt::Display,
   fs::{copy, remove_file, File},
   io::{BufRead, BufReader, Write},
-  slice::Iter,
   str::FromStr,
 };
 
 use super::{
   hash::Hash,
   iter::HistoryIter,
-  macros::temp_name,
-  map::{HashMap, Pair},
+  macros::{temp_name, val_PR},
+  map::{HashMap, Pair, HASH_MAP_MAX_RECENT},
 };
 
 const TEMP_FILE_SUFFIX: &str = "temp";
 
 pub struct History<T, U> {
   _type: Option<Pair<T, U>>,
-
-  path: String,
+  // path: String,
 }
 
 impl<T, U> History<T, U>
@@ -26,26 +24,23 @@ where
   T: Hash<T> + Clone + Display + FromStr,
   U: Clone + Display + FromStr,
 {
-  pub fn new(path: String) -> Self {
-    History { path, _type: None }
-  }
+  // pub fn new(path: String) -> Self {
+  //   History { path, _type: None }
+  // }
 
-  pub fn screenshot(&self, map: &HashMap<T, U>) {
-    let temp = temp_name(&self.path, TEMP_FILE_SUFFIX);
-    copy(&self.path, &temp).unwrap();
+  pub fn screenshot(path: &String, map: &HashMap<T, U>) {
+    let temp = temp_name(path, TEMP_FILE_SUFFIX);
+    copy(path, &temp).unwrap();
 
     let mut f = File::create(&temp).unwrap();
 
     for key in map.keys() {
       if let Some(line) = HashMap::to_string(map, &key) {
-        match f.write(line.as_bytes()) {
-          Ok(_) => {}
-          Err(err) => {
-            drop(f);
+        if let Err(err) = f.write(line.as_bytes()) {
+          drop(f);
 
-            remove_file(&temp).unwrap();
-            panic!("{}", err);
-          }
+          remove_file(&temp).unwrap();
+          panic!("{}", err);
         }
       }
     }
@@ -53,12 +48,12 @@ where
     f.flush().unwrap();
     drop(f);
 
-    copy(&temp, &self.path).unwrap();
+    copy(&temp, &path).unwrap();
     remove_file(temp).unwrap();
   }
 
-  pub fn restore(&self, map: &mut HashMap<T, U>) {
-    let f = File::open(&self.path).unwrap();
+  pub fn restore(path: &String, map: &mut HashMap<T, U>) {
+    let f = File::open(path).unwrap();
     let buf = BufReader::new(f);
 
     let mut vec = vec![];
@@ -71,14 +66,42 @@ where
     }
 
     vec.sort_by(|(a, _, _), (b, _, _)| b.cmp(a));
+    // vec.sort_by(|(a, _, _), (b, _, _)| a.cmp(b));
 
     for (_, key, val) in vec {
       map.set(key, val);
     }
   }
 
-  pub fn iter(&self) -> HistoryIter<T, U> {
-    HistoryIter::new(BufReader::new(File::open(&self.path).unwrap()).lines())
+  pub fn iter(path: &String) -> HistoryIter<T, U> {
+    HistoryIter::new(BufReader::new(File::open(path).unwrap()).lines())
+  }
+
+  pub fn del(path: &String, key: &T) {
+    let temp = temp_name(path, TEMP_FILE_SUFFIX);
+    copy(path, &temp).unwrap();
+
+    let mut f = File::create(&temp).unwrap();
+
+    for (pr, k, val) in History::<T, U>::iter(path) {
+      if T::eq(key, &k) {
+        continue;
+      }
+
+      let len = key.to_string().len();
+      if let Err(err) = f.write(format!("{} {} {}={}\n", val_PR!(pr), len, key, val).as_bytes()) {
+        drop(f);
+
+        remove_file(&temp).unwrap();
+        panic!("{}", err);
+      }
+    }
+
+    f.flush().unwrap();
+    drop(f);
+
+    copy(&temp, path).unwrap();
+    remove_file(temp).unwrap();
   }
 }
 
@@ -96,16 +119,16 @@ mod test {
     map.set(String::from("WORLD"), 4);
     map.set(String::from("TEST_"), 3);
 
-    let mut history = History::new(String::from("./map.history"));
+    let path = String::from("./map.history");
 
     // Save current map state to file
-    history.screenshot(&mut map);
+    History::screenshot(&path, &mut map);
 
     // Create new map
     let mut map = HashMap::new();
 
     // Restore saved state
-    history.restore(&mut map);
+    History::restore(&path, &mut map);
 
     // Check value receiving
     assert_eq!(map.get(&String::from("HELLO")), Some(5));

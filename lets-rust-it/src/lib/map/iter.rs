@@ -1,13 +1,12 @@
 use std::{
   fmt::Display,
-  fs::{copy, metadata, remove_file, File},
-  io::{BufRead, BufReader, Lines},
-  slice::Iter,
+  fs::File,
+  io::{BufReader, Lines},
   str::FromStr,
   sync::{Arc, Mutex},
 };
 
-use super::{hash::Hash, list::Node, macros::temp_name, map::HashMap};
+use super::{hash::Hash, list::Node, map::HashMap};
 
 pub struct ListIter<T> {
   next: Option<Arc<Mutex<Node<T>>>>,

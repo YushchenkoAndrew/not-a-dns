@@ -59,7 +59,7 @@ impl CacheService for CacheServiceImpl {
     print!("Get: {} => ", request.get_ref().key);
 
     match self.cache.lock() {
-      Ok(ref cache) => match cache.get(&request.get_ref().key) {
+      Ok(ref mut cache) => match cache.get(&request.get_ref().key) {
         Some(value) => {
           println!("'{}'", value);
           Ok(tonic::Response::new(pb::ValueResponse {
