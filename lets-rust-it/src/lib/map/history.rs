@@ -28,7 +28,7 @@ where
   //   History { path, _type: None }
   // }
 
-  pub fn screenshot(path: &String, map: &HashMap<T, U>) {
+  pub fn screenshot(path: &String, map: &mut HashMap<T, U>) {
     let temp = temp_name(path, TEMP_FILE_SUFFIX);
     copy(path, &temp).unwrap();
 
@@ -48,13 +48,13 @@ where
     f.flush().unwrap();
     drop(f);
 
+    // FIXME: Strange bug with writing same key twice !!!
     copy(&temp, &path).unwrap();
     remove_file(temp).unwrap();
   }
 
   pub fn restore(path: &String, map: &mut HashMap<T, U>) {
-    let f = File::open(path).unwrap();
-    let buf = BufReader::new(f);
+    let buf = BufReader::new(File::open(path).unwrap());
 
     let mut vec = vec![];
 
@@ -69,7 +69,7 @@ where
     // vec.sort_by(|(a, _, _), (b, _, _)| a.cmp(b));
 
     for (_, key, val) in vec {
-      map.set(key, val);
+      map.frozen_set(key, val);
     }
   }
 

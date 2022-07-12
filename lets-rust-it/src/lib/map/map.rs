@@ -47,68 +47,66 @@ where
     return map;
   }
 
-  pub fn set(&mut self, key: T, value: U) {
+  pub fn frozen_set(&mut self, key: T, value: U) -> Option<Arc<Pair<T, U>>> {
     let index = key_I!(&key, T);
     let pair = Arc::new(Pair {
       key: key.clone(),
       value,
     });
 
+    let mut res = None;
+
     match &mut self.values[index] {
       Some(list) => {
-        if let Some(_) = list.del(|v| T::eq(&v.key, &key)) {
-          list.push_front(Arc::clone(&pair));
-          self.recent_value.del(|v| T::eq(&v.key, &key));
-        } else {
-          self.keys.push_front(key.clone());
-          list.push_front(Arc::clone(&pair));
+        res = list.del(|v| T::eq(&v.key, &key));
+        if res.is_none() {
+          self.keys.push_front(key);
         }
+
+        list.push_front(Arc::clone(&pair));
       }
       None => {
+        for (pr, k, _) in History::<T, U>::iter(&String::from(HASH_MAP_HISTORY)) {
+          if pr == -1 && T::eq(&key, &k) {
+            History::<T, U>::del(&String::from(HASH_MAP_HISTORY), &key);
+            break;
+          }
+        }
+
         let mut list = List::new();
         list.push_front(Arc::clone(&pair));
 
-        self.keys.push_front(key.clone());
+        self.keys.push_front(key);
         self.values[index] = Some(list);
       }
     }
 
-    self.recent_value.push_front(pair);
+    return res;
+  }
+
+  pub fn set(&mut self, key: T, value: U) {
+    if let Some(_) = self.frozen_set(key.clone(), value.clone()) {
+      self.recent_value.del(|v| T::eq(&v.key, &key));
+    }
+
+    self.recent_value.push_front(Arc::new(Pair {
+      key: key.clone(),
+      value,
+    }));
 
     // TODO: Make in thread / async !!
     self.screenshot(&key);
   }
 
-  pub fn get(&mut self, key: &T) -> Option<U> {
+  pub fn frozen_get(&self, key: &T) -> Option<U> {
     match &self.values[key_I!(key, T)] {
       Some(list) => {
         let val = list.includes(|v| T::eq(&v.key, &key));
-        match self.recent_value.del(|v| T::eq(&v.key, &key)) {
-          Some(pair) => {
-            self.recent_value.push_front(pair);
-          }
-          None => match val.0 {
-            Some(ref pair) => {
-              self.recent_value.push_front(Arc::clone(pair));
-            }
-            None => {
-              return None;
-            }
-          },
-        }
-
-        self.screenshot(key);
-        return val.0.map(|v| v.value.clone());
+        val.0.map(|v| v.value.clone())
       }
       None => {
         for (pr, k, val) in History::<T, U>::iter(&String::from(HASH_MAP_HISTORY)) {
           if pr == -1 && T::eq(key, &k) {
-            self.recent_value.push_front(Arc::new(Pair {
-              key: k,
-              value: val.clone(),
-            }));
-
-            self.screenshot(key);
             return Some(val);
           }
         }
@@ -118,6 +116,29 @@ where
     }
   }
 
+  pub fn get(&mut self, key: &T) -> Option<U> {
+    match self.frozen_get(key) {
+      Some(val) => {
+        match self.recent_value.del(|v| T::eq(&v.key, &key)) {
+          Some(pair) => {
+            self.recent_value.push_front(pair);
+          }
+          None => {
+            self.recent_value.push_front(Arc::new(Pair {
+              key: key.clone(),
+              value: val.clone(),
+            }));
+          }
+        }
+
+        self.screenshot(key);
+        Some(val)
+      }
+      None => None,
+    }
+  }
+
+  // FIXME: !!!
   pub fn del(&mut self, key: &T) -> Option<U> {
     let index = (T::hash(key) as usize) % HASH_MAP_SIZE;
     self.keys.del(|v| T::eq(v, key));
@@ -154,7 +175,7 @@ where
   }
 
   #[inline]
-  pub fn to_string(map: &HashMap<T, U>, key: &T) -> Option<String>
+  pub fn to_string(map: &mut HashMap<T, U>, key: &T) -> Option<String>
   where
     T: Hash<T> + Clone + Display + FromStr,
     U: Clone + Display + FromStr,
@@ -164,11 +185,10 @@ where
     }
 
     let len = key.to_string().len();
-    let list = map.values[key_I!(key, T)].as_ref().unwrap();
-    let val = list.includes(|v| T::eq(&v.key, &key)).0;
+    let val = map.frozen_get(key);
     let (_, pr) = map.recent_value.includes(|v| T::eq(&v.key, &key));
 
-    val.map(|v| format!("{} {} {}={}\n", val_PR!(pr), len, key, v.value))
+    val.map(|v| format!("{} {} {}={}\n", val_PR!(pr), len, key, v))
   }
 
   #[inline]
