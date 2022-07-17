@@ -34,8 +34,8 @@ where
 
     let mut f = File::create(&temp).unwrap();
 
-    for key in map.keys() {
-      if let Some(line) = HashMap::to_string(map, &key) {
+    for (pr, key) in map.iter() {
+      if let Some(line) = HashMap::to_string(map, &key, pr) {
         if let Err(err) = f.write(line.as_bytes()) {
           drop(f);
 
@@ -88,8 +88,8 @@ where
         continue;
       }
 
-      let len = key.to_string().len();
-      if let Err(err) = f.write(format!("{} {} {}={}\n", val_PR!(pr), len, key, val).as_bytes()) {
+      let len = k.to_string().len();
+      if let Err(err) = f.write(format!("{} {} {}={}\n", val_PR!(pr), len, k, val).as_bytes()) {
         drop(f);
 
         remove_file(&temp).unwrap();

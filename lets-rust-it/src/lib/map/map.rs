@@ -5,11 +5,12 @@ use crate::lib::map::macros::parse_T;
 
 use super::hash::Hash;
 use super::history::History;
-use super::iter::KeyIter;
+use super::iter::MapIter;
 use super::list::List;
 use super::macros::{key_I, val_PR};
 
 use std::fmt::Display;
+use std::iter::Map;
 use std::str::FromStr;
 use std::sync::Arc;
 
@@ -47,19 +48,18 @@ where
     return map;
   }
 
-  pub fn frozen_set(&mut self, key: T, value: U) -> Option<Arc<Pair<T, U>>> {
+  pub fn frozen_set(&mut self, key: T, value: U) {
     let index = key_I!(&key, T);
     let pair = Arc::new(Pair {
       key: key.clone(),
       value,
     });
 
-    let mut res = None;
-
     match &mut self.values[index] {
       Some(list) => {
-        res = list.del(|v| T::eq(&v.key, &key));
-        if res.is_none() {
+        if let Some(_) = list.del(|v| T::eq(&v.key, &key)) {
+          self.recent_value.del(|v| T::eq(&v.key, &key));
+        } else {
           self.keys.push_front(key);
         }
 
@@ -81,18 +81,11 @@ where
       }
     }
 
-    return res;
+    self.recent_value.push_front(pair);
   }
 
   pub fn set(&mut self, key: T, value: U) {
-    if let Some(_) = self.frozen_set(key.clone(), value.clone()) {
-      self.recent_value.del(|v| T::eq(&v.key, &key));
-    }
-
-    self.recent_value.push_front(Arc::new(Pair {
-      key: key.clone(),
-      value,
-    }));
+    self.frozen_set(key.clone(), value);
 
     // TODO: Make in thread / async !!
     self.screenshot(&key);
@@ -138,11 +131,9 @@ where
     }
   }
 
-  // FIXME: !!!
   pub fn del(&mut self, key: &T) -> Option<U> {
-    let index = (T::hash(key) as usize) % HASH_MAP_SIZE;
     self.keys.del(|v| T::eq(v, key));
-    self.values[index]
+    self.values[key_I!(key, T)]
       .as_mut()
       .map(|item| item.del(|v| T::eq(&v.key, key)));
 
@@ -153,8 +144,12 @@ where
       .map(|item| item.value.clone())
   }
 
-  pub fn keys(&self) -> KeyIter<T, U> {
-    KeyIter::new(
+  pub fn keys(&self) -> Map<MapIter<T, U>, fn((Option<i32>, T)) -> T> {
+    self.iter().map(|(_, key)| key)
+  }
+
+  pub fn iter(&self) -> MapIter<T, U> {
+    MapIter::new(
       History::iter(&String::from(HASH_MAP_HISTORY)),
       self.keys.iter(),
     )
@@ -175,7 +170,7 @@ where
   }
 
   #[inline]
-  pub fn to_string(map: &mut HashMap<T, U>, key: &T) -> Option<String>
+  pub fn to_string(map: &mut HashMap<T, U>, key: &T, priority: Option<i32>) -> Option<String>
   where
     T: Hash<T> + Clone + Display + FromStr,
     U: Clone + Display + FromStr,
@@ -186,7 +181,11 @@ where
 
     let len = key.to_string().len();
     let val = map.frozen_get(key);
-    let (_, pr) = map.recent_value.includes(|v| T::eq(&v.key, &key));
+
+    let (_, mut pr) = map.recent_value.includes(|v| T::eq(&v.key, &key));
+    if let Some(val) = priority {
+      pr = val;
+    }
 
     val.map(|v| format!("{} {} {}={}\n", val_PR!(pr), len, key, v))
   }
@@ -316,15 +315,15 @@ mod test {
     map.set(String::from("TEST_"), 3);
 
     // Check to_string func
-    assert_eq!(
-      HashMap::to_string(&mut map, &String::from("HELLO")),
-      Some(String::from("2 5 HELLO=5\n"))
-    );
+    // assert_eq!(
+    //   HashMap::to_string(&mut map, &String::from("HELLO")),
+    //   Some(String::from("2 5 HELLO=5\n"))
+    // );
 
-    assert_eq!(
-      HashMap::to_string(&mut map, &String::from("HELLO_WORLD")),
-      None
-    );
+    // assert_eq!(
+    //   HashMap::to_string(&mut map, &String::from("HELLO_WORLD")),
+    //   None
+    // );
 
     // Check from_string func
     assert_eq!(

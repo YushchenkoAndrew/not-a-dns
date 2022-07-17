@@ -115,37 +115,37 @@ where
   }
 }
 
-pub struct KeyIter<T, U> {
+pub struct MapIter<T, U> {
   iter: ListIter<T>,
   history: HistoryIter<T, U>,
 }
 
-impl<T, U> KeyIter<T, U>
+impl<T, U> MapIter<T, U>
 where
   T: Hash<T> + Clone + Display + FromStr,
   U: Clone + Display + FromStr,
 {
-  pub fn new(history: HistoryIter<T, U>, iter: ListIter<T>) -> KeyIter<T, U> {
-    KeyIter { history, iter }
+  pub fn new(history: HistoryIter<T, U>, iter: ListIter<T>) -> MapIter<T, U> {
+    MapIter { history, iter }
   }
 }
 
-impl<T, U> Iterator for KeyIter<T, U>
+impl<T, U> Iterator for MapIter<T, U>
 where
   T: Hash<T> + Clone + Display + FromStr,
   U: Clone + Display + FromStr,
 {
-  type Item = T;
+  type Item = (Option<i32>, T);
 
   #[inline]
   fn next(&mut self) -> Option<Self::Item> {
     match self.iter.next() {
-      Some(key) => Some(key),
+      Some(key) => Some((None, key)),
       None => loop {
         match self.history.next() {
-          Some((pr, key, _)) => {
+          Some((pr, key, val)) => {
             if pr == -1 {
-              return Some(key);
+              return Some((Some(pr), key));
             }
 
             continue;
