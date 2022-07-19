@@ -315,15 +315,15 @@ mod test {
     map.set(String::from("TEST_"), 3);
 
     // Check to_string func
-    // assert_eq!(
-    //   HashMap::to_string(&mut map, &String::from("HELLO")),
-    //   Some(String::from("2 5 HELLO=5\n"))
-    // );
+    assert_eq!(
+      HashMap::to_string(&mut map, &String::from("HELLO"), None),
+      Some(String::from("2 5 HELLO=5\n"))
+    );
 
-    // assert_eq!(
-    //   HashMap::to_string(&mut map, &String::from("HELLO_WORLD")),
-    //   None
-    // );
+    assert_eq!(
+      HashMap::to_string(&mut map, &String::from("HELLO_WORLD"), None),
+      None
+    );
 
     // Check from_string func
     assert_eq!(
