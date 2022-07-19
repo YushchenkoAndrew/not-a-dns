@@ -47,9 +47,28 @@ zones:
     ttl: 3600
     records:
       - name: "@"
-        type: "A"
+        type: "SRV"
         ttl: 400
-        value: "127.0.0.1:8003"
+        port: 8003
+        target: test.net
+
+  - name: brr.com
+    ttl: 3600
+    records:
+      - name: "@"
+        type: "CNAME"
+        target: test.net
+
+  - name: text.com
+    ttl: 3600
+    records:
+      - name: "@"
+        type: "TXT"
+        value: Hello world, this is just a text so dont worry
+
+      - name: "@"
+        type: "MX"
+        target: brr.com
 
     #  TODO:
     # SOA:

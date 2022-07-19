@@ -42,12 +42,7 @@ func LoadConfig(path, name, ext string) error {
 
 	for _, cfg := range config.Zones {
 		for i, record := range cfg.Records {
-			r := record.copy()
-			r.Name = trimHost(strings.ReplaceAll(r.Name, "@", trimHost(cfg.Name)))
-
-			if r.TTL == 0 {
-				r.TTL = cfg.TTL
-			}
+			r := record.parse(&cfg)
 
 			if conv, ok := ConfigRecordToString[RRTypeToInt[record.Type]]; !ok || conv(r) == "" {
 				logger.Errorf("Unsupported type: %s '%s'", record.Type, r.Name)

@@ -17,33 +17,43 @@ func ARecordConv(c *ConfigRecord) string {
 		return ""
 	}
 
-	a := dns.A{
+	res := dns.A{
 		Hdr: dns.RR_Header{Name: c.Name, Rrtype: RRTypeToInt[c.Type], Class: dns.ClassINET, Ttl: c.TTL},
 		A:   ip[12:16],
 	}
 
-	return a.String()
+	return res.String()
 }
 
 func NSRecordConv(c *ConfigRecord) string {
-	ns := dns.NS{
+	res := dns.NS{
 		Hdr: dns.RR_Header{Name: c.Name, Rrtype: RRTypeToInt[c.Type], Class: dns.ClassINET, Ttl: c.TTL},
 		Ns:  c.Value,
 	}
 
-	return ns.String()
+	return res.String()
 }
 
-type CNAMERecord struct {
-	ConfigRecord
-}
+func SRVRecordConv(c *ConfigRecord) string {
+	res := dns.SRV{
+		Hdr: dns.RR_Header{Name: c.Name, Rrtype: RRTypeToInt[c.Type], Class: dns.ClassINET, Ttl: c.TTL},
 
-func (s *CNAMERecord) res() (dnsmessage.ResourceBody, uint32, int) {
-	CNAME, err := dnsmessage.NewName(s.Value)
-	if err != nil {
-		return nil, 0, dns.RcodeServerFailure
+		Priority: c.Priority,
+		Weight:   c.Weight,
+		Port:     c.Port,
+		Target:   c.Target,
 	}
-	return &dnsmessage.CNAMEResource{CNAME: CNAME}, s.TTL, dns.RcodeSuccess
+
+	return res.String()
+}
+
+func CNAMERecordConv(c *ConfigRecord) string {
+	res := dns.CNAME{
+		Hdr:    dns.RR_Header{Name: c.Name, Rrtype: RRTypeToInt[c.Type], Class: dns.ClassINET, Ttl: c.TTL},
+		Target: c.Target,
+	}
+
+	return res.String()
 }
 
 type PTRRecord struct {
@@ -58,41 +68,35 @@ func (s *PTRRecord) res() (dnsmessage.ResourceBody, uint32, int) {
 	return &dnsmessage.PTRResource{PTR: PTR}, s.TTL, dns.RcodeSuccess
 }
 
-type MXRecord struct {
-	ConfigRecord
-}
-
-func (s *MXRecord) res() (dnsmessage.ResourceBody, uint32, int) {
-	// TODO: !!!!!!
-	return &dnsmessage.MXResource{}, 0, dns.RcodeSuccess
-}
-
-type AAAARecord struct {
-	ConfigRecord
-}
-
-func (s *AAAARecord) res() (dnsmessage.ResourceBody, uint32, int) {
-	var ip = net.ParseIP(s.Value)
-	if ip == nil {
-		return nil, 0, dns.RcodeServerFailure
+func MXRecordConv(c *ConfigRecord) string {
+	res := dns.MX{
+		Hdr:        dns.RR_Header{Name: c.Name, Rrtype: RRTypeToInt[c.Type], Class: dns.ClassINET, Ttl: c.TTL},
+		Preference: c.Priority,
+		Mx:         c.Target,
 	}
-	var IPv6 = [16]byte{}
-	copy(IPv6[:], ip)
-	return &dnsmessage.AAAAResource{AAAA: IPv6}, s.TTL, dns.RcodeSuccess
+
+	return res.String()
 }
 
-type TXTRecord struct {
-	ConfigRecord
+func AAAARecordConv(c *ConfigRecord) string {
+	var ip = net.ParseIP(c.Value)
+	if ip == nil {
+		return ""
+	}
+
+	res := dns.AAAA{
+		Hdr:  dns.RR_Header{Name: c.Name, Rrtype: RRTypeToInt[c.Type], Class: dns.ClassINET, Ttl: c.TTL},
+		AAAA: ip,
+	}
+
+	return res.String()
 }
 
-func (s *TXTRecord) res() (dnsmessage.ResourceBody, uint32, int) {
-	// TODO: !!!!!!!!!
-	return &dnsmessage.TXTResource{}, 0, dns.RcodeSuccess
-}
+func TXTRecordConv(c *ConfigRecord) string {
+	res := dns.TXT{
+		Hdr: dns.RR_Header{Name: c.Name, Rrtype: RRTypeToInt[c.Type], Class: dns.ClassINET, Ttl: c.TTL},
+		Txt: []string{c.Value},
+	}
 
-type EmptyResource struct {
-}
-
-func (s *EmptyResource) res() (dns.RR, int) {
-	return nil, dns.RcodeNotImplemented
+	return res.String()
 }
