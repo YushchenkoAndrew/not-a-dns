@@ -13,23 +13,23 @@ var (
 		"CAA":   dns.TypeCAA,
 		"CNAME": dns.TypeCNAME,
 		"MX":    dns.TypeMX,
-		"NAPTR": dns.TypeNAPTR,
-		"NS":    dns.TypeNS,
-		"PTR":   dns.TypePTR,
-		"SOA":   dns.TypeSOA,
-		"SRV":   dns.TypeSRV,
-		"TXT":   dns.TypeTXT,
+		// "NAPTR": dns.TypeNAPTR,
+		"NS":  dns.TypeNS,
+		"PTR": dns.TypePTR,
+		// "SOA":   dns.TypeSOA,
+		"SRV": dns.TypeSRV,
+		"TXT": dns.TypeTXT,
 	}
 
 	ConfigRecordToString = map[uint16]func(*ConfigRecord) string{
-		dns.TypeA:    func(r *ConfigRecord) string { return ARecordConv(r) },
-		dns.TypeAAAA: func(r *ConfigRecord) string { return AAAARecordConv(r) },
-		// dns.TypeCAA: func(records []record, r Record) []record { return append(records, &CNAMERecord{r}) },
+		dns.TypeA:     func(r *ConfigRecord) string { return ARecordConv(r) },
+		dns.TypeAAAA:  func(r *ConfigRecord) string { return AAAARecordConv(r) },
+		dns.TypeCAA:   func(r *ConfigRecord) string { return CAARecordConv(r) },
 		dns.TypeCNAME: func(r *ConfigRecord) string { return CNAMERecordConv(r) },
 		dns.TypeMX:    func(r *ConfigRecord) string { return MXRecordConv(r) },
 		// dns.TypeNAPTR:    func(records []record, r Record) []record { return append(records, &MXRecord{r}) },
-		dns.TypeNS: func(r *ConfigRecord) string { return NSRecordConv(r) },
-		// dns.TypePTR:   func(records []record, r Record) []record { return append(records, &PTRRecord{r}) },
+		dns.TypeNS:  func(r *ConfigRecord) string { return NSRecordConv(r) },
+		dns.TypePTR: func(r *ConfigRecord) string { return PTRRecordConv(r) },
 		// dns.TypeSOA:   func(records []record, r Record) []record { return append(records, &PTRRecord{r}) },
 		dns.TypeSRV: func(r *ConfigRecord) string { return SRVRecordConv(r) },
 		dns.TypeTXT: func(r *ConfigRecord) string { return TXTRecordConv(r) },
@@ -45,6 +45,8 @@ type ConfigRecord struct {
 	Weight   uint16 `mapstructure:"weight"`
 	Port     uint16 `mapstructure:"port"`
 	Target   string `mapstructure:"target"`
+	Flag     uint8  `mapstructure:"flag"`
+	Tag      string `mapstructure:"tag"`
 }
 
 func (c *ConfigRecord) copy() *ConfigRecord {

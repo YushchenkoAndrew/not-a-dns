@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package dnspb;
+option go_package = "./dnspb";
+
+enum Status {
+  OK = 0;
+  ERR = 1;
+}
+
+message RecordRequest {
+  string name = 1;
+  string type = 2;
+  uint32 ttl = 3;
+  string value = 4;
+  uint32 priority = 5;
+  uint32 weight = 6;
+  uint32 port = 7;
+  string target = 8;
+  uint32 flag = 9;
+  string tag = 10;
+}
+
+message Request {
+  // string key = 1;
+}
+
+message StatResponse {
+  Status status = 1;
+  string message = 2;
+}
+
+message RecordModel {
+  string desc = 1;
+  repeated string fields = 2;
+  repeated RecordRequest model = 3;
+}
+
+message ListResponse {
+  Status status = 1;
+  string message = 2;
+  RecordModel result = 3;
+}
+
+service DnsService {
+  rpc ListRecods(Request) returns (ListResponse) {};
+  rpc CreateRecord(RecordRequest) returns (StatResponse) {};
+  rpc UpdateRecord(RecordRequest) returns (StatResponse) {};
+  rpc DeleteRecord(RecordRequest) returns (StatResponse) {};
+}

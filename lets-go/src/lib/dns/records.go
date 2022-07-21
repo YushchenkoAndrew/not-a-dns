@@ -4,7 +4,6 @@ import (
 	"net"
 
 	"github.com/miekg/dns"
-	"golang.org/x/net/dns/dnsmessage"
 )
 
 type record interface {
@@ -56,16 +55,13 @@ func CNAMERecordConv(c *ConfigRecord) string {
 	return res.String()
 }
 
-type PTRRecord struct {
-	ConfigRecord
-}
-
-func (s *PTRRecord) res() (dnsmessage.ResourceBody, uint32, int) {
-	PTR, err := dnsmessage.NewName(s.Value)
-	if err != nil {
-		return nil, 0, dns.RcodeServerFailure
+func PTRRecordConv(c *ConfigRecord) string {
+	res := dns.PTR{
+		Hdr: dns.RR_Header{Name: c.Name, Rrtype: RRTypeToInt[c.Type], Class: dns.ClassINET, Ttl: c.TTL},
+		Ptr: c.Value,
 	}
-	return &dnsmessage.PTRResource{PTR: PTR}, s.TTL, dns.RcodeSuccess
+
+	return res.String()
 }
 
 func MXRecordConv(c *ConfigRecord) string {
@@ -96,6 +92,17 @@ func TXTRecordConv(c *ConfigRecord) string {
 	res := dns.TXT{
 		Hdr: dns.RR_Header{Name: c.Name, Rrtype: RRTypeToInt[c.Type], Class: dns.ClassINET, Ttl: c.TTL},
 		Txt: []string{c.Value},
+	}
+
+	return res.String()
+}
+
+func CAARecordConv(c *ConfigRecord) string {
+	res := dns.CAA{
+		Hdr:   dns.RR_Header{Name: c.Name, Rrtype: RRTypeToInt[c.Type], Class: dns.ClassINET, Ttl: c.TTL},
+		Flag:  c.Flag,
+		Tag:   c.Tag,
+		Value: c.Value,
 	}
 
 	return res.String()
