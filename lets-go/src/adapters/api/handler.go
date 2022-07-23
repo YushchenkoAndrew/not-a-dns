@@ -20,7 +20,7 @@ func NewHandler(storage *composites.StorageComposite) *Handler {
 	return &Handler{storage: storage, logger: log.GetLogger()}
 }
 
-func (h *Handler) ListRecods(ctx context.Context, _ *dnspb.Request) (*dnspb.ListResponse, error) {
+func (h *Handler) ListRecord(ctx context.Context, _ *dnspb.Request) (*dnspb.ListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
 }
 func (h *Handler) CreateRecord(context.Context, *dnspb.RecordRequest) (*dnspb.StatResponse, error) {

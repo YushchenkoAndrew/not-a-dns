@@ -32,18 +32,18 @@ message StatResponse {
 
 message RecordModel {
   string desc = 1;
-  repeated string fields = 2;
-  repeated RecordRequest model = 3;
+  repeated string keys = 2;
+  repeated RecordRequest values = 3;
 }
 
 message ListResponse {
   Status status = 1;
   string message = 2;
-  RecordModel result = 3;
+  repeated RecordModel result = 3;
 }
 
 service DnsService {
-  rpc ListRecods(Request) returns (ListResponse) {};
+  rpc ListRecord(Request) returns (ListResponse) {};
   rpc CreateRecord(RecordRequest) returns (StatResponse) {};
   rpc UpdateRecord(RecordRequest) returns (StatResponse) {};
   rpc DeleteRecord(RecordRequest) returns (StatResponse) {};

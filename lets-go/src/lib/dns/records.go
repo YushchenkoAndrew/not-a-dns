@@ -6,11 +6,7 @@ import (
 	"github.com/miekg/dns"
 )
 
-type record interface {
-	res() string
-}
-
-func ARecordConv(c *ConfigRecord) string {
+func aRecord(c *ConfigRecord) string {
 	var ip = net.ParseIP(c.Value)
 	if ip == nil {
 		return ""
@@ -24,7 +20,7 @@ func ARecordConv(c *ConfigRecord) string {
 	return res.String()
 }
 
-func NSRecordConv(c *ConfigRecord) string {
+func nsRecord(c *ConfigRecord) string {
 	res := dns.NS{
 		Hdr: dns.RR_Header{Name: c.Name, Rrtype: RRTypeToInt[c.Type], Class: dns.ClassINET, Ttl: c.TTL},
 		Ns:  c.Value,
@@ -33,7 +29,7 @@ func NSRecordConv(c *ConfigRecord) string {
 	return res.String()
 }
 
-func SRVRecordConv(c *ConfigRecord) string {
+func srvRecord(c *ConfigRecord) string {
 	res := dns.SRV{
 		Hdr: dns.RR_Header{Name: c.Name, Rrtype: RRTypeToInt[c.Type], Class: dns.ClassINET, Ttl: c.TTL},
 
@@ -46,7 +42,7 @@ func SRVRecordConv(c *ConfigRecord) string {
 	return res.String()
 }
 
-func CNAMERecordConv(c *ConfigRecord) string {
+func cnameRecord(c *ConfigRecord) string {
 	res := dns.CNAME{
 		Hdr:    dns.RR_Header{Name: c.Name, Rrtype: RRTypeToInt[c.Type], Class: dns.ClassINET, Ttl: c.TTL},
 		Target: c.Target,
@@ -55,7 +51,7 @@ func CNAMERecordConv(c *ConfigRecord) string {
 	return res.String()
 }
 
-func PTRRecordConv(c *ConfigRecord) string {
+func ptrRecord(c *ConfigRecord) string {
 	res := dns.PTR{
 		Hdr: dns.RR_Header{Name: c.Name, Rrtype: RRTypeToInt[c.Type], Class: dns.ClassINET, Ttl: c.TTL},
 		Ptr: c.Value,
@@ -64,7 +60,7 @@ func PTRRecordConv(c *ConfigRecord) string {
 	return res.String()
 }
 
-func MXRecordConv(c *ConfigRecord) string {
+func mxRecord(c *ConfigRecord) string {
 	res := dns.MX{
 		Hdr:        dns.RR_Header{Name: c.Name, Rrtype: RRTypeToInt[c.Type], Class: dns.ClassINET, Ttl: c.TTL},
 		Preference: c.Priority,
@@ -74,7 +70,7 @@ func MXRecordConv(c *ConfigRecord) string {
 	return res.String()
 }
 
-func AAAARecordConv(c *ConfigRecord) string {
+func aaaaRecord(c *ConfigRecord) string {
 	var ip = net.ParseIP(c.Value)
 	if ip == nil {
 		return ""
@@ -88,7 +84,7 @@ func AAAARecordConv(c *ConfigRecord) string {
 	return res.String()
 }
 
-func TXTRecordConv(c *ConfigRecord) string {
+func txtRecord(c *ConfigRecord) string {
 	res := dns.TXT{
 		Hdr: dns.RR_Header{Name: c.Name, Rrtype: RRTypeToInt[c.Type], Class: dns.ClassINET, Ttl: c.TTL},
 		Txt: []string{c.Value},
@@ -97,7 +93,7 @@ func TXTRecordConv(c *ConfigRecord) string {
 	return res.String()
 }
 
-func CAARecordConv(c *ConfigRecord) string {
+func caaRecord(c *ConfigRecord) string {
 	res := dns.CAA{
 		Hdr:   dns.RR_Header{Name: c.Name, Rrtype: RRTypeToInt[c.Type], Class: dns.ClassINET, Ttl: c.TTL},
 		Flag:  c.Flag,

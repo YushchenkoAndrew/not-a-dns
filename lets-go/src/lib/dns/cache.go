@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"lets-go/src/lib/cache"
-	pb "lets-go/src/pb/cache"
+	pb "lets-go/src/pb/cachepb"
 	"strings"
 
 	"github.com/miekg/dns"

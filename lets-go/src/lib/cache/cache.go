@@ -2,20 +2,20 @@ package cache
 
 import (
 	"lets-go/src/lib/log"
-	"lets-go/src/pb/cache"
+	pb "lets-go/src/pb/cachepb"
 	"os"
 
 	"google.golang.org/grpc"
 )
 
 var conn *grpc.ClientConn
-var client cache.CacheServiceClient
+var client pb.CacheServiceClient
 
 func Conn() *grpc.ClientConn {
 	return conn
 }
 
-func Client() cache.CacheServiceClient {
+func Client() pb.CacheServiceClient {
 	return client
 }
 
@@ -37,5 +37,5 @@ func init() {
 		log.GetLogger().Panicf("Failed to connect to gRPC Server: %v", err)
 	}
 
-	client = cache.NewCacheServiceClient(conn)
+	client = pb.NewCacheServiceClient(conn)
 }

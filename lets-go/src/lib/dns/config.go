@@ -6,7 +6,7 @@ import (
 	"lets-go/src/lib/cache"
 	"strings"
 
-	pb "lets-go/src/pb/cache"
+	pb "lets-go/src/pb/cachepb"
 
 	"github.com/spf13/viper"
 )

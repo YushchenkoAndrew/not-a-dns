@@ -3,7 +3,7 @@ package cache_test
 import (
 	"context"
 	"lets-go/src/lib/cache"
-	pb "lets-go/src/pb/cache"
+	pb "lets-go/src/pb/cachepb"
 	"sync"
 	"testing"
 
