@@ -18,14 +18,13 @@ func NewStorage() record.Storage {
 	return &storage{cache: cache.Client()}
 }
 
-func (s *storage) List(ctx context.Context, req *dnspb.Request) (*dnspb.ListResponse, error) {
+func (s *storage) List(ctx context.Context, req *dnspb.Request) ([]*dnspb.RecordRequest, error) {
 	res, err := s.cache.Keys(ctx, &pb.Request{})
 	if err != nil || res.Status != pb.Status_OK {
 		return nil, err
 	}
 
-	var values = make(map[uint16][]*dnspb.RecordRequest)
-
+	var result = []*dnspb.RecordRequest{}
 	for _, key := range res.Result {
 		res, err := cache.Client().Get(ctx, &pb.GetRequest{Key: key})
 
@@ -40,14 +39,10 @@ func (s *storage) List(ctx context.Context, req *dnspb.Request) (*dnspb.ListResp
 			continue
 		}
 
-		// if _, ok := values[rtype]; !ok {
-		// 	values[rtype] = []*dnspb.RecordRequest{}
-		// }
-
-		values[rtype] = append(values[rtype], record.RecordToRequest[rtype](r))
+		result = append(result, record.RecordToRequest[rtype](r))
 	}
 
-	return nil, nil
+	return result, nil
 }
 
 func (s *storage) Create(context.Context, *dnspb.RecordRequest) (*dnspb.StatResponse, error) {

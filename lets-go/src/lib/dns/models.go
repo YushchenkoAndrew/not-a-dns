@@ -22,17 +22,17 @@ var (
 	}
 
 	ConfigRecordToString = map[uint16]func(*ConfigRecord) string{
-		dns.TypeA:     func(r *ConfigRecord) string { return aRecord(r) },
-		dns.TypeAAAA:  func(r *ConfigRecord) string { return aaaaRecord(r) },
-		dns.TypeCAA:   func(r *ConfigRecord) string { return caaRecord(r) },
-		dns.TypeCNAME: func(r *ConfigRecord) string { return cnameRecord(r) },
-		dns.TypeMX:    func(r *ConfigRecord) string { return mxRecord(r) },
+		dns.TypeA:     aRecord,
+		dns.TypeAAAA:  aaaaRecord,
+		dns.TypeCAA:   caaRecord,
+		dns.TypeCNAME: cnameRecord,
+		dns.TypeMX:    mxRecord,
 		// dns.TypeNAPTR:    func(records []record, r Record) []record { return append(records, &MXRecord{r}) },
-		dns.TypeNS:  func(r *ConfigRecord) string { return nsRecord(r) },
-		dns.TypePTR: func(r *ConfigRecord) string { return ptrRecord(r) },
+		dns.TypeNS:  nsRecord,
+		dns.TypePTR: ptrRecord,
 		// dns.TypeSOA:   func(records []record, r Record) []record { return append(records, &PTRRecord{r}) },
-		dns.TypeSRV: func(r *ConfigRecord) string { return srvRecord(r) },
-		dns.TypeTXT: func(r *ConfigRecord) string { return txtRecord(r) },
+		dns.TypeSRV: srvRecord,
+		dns.TypeTXT: txtRecord,
 	}
 )
 
