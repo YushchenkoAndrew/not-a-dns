@@ -4,6 +4,7 @@ import (
 	"context"
 	"lets-go/src/domain/record"
 	"lets-go/src/lib/cache"
+	config "lets-go/src/lib/dns"
 	pb "lets-go/src/pb/cachepb"
 	"lets-go/src/pb/dnspb"
 
@@ -45,7 +46,10 @@ func (s *storage) List(ctx context.Context, req *dnspb.Request) ([]*dnspb.Record
 	return result, nil
 }
 
-func (s *storage) Create(context.Context, *dnspb.RecordRequest) (*dnspb.StatResponse, error) {
+func (s *storage) Create(ctx context.Context, req *dnspb.RecordRequest) (*dnspb.StatResponse, error) {
+
+	// TODO:
+	config.ConfigRecordToString[1](record.NewRecordRequest().ToModel(req).ToConfig())
 	return nil, nil
 }
 

@@ -28,7 +28,9 @@ func (h *Handler) ListRecord(ctx context.Context, req *dnspb.Request) (*dnspb.Li
 
 	return &dnspb.ListResponse{Status: dnspb.Status_OK, Message: "Success", Result: res}, nil
 }
-func (h *Handler) CreateRecord(context.Context, *dnspb.RecordRequest) (*dnspb.StatResponse, error) {
+func (h *Handler) CreateRecord(ctx context.Context, req *dnspb.RecordRequest) (*dnspb.StatResponse, error) {
+
+	h.storage.Record.Create(ctx, req)
 	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
 }
 func (h *Handler) UpdateRecord(context.Context, *dnspb.RecordRequest) (*dnspb.StatResponse, error) {

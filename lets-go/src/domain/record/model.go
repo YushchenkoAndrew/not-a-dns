@@ -1,6 +1,7 @@
 package record
 
 import (
+	config "lets-go/src/lib/dns"
 	"lets-go/src/pb/dnspb"
 
 	"github.com/miekg/dns"
@@ -21,3 +22,50 @@ var (
 		dns.TypeTXT: func(r dns.RR) *dnspb.RecordRequest { return txtRecord(r.(*dns.TXT)) },
 	}
 )
+
+type RecordRequest struct {
+	Name     string `json:"name,omitempty"`
+	Type     string `json:"type,omitempty"`
+	Ttl      uint32 `json:"ttl,omitempty"`
+	Value    string `json:"value,omitempty"`
+	Priority uint32 `json:"priority,omitempty"`
+	Weight   uint32 `json:"weight,omitempty"`
+	Port     uint32 `json:"port,omitempty"`
+	Target   string `json:"target,omitempty"`
+	Flag     uint32 `json:"flag,omitempty"`
+	Tag      string `json:"tag,omitempty"`
+}
+
+func NewRecordRequest() *RecordRequest {
+	return &RecordRequest{}
+}
+
+func (m *RecordRequest) ToModel(p *dnspb.RecordRequest) *RecordRequest {
+	return &RecordRequest{
+		Name:     p.Name,
+		Type:     p.Type,
+		Ttl:      p.Ttl,
+		Value:    p.Value,
+		Priority: p.Priority,
+		Weight:   p.Weight,
+		Port:     p.Port,
+		Target:   p.Target,
+		Flag:     p.Flag,
+		Tag:      p.Tag,
+	}
+}
+
+func (m *RecordRequest) ToConfig() *config.ConfigRecord {
+	return &config.ConfigRecord{
+		Name:     m.Name,
+		Type:     m.Type,
+		TTL:      m.Ttl,
+		Value:    m.Value,
+		Priority: uint16(m.Priority),
+		Weight:   uint16(m.Weight),
+		Port:     uint16(m.Port),
+		Target:   m.Target,
+		Flag:     uint8(m.Flag),
+		Tag:      m.Tag,
+	}
+}
