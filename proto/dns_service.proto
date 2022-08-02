@@ -30,16 +30,10 @@ message StatResponse {
   string message = 2;
 }
 
-message RecordModel {
-  string desc = 1;
-  repeated string keys = 2;
-  repeated RecordRequest values = 3;
-}
-
 message ListResponse {
   Status status = 1;
   string message = 2;
-  repeated RecordModel result = 3;
+  repeated RecordRequest result = 3;
 }
 
 service DnsService {

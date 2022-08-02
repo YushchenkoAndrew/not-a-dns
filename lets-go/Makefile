@@ -12,7 +12,8 @@ clean:
 	rm -rf src/pb/*
 
 proto: clean
-	protoc --proto_path=../proto ../proto/*.proto --go-grpc_out=src/pb --go_out=src/pb
+	protoc --proto_path=../proto ../proto/cache_service.proto --go-grpc_out=src/pb --go_out=src/pb
+	protoc --proto_path=../proto ../proto/dns_service.proto --go-grpc_out=src/pb --go_out=src/pb
 
 build: 
 	go build -o ./out/lets-go ./src/main.go
