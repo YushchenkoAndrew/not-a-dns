@@ -25,6 +25,11 @@ message Request {
   // string key = 1;
 }
 
+message UpdateRequest {
+  RecordRequest old = 1;
+  RecordRequest new = 2;
+}
+
 message StatResponse {
   Status status = 1;
   string message = 2;
@@ -39,6 +44,6 @@ message ListResponse {
 service DnsService {
   rpc ListRecord(Request) returns (ListResponse) {};
   rpc CreateRecord(RecordRequest) returns (StatResponse) {};
-  rpc UpdateRecord(RecordRequest) returns (StatResponse) {};
+  rpc UpdateRecord(UpdateRequest) returns (StatResponse) {};
   rpc DeleteRecord(RecordRequest) returns (StatResponse) {};
 }
