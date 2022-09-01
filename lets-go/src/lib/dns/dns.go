@@ -18,8 +18,8 @@ type letsDnsIt struct {
 	server *dns.Server
 }
 
-func NewDNS(network, addr string) *letsDnsIt {
-	return &letsDnsIt{server: &dns.Server{Addr: addr, Net: "udp"}}
+func NewDNS(network string, addr string) *letsDnsIt {
+	return &letsDnsIt{server: &dns.Server{Addr: addr, Net: network}}
 }
 
 func (s *letsDnsIt) Close() {

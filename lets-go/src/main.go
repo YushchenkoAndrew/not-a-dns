@@ -2,9 +2,12 @@ package main
 
 import (
 	"fmt"
+	"lets-go/src/adapters/api"
+	"lets-go/src/composites"
 	"lets-go/src/lib/cache"
 	"lets-go/src/lib/dns"
 	"lets-go/src/lib/log"
+	"lets-go/src/pb"
 	"net"
 	"os"
 	"path/filepath"
@@ -32,32 +35,33 @@ func main() {
 		}
 	}()
 
-	if err := dns.LoadConfig(filepath.Dir(os.Args[CONFIG]), strings.TrimSuffix(filepath.Base(os.Args[CONFIG]), filepath.Ext(os.Args[ADDR])), strings.Trim(filepath.Ext(os.Args[CONFIG]), ".")); err != nil {
+	var addr = fmt.Sprintf("%s:%s", os.Args[ADDR], os.Args[PORT])
+	if err := dns.LoadConfig(filepath.Dir(os.Args[CONFIG]), strings.TrimSuffix(filepath.Base(os.Args[CONFIG]), filepath.Ext(os.Args[CONFIG])), strings.Trim(filepath.Ext(os.Args[CONFIG]), ".")); err != nil {
 		logger.Panicf("Failed on load DNS config: %v", err)
 	}
 
 	go func() {
 		logger.Info("Initialize Server")
-		listen, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%s", os.Args[PORT]))
+		listen, err := net.Listen("tcp", addr)
 		if err != nil {
 			logger.Fatal(err)
 		}
 
-		logger.Infof("Server start on 0.0.0.0:%s", os.Args[PORT])
+		logger.Infof("Server start on %s", addr)
 
 		var opts []grpc.ServerOption
 		grpcServer := grpc.NewServer(opts...)
 
-		// dnspb.RegisterDnsServiceServer(grpcServer, api.NewHandler(storage))
+		pb.RegisterDnsServiceServer(grpcServer, api.NewHandler(composites.NewStorageComposite()))
 		if err = grpcServer.Serve(listen); err != nil {
 			logger.Errorf("gRPC error: %v", err)
 		}
 	}()
 
-	dns := dns.NewDNS("udp", os.Args[ADDR])
+	dns := dns.NewDNS("udp", addr)
 	defer dns.Close()
 
-	logger.Infof("DNS Server has been started: '%s'", os.Args[ADDR])
+	logger.Infof("DNS Server has been started: '%s'", addr)
 
 	if err := dns.Run(); err != nil {
 		logger.Panicf("Failed on starting up DNS Server: %v", err)

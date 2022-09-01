@@ -1,14 +1,11 @@
 syntax = "proto3";
 
-package dnspb;
-option go_package = "./dnspb";
+package proto;
+option go_package = "./pb";
 
-enum Status {
-  OK = 0;
-  ERR = 1;
-}
+import "proto/basic_service.proto";
 
-message RecordRequest {
+message DnsRecordRequest {
   string name = 1;
   string type = 2;
   uint32 ttl = 3;
@@ -21,29 +18,22 @@ message RecordRequest {
   string tag = 10;
 }
 
-message Request {
+message DnsRequest {
   // string key = 1;
 }
 
-message UpdateRequest {
-  RecordRequest old = 1;
-  RecordRequest new = 2;
+message DnsUpdateRequest {
+  DnsRecordRequest old = 1;
+  DnsRecordRequest new = 2;
 }
 
-message StatResponse {
+message DnsStatResponse {
   Status status = 1;
   string message = 2;
 }
 
-message ListResponse {
+message DnsListResponse {
   Status status = 1;
   string message = 2;
-  repeated RecordRequest result = 3;
-}
-
-service DnsService {
-  rpc ListRecord(Request) returns (ListResponse) {};
-  rpc CreateRecord(RecordRequest) returns (StatResponse) {};
-  rpc UpdateRecord(UpdateRequest) returns (StatResponse) {};
-  rpc DeleteRecord(RecordRequest) returns (StatResponse) {};
+  repeated DnsRecordRequest result = 3;
 }

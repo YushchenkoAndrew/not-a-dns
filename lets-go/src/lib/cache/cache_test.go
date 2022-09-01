@@ -3,7 +3,7 @@ package cache_test
 import (
 	"context"
 	"lets-go/src/lib/cache"
-	pb "lets-go/src/pb/cachepb"
+	"lets-go/src/pb"
 	"sync"
 	"testing"
 
@@ -17,7 +17,7 @@ func TestBasic(t *testing.T) {
 		require.NoError(t, cache.Conn().Close())
 	}()
 
-	var values = []pb.SetRequest{
+	var values = []pb.CacheSetRequest{
 		{Key: "HELLO", Value: "111111"},
 		{Key: "WORLD", Value: "222222"},
 		{Key: "TEST1", Value: "333333"},
@@ -52,7 +52,7 @@ func TestBasic(t *testing.T) {
 		wg.Add(1)
 		go func(i int) {
 			defer wg.Done()
-			res, err := cache.Client().Get(ctx, &pb.GetRequest{Key: values[i].Key})
+			res, err := cache.Client().Get(ctx, &pb.CacheGetRequest{Key: values[i].Key})
 			require.NoError(t, err)
 			require.Equal(t, pb.Status_OK, res.Status)
 			require.Equal(t, values[i].Value, res.Result)
@@ -61,7 +61,7 @@ func TestBasic(t *testing.T) {
 
 	wg.Wait()
 
-	res, err := cache.Client().Keys(ctx, &pb.Request{Key: "TEST"})
+	res, err := cache.Client().Keys(ctx, &pb.CacheRequest{Key: "TEST"})
 	require.NoError(t, err)
 	require.Equal(t, pb.Status_OK, res.Status)
 	require.NotEmpty(t, res.Result)

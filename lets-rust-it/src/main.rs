@@ -6,10 +6,11 @@ use std::sync::{Arc, Mutex};
 
 use lib::map::map::HashMap;
 use pb::cache_service_server::{CacheService, CacheServiceServer};
+
 use tonic::transport::Server;
 
 pub mod pb {
-  include!("./pb/cache.rs");
+  include!("./pb/proto.rs");
 }
 
 pub struct CacheServiceImpl {
@@ -28,8 +29,8 @@ impl CacheServiceImpl {
 impl CacheService for CacheServiceImpl {
   async fn set(
     &self,
-    request: tonic::Request<pb::SetRequest>,
-  ) -> Result<tonic::Response<pb::StatResponse>, tonic::Status> {
+    request: tonic::Request<pb::CacheSetRequest>,
+  ) -> Result<tonic::Response<pb::CacheStatResponse>, tonic::Status> {
     println!(
       "Set: {} => {}",
       request.get_ref().key,
@@ -40,12 +41,12 @@ impl CacheService for CacheServiceImpl {
     match self.cache.lock() {
       Ok(ref mut cache) => {
         cache.set(req.key, req.value);
-        Ok(tonic::Response::new(pb::StatResponse {
+        Ok(tonic::Response::new(pb::CacheStatResponse {
           status: pb::Status::Ok as i32,
           message: String::from("Success !!"),
         }))
       }
-      _ => Ok(tonic::Response::new(pb::StatResponse {
+      _ => Ok(tonic::Response::new(pb::CacheStatResponse {
         status: pb::Status::Err as i32,
         message: String::from("Mutex lock error"),
       })),
@@ -54,29 +55,29 @@ impl CacheService for CacheServiceImpl {
 
   async fn get(
     &self,
-    request: tonic::Request<pb::GetRequest>,
-  ) -> Result<tonic::Response<pb::ValueResponse>, tonic::Status> {
+    request: tonic::Request<pb::CacheGetRequest>,
+  ) -> Result<tonic::Response<pb::CacheValueResponse>, tonic::Status> {
     print!("Get: {} => ", request.get_ref().key);
 
     match self.cache.lock() {
       Ok(ref mut cache) => match cache.get(&request.get_ref().key) {
         Some(value) => {
           println!("'{}'", value);
-          Ok(tonic::Response::new(pb::ValueResponse {
+          Ok(tonic::Response::new(pb::CacheValueResponse {
             status: pb::Status::Ok as i32,
             message: String::from("Success !!"),
             result: value,
           }))
         }
 
-        None => Ok(tonic::Response::new(pb::ValueResponse {
+        None => Ok(tonic::Response::new(pb::CacheValueResponse {
           status: pb::Status::Err as i32,
           message: String::from("Value not found"),
           result: request.get_ref().default.clone(),
         })),
       },
 
-      _ => Ok(tonic::Response::new(pb::ValueResponse {
+      _ => Ok(tonic::Response::new(pb::CacheValueResponse {
         status: pb::Status::Err as i32,
         message: String::from("Mutex lock error"),
         result: String::new(),
@@ -86,20 +87,20 @@ impl CacheService for CacheServiceImpl {
 
   async fn del(
     &self,
-    request: tonic::Request<pb::Request>,
-  ) -> Result<tonic::Response<pb::StatResponse>, tonic::Status> {
+    request: tonic::Request<pb::CacheRequest>,
+  ) -> Result<tonic::Response<pb::CacheStatResponse>, tonic::Status> {
     println!("Del: {}", request.get_ref().key);
 
     match self.cache.lock() {
       Ok(ref mut cache) => {
         cache.del(&request.get_ref().key);
-        Ok(tonic::Response::new(pb::StatResponse {
+        Ok(tonic::Response::new(pb::CacheStatResponse {
           status: pb::Status::Ok as i32,
           message: String::from("Success !!"),
         }))
       }
 
-      _ => Ok(tonic::Response::new(pb::StatResponse {
+      _ => Ok(tonic::Response::new(pb::CacheStatResponse {
         status: pb::Status::Err as i32,
         message: String::from("Mutex lock error"),
       })),
@@ -108,8 +109,8 @@ impl CacheService for CacheServiceImpl {
 
   async fn keys(
     &self,
-    request: tonic::Request<pb::Request>,
-  ) -> Result<tonic::Response<pb::ListResponse>, tonic::Status> {
+    request: tonic::Request<pb::CacheRequest>,
+  ) -> Result<tonic::Response<pb::CacheListResponse>, tonic::Status> {
     print!("Key: {} => ", request.get_ref().key);
 
     match self.cache.lock() {
@@ -123,14 +124,14 @@ impl CacheService for CacheServiceImpl {
         }
 
         println!("{:?}", keys);
-        Ok(tonic::Response::new(pb::ListResponse {
+        Ok(tonic::Response::new(pb::CacheListResponse {
           status: pb::Status::Ok as i32,
           message: String::from("Success !!"),
           result: keys,
         }))
       }
 
-      _ => Ok(tonic::Response::new(pb::ListResponse {
+      _ => Ok(tonic::Response::new(pb::CacheListResponse {
         status: pb::Status::Err as i32,
         message: String::from("Mutex lock error"),
         result: vec![],

@@ -4,9 +4,8 @@ import (
 	"context"
 	"fmt"
 	"lets-go/src/lib/cache"
+	"lets-go/src/pb"
 	"strings"
-
-	pb "lets-go/src/pb/cachepb"
 
 	"github.com/spf13/viper"
 )
@@ -31,7 +30,7 @@ func LoadConfig(path, name, ext string) error {
 	// Form map
 	res, err := cache.Client().Set(
 		context.Background(),
-		&pb.SetRequest{
+		&pb.CacheSetRequest{
 			Key:   NAMESERVERS_KEY,
 			Value: strings.Join(config.Nameservers, NAMESERVERS_SEP),
 		})
@@ -51,7 +50,7 @@ func LoadConfig(path, name, ext string) error {
 
 			res, err = cache.Client().Set(
 				context.Background(),
-				&pb.SetRequest{
+				&pb.CacheSetRequest{
 					Key:   fmt.Sprintf("%s:%s:%d:%d", ZONE_KEY, r.Name, RRTypeToInt[r.Type], i),
 					Value: ConfigRecordToString[RRTypeToInt[record.Type]](r),
 				})

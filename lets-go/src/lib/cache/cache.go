@@ -2,7 +2,7 @@ package cache
 
 import (
 	"lets-go/src/lib/log"
-	pb "lets-go/src/pb/cachepb"
+	"lets-go/src/pb"
 	"os"
 
 	"google.golang.org/grpc"

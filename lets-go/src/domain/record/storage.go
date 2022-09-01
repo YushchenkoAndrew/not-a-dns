@@ -2,12 +2,12 @@ package record
 
 import (
 	"context"
-	"lets-go/src/pb/dnspb"
+	"lets-go/src/pb"
 )
 
 type Storage interface {
-	List(context.Context, *dnspb.Request) ([]*dnspb.RecordRequest, error)
-	Create(context.Context, *dnspb.RecordRequest) error
-	Update(context.Context, *dnspb.UpdateRequest) error
-	Delete(context.Context, *dnspb.RecordRequest) error
+	List(context.Context, *pb.DnsRequest) ([]*pb.DnsRecordRequest, error)
+	Create(context.Context, *pb.DnsRecordRequest) error
+	Update(context.Context, *pb.DnsUpdateRequest) error
+	Delete(context.Context, *pb.DnsRecordRequest) error
 }

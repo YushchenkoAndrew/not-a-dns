@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package proto;
+option go_package = "./pb";
+
+import "proto/dns_service.proto";
+import "proto/cache_service.proto";
+
+service CacheService {
+  rpc Set(CacheSetRequest) returns (CacheStatResponse) {};
+  rpc Get(CacheGetRequest) returns (CacheValueResponse) {};
+  rpc Del(CacheRequest) returns (CacheStatResponse) {};
+  rpc Keys(CacheRequest) returns (CacheListResponse) {};
+}
+
+service DnsService {
+  rpc ListRecord(DnsRequest) returns (DnsListResponse) {};
+  rpc CreateRecord(DnsRecordRequest) returns (DnsStatResponse) {};
+  rpc UpdateRecord(DnsUpdateRequest) returns (DnsStatResponse) {};
+  rpc DeleteRecord(DnsRecordRequest) returns (DnsStatResponse) {};
+}

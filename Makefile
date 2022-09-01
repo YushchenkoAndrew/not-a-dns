@@ -6,7 +6,8 @@ SVELTE_PROJECT=lets-svelte-it
 
 clean: 
 	echo "TODO"
+	rm -rf lets-go/src/pb
 
 proto:
-	make proto -C ./$(GO_PROJECT)
+	protoc proto/*.proto --go-grpc_out=lets-go/src --go_out=lets-go/src
 	make build -C ./$(RUST_PROJECT)

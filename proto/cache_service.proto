@@ -1,48 +1,38 @@
 syntax = "proto3";
 
-package cachepb;
-option go_package = "./cachepb";
+package proto;
+option go_package = "./pb";
 
-enum Status {
-  OK = 0;
-  ERR = 1;
-}
+import "proto/basic_service.proto";
 
-message SetRequest {
+message CacheSetRequest {
   string key = 1;
   string value = 2;
   uint64 ttl = 3;
 }
 
-message GetRequest {
+message CacheGetRequest {
   string key = 1;
   string default = 2;
 }
 
-message Request {
+message CacheRequest {
   string key = 1;
 }
 
-message StatResponse {
+message CacheStatResponse {
   Status status = 1;
   string message = 2;
 }
 
-message ValueResponse {
+message CacheValueResponse {
   Status status = 1;
   string message = 2;
   string result = 3;
 }
 
-message ListResponse {
+message CacheListResponse {
   Status status = 1;
   string message = 2;
   repeated string result = 3;
-}
-
-service CacheService {
-  rpc Set(SetRequest) returns (StatResponse) {};
-  rpc Get(GetRequest) returns (ValueResponse) {};
-  rpc Del(Request) returns (StatResponse) {};
-  rpc Keys(Request) returns (ListResponse) {};
 }
