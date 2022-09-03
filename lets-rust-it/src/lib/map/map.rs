@@ -14,6 +14,9 @@ use std::iter::Map;
 use std::str::FromStr;
 use std::sync::Arc;
 
+// NOTE: Test
+// pub const HASH_MAP_MAX_RECENT: i32 = 2;
+
 pub const HASH_MAP_SIZE: usize = 100;
 pub const HASH_MAP_MAX_RECENT: i32 = 20;
 pub const HASH_MAP_HISTORY: &str = "./map.history";
@@ -88,7 +91,7 @@ where
     self.frozen_set(key.clone(), value);
 
     // TODO: Make in thread / async !!
-    self.screenshot(&key);
+    self.screenshot();
   }
 
   pub fn frozen_get(&self, key: &T) -> Option<U> {
@@ -124,28 +127,39 @@ where
           }
         }
 
-        self.screenshot(key);
+        self.screenshot();
         Some(val)
       }
       None => None,
     }
   }
 
-  pub fn del(&mut self, key: &T) -> Option<U> {
+  pub fn frozen_del(&mut self, key: &T) -> Option<U> {
     self.keys.del(|v| T::eq(v, key));
-    self.values[key_I!(key, T)]
-      .as_mut()
-      .map(|item| item.del(|v| T::eq(&v.key, key)));
 
-    History::<T, U>::del(&String::from(HASH_MAP_HISTORY), key);
+    let mut to_none = false;
+    self.values[key_I!(key, T)].as_mut().map(|item| {
+      item.del(|v| T::eq(&v.key, key));
+      to_none = item.len() == 0;
+    });
+
+    if to_none {
+      self.values[key_I!(key, T)] = None;
+    }
+
     self
       .recent_value
       .del(|v| T::eq(&v.key, key))
       .map(|item| item.value.clone())
   }
 
-  pub fn keys(&self) -> Map<MapIter<T, U>, fn((Option<i32>, T)) -> T> {
-    self.iter().map(|(_, key)| key)
+  pub fn del(&mut self, key: &T) -> Option<U> {
+    self.frozen_del(key);
+    History::<T, U>::del(&String::from(HASH_MAP_HISTORY), key)
+  }
+
+  pub fn keys(&self) -> Map<MapIter<T, U>, fn((Option<i32>, T, Option<U>)) -> T> {
+    self.iter().map(|(_, key, _)| key)
   }
 
   pub fn iter(&self) -> MapIter<T, U> {
@@ -156,31 +170,35 @@ where
   }
 
   #[inline]
-  fn screenshot(&mut self, key: &T) {
-    // TODO: Make in thread / async !!
-    History::screenshot(&String::from(HASH_MAP_HISTORY), self);
-    if self.recent_value.len() != HASH_MAP_MAX_RECENT {
-      return;
+  fn screenshot(&mut self) {
+    let mut overflow = None;
+    if self.recent_value.len() > HASH_MAP_MAX_RECENT {
+      overflow = self.recent_value.pop_back();
     }
 
-    self.recent_value.pop_back();
-    if let Some(ref mut list) = self.values[key_I!(key, T)] {
-      list.del(|v| T::eq(&v.key, &key));
+    // TODO: Make in thread / async !!
+    History::screenshot(&String::from(HASH_MAP_HISTORY), self);
+    if let Some(pair) = overflow {
+      self.frozen_del(&pair.key);
     }
   }
 
   #[inline]
-  pub fn to_string(map: &mut HashMap<T, U>, key: &T, priority: Option<i32>) -> Option<String>
+  pub fn to_string(
+    map: &mut HashMap<T, U>,
+    key: &T,
+    val: Option<U>,
+    priority: Option<i32>,
+  ) -> Option<String>
   where
     T: Hash<T> + Clone + Display + FromStr,
     U: Clone + Display + FromStr,
   {
-    if map.values[key_I!(key, T)].is_none() {
-      return None;
-    }
-
     let len = key.to_string().len();
-    let val = map.frozen_get(key);
+    let mut val = val.clone();
+    if val.is_none() {
+      val = map.frozen_get(key);
+    }
 
     let (_, mut pr) = map.recent_value.includes(|v| T::eq(&v.key, &key));
     if let Some(val) = priority {
@@ -225,6 +243,7 @@ mod test {
     map.set(String::from("HELLO"), 5);
     map.set(String::from("WORLD"), 4);
     map.set(String::from("TEST_"), 3);
+    map.set(String::from("TEST2"), 1);
 
     // Rewrite value
     map.set(String::from("TEST_"), 2);
@@ -233,6 +252,7 @@ mod test {
     assert_eq!(map.get(&String::from("HELLO")), Some(5));
     assert_eq!(map.get(&String::from("WORLD")), Some(4));
     assert_eq!(map.get(&String::from("TEST_")), Some(2));
+    assert_eq!(map.get(&String::from("TEST2")), Some(1));
 
     // Check normal removal
     assert_eq!(map.del(&String::from("WORLD")), Some(4));
@@ -254,6 +274,7 @@ mod test {
     assert_eq!(map.del(&String::from("HELLO")), Some(5));
     assert_eq!(map.del(&String::from("WORLD")), Some(6));
     assert_eq!(map.del(&String::from("TEST_")), Some(7));
+    assert_eq!(map.del(&String::from("TEST2")), Some(1));
   }
 
   #[test]
@@ -274,6 +295,10 @@ mod test {
     assert_eq!(iter.next(), Some(String::from("TEST_")));
     assert_eq!(iter.next(), Some(String::from("WORLD")));
     assert_eq!(iter.next(), Some(String::from("HELLO")));
+
+    assert_eq!(map.del(&String::from("HELLO")), Some(5));
+    assert_eq!(map.del(&String::from("WORLD")), Some(4));
+    assert_eq!(map.del(&String::from("TEST_")), Some(3));
   }
 
   #[test]
@@ -303,6 +328,10 @@ mod test {
     assert_eq!(iter.next(), Some(String::from("TEST_")));
     assert_eq!(iter.next(), Some(String::from("WORLD")));
     assert_eq!(iter.next(), Some(String::from("HELLO")));
+
+    assert_eq!(map.del(&String::from("HELLO")), Some(5));
+    assert_eq!(map.del(&String::from("WORLD")), Some(4));
+    assert_eq!(map.del(&String::from("TEST_")), Some(3));
   }
 
   #[test]
@@ -316,12 +345,12 @@ mod test {
 
     // Check to_string func
     assert_eq!(
-      HashMap::to_string(&mut map, &String::from("HELLO"), None),
+      HashMap::to_string(&mut map, &String::from("HELLO"), None, None),
       Some(String::from("2 5 HELLO=5\n"))
     );
 
     assert_eq!(
-      HashMap::to_string(&mut map, &String::from("HELLO_WORLD"), None),
+      HashMap::to_string(&mut map, &String::from("HELLO_WORLD"), None, None),
       None
     );
 

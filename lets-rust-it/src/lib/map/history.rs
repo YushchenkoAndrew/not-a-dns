@@ -34,8 +34,8 @@ where
 
     let mut f = File::create(&temp).unwrap();
 
-    for (pr, key) in map.iter() {
-      if let Some(line) = HashMap::to_string(map, &key, pr) {
+    for (pr, key, val) in map.iter() {
+      if let Some(line) = HashMap::to_string(map, &key, val, pr) {
         if let Err(err) = f.write(line.as_bytes()) {
           drop(f);
 
@@ -77,14 +77,15 @@ where
     HistoryIter::new(BufReader::new(File::open(path).unwrap()).lines())
   }
 
-  pub fn del(path: &String, key: &T) {
+  pub fn del(path: &String, key: &T) -> Option<U> {
     let temp = temp_name(path, TEMP_FILE_SUFFIX);
     copy(path, &temp).unwrap();
 
+    let mut res = None;
     let mut f = File::create(&temp).unwrap();
-
     for (pr, k, val) in History::<T, U>::iter(path) {
       if T::eq(key, &k) {
+        res = Some(val);
         continue;
       }
 
@@ -102,6 +103,8 @@ where
 
     copy(&temp, path).unwrap();
     remove_file(temp).unwrap();
+
+    return res;
   }
 }
 

@@ -135,17 +135,17 @@ where
   T: Hash<T> + Clone + Display + FromStr,
   U: Clone + Display + FromStr,
 {
-  type Item = (Option<i32>, T);
+  type Item = (Option<i32>, T, Option<U>);
 
   #[inline]
   fn next(&mut self) -> Option<Self::Item> {
     match self.iter.next() {
-      Some(key) => Some((None, key)),
+      Some(key) => Some((None, key, None)),
       None => loop {
         match self.history.next() {
           Some((pr, key, val)) => {
             if pr == -1 {
-              return Some((Some(pr), key));
+              return Some((Some(pr), key, Some(val)));
             }
 
             continue;
