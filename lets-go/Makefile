@@ -17,6 +17,5 @@ dev: build dns
 	./out/lets-go 0.0.0.0 50053 ./config/config.yaml
 
 test: build
-	mkdir -p pb/cache
 	set CACHE_ADDR=127.0.0.1:50031
 	./out/lets-go 0.0.0.0 53535 ./config/config_test.yaml

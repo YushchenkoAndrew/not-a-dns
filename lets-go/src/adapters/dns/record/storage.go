@@ -34,8 +34,11 @@ func (s *storage) List(ctx context.Context, req *pb.DnsRequest) ([]*pb.DnsRecord
 		}
 
 		r, err := dns.NewRR(res.Result)
-		rtype := r.Header().Rrtype
+		if err != nil {
+			continue
+		}
 
+		rtype := r.Header().Rrtype
 		if _, ok := record.RecordToRequest[rtype]; !ok || err != nil {
 			continue
 		}
@@ -73,22 +76,11 @@ func (s *storage) Create(ctx context.Context, req *pb.DnsRecordRequest) error {
 }
 
 func (s *storage) Update(ctx context.Context, req *pb.DnsUpdateRequest) error {
-	key, err := s.findKey(ctx, req.Old)
-	if err != nil {
+	if err := s.Delete(ctx, req.Old); err != nil {
 		return err
 	}
 
-	r := record.NewRecordRequest().ToModel(req.New).ToConfig()
-	if conv, ok := config.ConfigRecordToString[config.RRTypeToInt[r.Type]]; !ok || conv(r) == "" {
-		return fmt.Errorf("Unsupported type: %s '%s'", r.Type, r.Name)
-	}
-
-	res, err := cache.Client().Set(ctx, &pb.CacheSetRequest{Key: key, Value: config.ConfigRecordToString[config.RRTypeToInt[r.Type]](r)})
-	if err != nil || res.Status != pb.Status_OK {
-		return fmt.Errorf("Cache error: %s %v", res.Message, err)
-	}
-
-	return nil
+	return s.Create(ctx, req.New)
 }
 
 func (s *storage) Delete(ctx context.Context, req *pb.DnsRecordRequest) error {

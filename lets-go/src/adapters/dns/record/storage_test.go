@@ -2,6 +2,7 @@ package record_test
 
 import (
 	"context"
+	"fmt"
 	"lets-go/src/adapters/dns/record"
 	"lets-go/src/pb"
 	"testing"
@@ -77,17 +78,24 @@ func checkIfRecordsExists(t *testing.T, records []pb.DnsRecordRequest) {
 		var item *pb.DnsRecordRequest = nil
 
 		for _, res := range list {
-			if res.Name == r.Name {
+			if res.Name == r.Name+"." {
 				item = res
 				break
 			}
 		}
 
+		fmt.Println(list)
+		fmt.Println(err)
 		require.NotNil(t, item)
-		require.Equal(t, r.Name, item.Name)
+		require.Equal(t, r.Name+".", item.Name)
 		require.Equal(t, r.Ttl, item.Ttl)
 		require.Equal(t, r.Type, item.Type)
 		require.Equal(t, r.Value, item.Value)
-		require.Equal(t, r.Target, item.Target)
+
+		if r.Target == "" {
+			require.Empty(t, item.Target)
+		} else {
+			require.Equal(t, r.Target+".", item.Target)
+		}
 	}
 }
