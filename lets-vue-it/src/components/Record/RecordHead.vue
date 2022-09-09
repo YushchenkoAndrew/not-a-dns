@@ -52,14 +52,12 @@ const styles = {
     >
       <thead :class="`${styles.thead[props.index] || ''} dark:border-b-4`">
         <tr>
-          {#each keys as key}
           <th
             v-for="key in props.keys"
             class="font-semibold text-gray-900 dark:text-gray-100 px-4 py-2 text-left"
           >
             {{ key }}
           </th>
-          {/each}
         </tr>
       </thead>
       <tbody>

@@ -1,5 +1,8 @@
 <script setup lang="ts">
-import type { RecordData } from "../../types";
+import type { RecordData, RecordTableType } from "../../types";
+import RecordModifier from "../Record/RecordModifier.vue";
+import RecordView from "../Record/RecordView.vue";
+import RecordHead from "../Record/RecordHead.vue";
 
 const data: RecordData[] = [
   {
@@ -53,6 +56,7 @@ const data: RecordData[] = [
   },
 ];
 
+const record = {} as RecordTableType;
 // let record = writable<RecordTableType>({
 //   index: 0,
 //   data: {} as ObjectLiteral,
@@ -70,14 +74,20 @@ const data: RecordData[] = [
         <RecordLabel label="General" />
         <p class="text-gray-900 dark:text-gray-200">Some text</p>
       </div>
-      <!-- 
-      {#each data as { name, keys, values }, index}
-      <RecordHead {index} label="{name}" {keys}
-        ><RecordView {index} {keys} {values} bind:record
+      <RecordHead
+        v-for="({ name, keys, values }, index) in data"
+        :index="index"
+        :label="name"
+        :keys="keys"
+        ><RecordView
+          :index="index"
+          :keys="keys"
+          :values="values"
+          :record="record"
       /></RecordHead>
-      {/each}
 
-      <RecordModifier label="Modify Record" bind:data bind:record /> -->
+      <!-- FIXME: -->
+      <!-- <RecordModifier label="Modify Record" :data="data" :record="record" /> -->
     </div>
   </div>
 </template>
