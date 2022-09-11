@@ -1,17 +1,17 @@
 <script setup lang="ts">
-import type { AlertProps, RecordData, RecordTableType } from "../../types";
+import { defaultStore } from "../../stores";
+import type { AlertProps, ObjectLiteral } from "../../types";
+import RecordInput from "./RecordInput.vue";
+import RecordHead from "./RecordHead.vue";
+import RecordLabel from "./RecordLabel.vue";
 
 const props = defineProps<{
   label: string;
-  data: RecordData[];
-  record: RecordTableType;
 }>();
 
 let alert: AlertProps | null = null;
-let disabled = true;
-// record.subscribe(({ data }: RecordTableType) => {
-//   const values = Object.values(data);
-//   disabled = values.reduce((acc, curr) => acc || !curr, !values.length);
+// let disabled = true;
+// record.subscribe(() => {
 // });
 
 const styles = {
@@ -25,6 +25,8 @@ const styles = {
     "bg-yellow-200 hover:bg-yellow-300 dark:text-yellow-300 hover:dark:bg-yellow-400 hover:dark:text-gray-50",
   ],
 };
+
+const store = defaultStore();
 
 async function onSubmit() {
   // try {
@@ -71,7 +73,7 @@ async function onSubmit() {
     id="#test"
     class="flex flex-col mt-6 py-6 w-full border-t-2 border-gray-200 dark:border-gray-600"
   >
-    <RecordLabel :label="label" />
+    <RecordLabel :label="props.label" />
 
     <div
       class="flex flex-col border-2 border-gray-100 dark:border-gray-700 rounded-md py-1 px-2"
@@ -86,10 +88,11 @@ async function onSubmit() {
       <div class="flex flex-row pb-4">
         <span class="mr-auto">
           <button
-            v-for="({ name }, i) in data"
+            v-for="({ name, keys }, i) in store.records"
             :class="`px-3 py-2 m-2 rounded-md ${
               styles.button[i] || ''
             } hover:scale-105 hover:drop-shadow-md active:scale-100 active:drop-shadow-none dark:bg-gray-700 text-gray-900 dark:text-gray-200`"
+            @click="() => store.selectRecord(i, keys.reduce((acc, k) => (acc[k] = '', acc), {} as ObjectLiteral))"
           >
             {{ name }}
           </button>
@@ -97,38 +100,40 @@ async function onSubmit() {
 
         <button
           class="flex flex-row mx-3 my-auto px-3 py-2 rounded-md hover:scale-105 hover:drop-shadow-md active:scale-100 active:drop-shadow-none disabled:hover:scale-100 disabled:hover:drop-shadow-none disabled:active:scale-100 text-gray-50 bg-green-500 dark:bg-green-600 hover:bg-green-600 dark:hover:bg-green-700 disabled:bg-yellow-200 disabled:dark:bg-gray-700 disabled:text-gray-600 disabled:dark:text-yellow-200"
-          :disabled="`${disabled}`"
+          :disabled="store.submit"
           @click="onSubmit"
         >
           <i
-            :class="`fas ${disabled ? 'fa-minus' : 'fa-check'} my-auto mr-2`"
+            :class="`fas ${
+              store.submit ? 'fa-check' : 'fa-minus'
+            } my-auto mr-2`"
           />Submit
         </button>
       </div>
     </div>
 
     <div
-      v-if="Object.keys(props.record.data).length"
+      v-if="store.record && Object.keys(store.record.data).length"
       class="flex flex-col border-2 border-gray-100 dark:border-gray-700 rounded-md pb-5 px-5 my-2"
     >
       <RecordHead
-        :index="props.record.index"
-        :label="props.data[props.record.index].name"
-        :keys="Object.keys(props.record.data)"
+        :index="store.record.index"
+        :label="store.records[store.record.index].name"
+        :keys="Object.keys(store.record.data)"
       >
-        <RecordInput record="{{props.record}}" />
+        <RecordInput />
       </RecordHead>
     </div>
   </div>
 
   <!-- TODO: Use AlertStack !! -->
-  <Alert
+  <!-- <Alert
     v-if="alert"
     :status="alert.status"
     :title="alert.title"
     :desc="alert.desc"
     :onClose="() => (alert = null)"
-  />
+  /> -->
 </template>
 
 <style></style>

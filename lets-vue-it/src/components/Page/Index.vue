@@ -1,71 +1,13 @@
 <script setup lang="ts">
-import type { RecordData, RecordTableType } from "../../types";
 import RecordModifier from "../Record/RecordModifier.vue";
 import RecordView from "../Record/RecordView.vue";
 import RecordHead from "../Record/RecordHead.vue";
+import RecordLabel from "../Record/RecordLabel.vue";
+import { defaultStore } from "../../stores";
 
-const data: RecordData[] = [
-  {
-    name: "A Records",
-    keys: ["record", "name", "value", "ttl"],
-    values: [
-      ["example.com", "@", "192.168.1.2", 14400],
-      // ["Shining Star", "Earth, Wind, and Fire", 1975],
-    ],
-  },
-  {
-    name: "AAAA Records",
-    keys: ["Song", "Artist", "Year"],
-    values: [
-      [
-        "The Sliding Mr. Bones (Next Stop, Pottersville)",
-        "Malcolm Lockyer",
-        1961,
-      ],
-      ["Witchy Woman", "The Eagles", 1972],
-      ["Shining Star", "Earth, Wind, and Fire", 1975],
-    ],
-  },
-  {
-    name: "CNAME Records",
-    keys: ["Song", "Artist", "Year"],
-    values: [
-      [
-        "The Sliding Mr. Bones (Next Stop, Pottersville)",
-        "Malcolm Lockyer",
-        1961,
-      ],
-      ["Witchy Woman", "The Eagles", 1972],
-      ["Shining Star", "Earth, Wind, and Fire", 1975],
-    ],
-  },
-  {
-    name: "PTR Records",
-    keys: ["Song", "Artist", "Year"],
-    values: [],
-  },
-  {
-    name: "MX Records",
-    keys: ["Song", "Artist", "Year"],
-    values: [],
-  },
-  {
-    name: "TXT Records",
-    keys: ["Song", "Artist", "Year"],
-    values: [],
-  },
-];
-
-const record = {} as RecordTableType;
-// let record = writable<RecordTableType>({
-//   index: 0,
-//   data: {} as ObjectLiteral,
-// });
+document.title = "DNS Service";
+const store = defaultStore();
 </script>
-
-<!-- <svelte:head>
-  <title>DNS Service</title>
-</svelte:head> -->
 
 <template>
   <div class="w-full h-full p-4 overflow-y-auto">
@@ -75,19 +17,14 @@ const record = {} as RecordTableType;
         <p class="text-gray-900 dark:text-gray-200">Some text</p>
       </div>
       <RecordHead
-        v-for="({ name, keys, values }, index) in data"
-        :index="index"
+        v-for="({ name, keys, values }, i) in store.records"
+        :index="i"
         :label="name"
         :keys="keys"
-        ><RecordView
-          :index="index"
-          :keys="keys"
-          :values="values"
-          :record="record"
+        ><RecordView :index="i" :keys="keys" :values="values"
       /></RecordHead>
 
-      <!-- FIXME: -->
-      <!-- <RecordModifier label="Modify Record" :data="data" :record="record" /> -->
+      <RecordModifier label="Modify Record" />
     </div>
   </div>
 </template>

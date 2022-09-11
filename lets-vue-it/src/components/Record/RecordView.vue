@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import type { RecordTableType } from "../../types";
+import { defaultStore } from "../../stores";
+import type { ObjectLiteral } from "../../types";
 
 const props = withDefaults(
   defineProps<{
     index: number;
     keys: string[];
     values: any[][];
-    record: RecordTableType;
     modifier: string;
   }>(),
   {
@@ -26,6 +26,16 @@ const styles = {
     "group-hover:decoration-yellow-200 dark:group-hover:decoration-yellow-300",
   ],
 };
+
+const store = defaultStore();
+
+function onRecordSelect(record: ObjectLiteral) {
+  store.selectRecord(props.index, record);
+  const el = document.getElementsByName(props.modifier)?.[0];
+  console.log(document.getElementsByName(props.modifier));
+
+  if (el) el.scrollIntoView({ behavior: "smooth" });
+}
 </script>
 
 <!-- {#each values as row} -->
@@ -37,13 +47,16 @@ const styles = {
         data: keys.reduce((acc, key, i) => ({ ...acc, [key]: row[i] }), {}),
       };
 
-      const el = document.getElementsByName(modifier)?.[0];
-      if (el) el.scrollIntoView({ behavior: "smooth" });
     }} -->
   <tr
     v-for="row in props.values"
     class="group cursor-pointer text-gray-900 dark:text-gray-100"
-    @click="() => 'test'"
+    @click="
+      () =>
+        onRecordSelect(
+          keys.reduce((acc, key, i) => ((acc[key] = row[i]), acc), {} as ObjectLiteral)
+        )
+    "
   >
     <td
       v-for="value in row"

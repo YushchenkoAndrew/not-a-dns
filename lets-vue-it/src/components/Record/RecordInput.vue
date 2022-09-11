@@ -1,9 +1,5 @@
 <script setup lang="ts">
-import type { RecordTableType } from "../../types";
-
-const props = defineProps<{
-  record: RecordTableType;
-}>();
+import { defaultStore } from "../../stores";
 
 const styles = {
   input: [
@@ -16,27 +12,29 @@ const styles = {
     "ring-yellow-200 focus:border-yellow-200 dark:ring-yellow-300 dark:focus:border-yellow-300",
   ],
 };
+
+const store = defaultStore();
 </script>
 
 <template>
-  <tr class="text-gray-900 dark:text-gray-100">
-    <!-- {#each Object.keys($record.data) as key} -->
+  <tr v-if="store.record" class="text-gray-900 dark:text-gray-100">
     <td
-      v-for="key in Object.keys(props.record.data)"
+      v-for="key in Object.keys(store.record.data)"
       class="px-4 py-5 dark:py-6"
     >
+      <!-- FIXME: Fix bug with with v-model & keydown -->
       <input
         :class="`pt-1 pb-1 px-3 w-5/6 ring-1 rounded-md dark:bg-gray-800 dark:focus:bg-gray-700 focus:outline-none border-b-2 border-transparent ${
-          styles.input[props.record.index]
+          styles.input[store.record.index]
         }`"
-        v-bind:value="props.record.data[key]"
+        v-model="store.record.data[key]"
+        @keydown="store.onRecordChange"
       />
       <!-- TODO:  -->
       <!-- <p class="mt-2 invisible peer-invalid:visible text-pink-600 text-sm">
       Please provide a valid email address.
     </p> -->
     </td>
-    {/each}
   </tr>
 </template>
 
