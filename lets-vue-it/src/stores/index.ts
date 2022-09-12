@@ -2,68 +2,25 @@ import { defineStore } from 'pinia';
 
 import { AppMode } from '../types';
 
-import type { RecordData, ObjectLiteral, RecordTableType } from "../types";
+import type {
+  RecordData,
+  ObjectLiteral,
+  RecordTableType,
+  AlertProps,
+} from "../types";
 
 export const defaultStore = defineStore("default", {
   state: () => ({
     mode: Number(localStorage.getItem("mode") ?? AppMode.dark),
     view: window.location.hash?.slice(1) || "general",
-    submit: false,
+
+    action: null as null | AlertProps,
 
     record: JSON.parse(
       localStorage.getItem("record") as string
     ) as null | RecordTableType,
-    records: [
-      {
-        name: "A Records",
-        keys: ["record", "name", "value", "ttl"],
-        values: [
-          ["example.com", "@", "192.168.1.2", 14400],
-          // ["Shining Star", "Earth, Wind, and Fire", 1975],
-        ],
-      },
-      {
-        name: "AAAA Records",
-        keys: ["Song", "Artist", "Year"],
-        values: [
-          [
-            "The Sliding Mr. Bones (Next Stop, Pottersville)",
-            "Malcolm Lockyer",
-            1961,
-          ],
-          ["Witchy Woman", "The Eagles", 1972],
-          ["Shining Star", "Earth, Wind, and Fire", 1975],
-        ],
-      },
-      {
-        name: "CNAME Records",
-        keys: ["Song", "Artist", "Year"],
-        values: [
-          [
-            "The Sliding Mr. Bones (Next Stop, Pottersville)",
-            "Malcolm Lockyer",
-            1961,
-          ],
-          ["Witchy Woman", "The Eagles", 1972],
-          ["Shining Star", "Earth, Wind, and Fire", 1975],
-        ],
-      },
-      {
-        name: "PTR Records",
-        keys: ["Song", "Artist", "Year"],
-        values: [],
-      },
-      {
-        name: "MX Records",
-        keys: ["Song", "Artist", "Year"],
-        values: [],
-      },
-      {
-        name: "TXT Records",
-        keys: ["Song", "Artist", "Year"],
-        values: [],
-      },
-    ] as RecordData[],
+    records: (JSON.parse(localStorage.getItem("records") as string) ||
+      []) as RecordData[],
   }),
 
   getters: {
@@ -73,6 +30,20 @@ export const defaultStore = defineStore("default", {
 
     nextMode(): string {
       return AppMode[Number(!this.mode)];
+    },
+
+    submit(): boolean {
+      if (
+        !this.record?.data ||
+        Object.keys(this.record.data).reduce(
+          (acc, k) => acc || !this.record?.data?.[k],
+          false
+        )
+      )
+        return false;
+
+      localStorage.setItem("record", JSON.stringify(this.record));
+      return true;
     },
   },
 
@@ -86,26 +57,37 @@ export const defaultStore = defineStore("default", {
       this.view = v;
     },
 
-    loadRecords(data: any) {
-      // TODO:
+    loadRecords(data: ObjectLiteral[], name: string = "type") {
+      const res = {} as { [key: string]: RecordData };
+      for (const item of data) {
+        const keys = Object.keys(item).filter((k) => item[k]);
+        const key = keys.sort().join("_");
+
+        if (!res[key]) {
+          res[key] = {
+            name: `${item[name]} `.toUpperCase() + "Records",
+            keys,
+            values: [],
+          };
+        }
+        res[key].values.push(keys.map((k) => item[k]));
+      }
+
+      this.records = Object.values(res);
+      localStorage.setItem("records", JSON.stringify(this.records));
     },
 
     selectRecord(index: number, data: ObjectLiteral) {
       this.record = { index, data };
-      this.onRecordChange();
     },
 
-    onRecordChange() {
-      if (!this.record?.data) return;
-      const keys = Object.keys(this.record.data);
-      this.submit = keys.reduce(
-        (acc, k) => acc || !this.record?.data?.[k],
-        !keys.length
-      );
+    resetRecord() {
+      this.record = null;
+      localStorage.removeItem("record");
+    },
 
-      console.log(this.submit, this.record.data.Year);
-
-      localStorage.setItem("record", JSON.stringify(this.record));
+    setActionState(value: AlertProps | null) {
+      this.action = value;
     },
   },
 });

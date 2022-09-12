@@ -28,7 +28,6 @@ const store = defaultStore();
           styles.input[store.record.index]
         }`"
         v-model="store.record.data[key]"
-        @keydown="store.onRecordChange"
       />
       <!-- TODO:  -->
       <!-- <p class="mt-2 invisible peer-invalid:visible text-pink-600 text-sm">

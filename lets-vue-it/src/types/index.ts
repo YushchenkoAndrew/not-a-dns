@@ -19,7 +19,7 @@ export type RecordTableType = { index: number; data: ObjectLiteral };
 // DefaultResponse
 export type DefaultResponse = DefaultResponseOK | DefaultResponseERR;
 
-export type DefaultResponseOK = { status: "OK"; result?: any };
+export type DefaultResponseOK = { status: "OK"; result: ObjectLiteral[] };
 
 export type DefaultResponseERR = {
   status: "ERR";

@@ -1,21 +1,17 @@
 <script setup lang="ts">
+import { defaultStore } from "../stores";
 import { AlertType } from "../types";
 
-const props = withDefaults(
-  defineProps<{
-    status: AlertType;
-    title: string;
-    desc: string;
-    onClose: () => void;
-    timeout: number;
-  }>(),
-  {
-    status: AlertType.pending,
-    timeout: 5000,
-  }
-);
+// NOTE: Maybe enable this thing one day ....
+// const props = withDefaults(
+//   defineProps<{
+//     timeout: number;
+//   }>(),
+//   { timeout: 5000 }
+// );
 
-let progress = 0;
+const store = defaultStore();
+// const progress = reactive({ value: 0 });
 // let iterval: NodeJS.Timer = null;
 
 // $: {
@@ -32,7 +28,7 @@ let progress = 0;
 //   }
 // }
 
-const PROGRESS_STEP = 50;
+// const PROGRESS_STEP = 50;
 const styles = {
   [AlertType.pending]: {
     bg: "bg-sky-500 dark:border-sky-500 text-gray-50",
@@ -58,24 +54,24 @@ const styles = {
 </script>
 
 <template>
-  <div class="fixed bottom-2 right-4">
+  <div v-if="store.action" class="fixed bottom-2 right-4">
     <div
       :class="`flex flex-col w-72 px-4 pt-3 my-2 rounded-xl dark:border-2 dark:bg-gray-700 ${
-        styles[props.status].bg
+        styles[store.action.status].bg
       } dark:text-gray-50`"
     >
       <div class="flex">
         <div class="mr-auto">
           <div
             :class="`px-1 mb-2 font-bold dark:border-b-2 ${
-              styles[props.status].title
+              styles[store.action.status].title
             }`"
           >
-            {{ props.title }}
+            {{ store.action.title }}
           </div>
           <div class="flex flex-row">
             <div
-              v-if="status == AlertType.pending"
+              v-if="store.action.status == AlertType.pending"
               class="animate-bounce ml-1 mr-3 mt-3"
             >
               <svg
@@ -100,36 +96,37 @@ const styles = {
               </svg>
             </div>
             <i
-              v-else-if="status == AlertType.success"
+              v-else-if="store.action.status == AlertType.success"
               class="fas fa-check my-auto mr-2"
             />
             <i
-              v-else-if="status == AlertType.error"
+              v-else-if="store.action.status == AlertType.error"
               class="fas fa-minus my-auto mr-2"
             />
             <i v-else class="fad fa-question animate-ping text-xl mr-3" />
-            <p class="my-auto">{{ props.desc }}</p>
+            <p class="my-auto">{{ store.action.desc }}</p>
           </div>
         </div>
         <div class="my-auto">
           <div
             :class="`text-2xl text-center px-1 rounded-full ${
-              styles[props.status].close
+              styles[store.action.status].close
             } dark:bg-gray-700 dark:hover:bg-gray-600`"
-            @click="props.onClose"
+            @click="() => store.setActionState(null)"
           >
             <i class="fa-solid fa-xmark p-2" />
           </div>
         </div>
       </div>
 
-      <div
-        v-if="status == AlertType.success"
+      <!-- NOTE: Maybe enable this thing one day .... -->
+      <!-- <div
+        v-if="store.alert.status == AlertType.success"
         class="w-full bg-green-200 h-1 mt-4 mb-2"
       >
-        <div class="bg-green-700 h-1" :style="`width: ${progress}%`" />
-      </div>
-      <span v-else class="my-2" />
+        <div class="bg-green-700 h-1" :style="`width: ${progress.value}%`" />
+      </div> -->
+      <!-- <span v-else class="my-2" /> -->
     </div>
   </div>
 </template>

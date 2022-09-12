@@ -1,18 +1,19 @@
 <script setup lang="ts">
 import { defaultStore } from "../../stores";
-import type { AlertProps, ObjectLiteral } from "../../types";
+import {
+  AlertType,
+  type DefaultResponse,
+  type ObjectLiteral,
+} from "../../types";
 import RecordInput from "./RecordInput.vue";
 import RecordHead from "./RecordHead.vue";
 import RecordLabel from "./RecordLabel.vue";
+import Alert from "../Alert.vue";
+import { SectionFormat } from "../../lib/string";
 
 const props = defineProps<{
   label: string;
 }>();
-
-let alert: AlertProps | null = null;
-// let disabled = true;
-// record.subscribe(() => {
-// });
 
 const styles = {
   button: [
@@ -29,42 +30,47 @@ const styles = {
 const store = defaultStore();
 
 async function onSubmit() {
-  // try {
-  //   alert = {
-  //     title: "Creating new Record",
-  //     desc: "Loading ...",
-  //     status: AlertType.pending,
-  //   };
-  //   const res = await fetch("/dns/api/record", {
-  //     method: "POST",
-  //     headers: { "Content-Type": "application/json" },
-  //     body: JSON.stringify(props.record.data),
-  //   });
-  //   const response = (await res.json()) as DefaultResponse;
-  //   if (response.status == "ERR") {
-  //     return (alert = {
-  //       ...alert,
-  //       desc: response.message,
-  //       status: AlertType.error,
-  //     });
-  //   }
-  //   const name = SectionFormat(props.data[props.record.index].name);
-  //   const el = document.getElementsByName(name)?.[0];
-  //   if (el) setTimeout(() => el.scrollIntoView({ behavior: "smooth" }), 0);
-  //   props.data = response.result;
-  //   props.record = { index: 0, data: {} };
-  //   alert = {
-  //     ...alert,
-  //     desc: "New record was added",
-  //     status: AlertType.success,
-  //   };
-  // } catch (err) {
-  //   alert = {
-  //     ...alert,
-  //     desc: "Server Side error: " + String(err),
-  //     status: AlertType.error,
-  //   };
-  // }
+  if (!store.record) return;
+  store.setActionState({
+    title: "Creating new Record",
+    desc: "Loading ...",
+    status: AlertType.pending,
+  });
+
+  try {
+    const res = await fetch("localhost:5000/dns/record", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(store.record.data),
+    });
+
+    const response = (await res.json()) as DefaultResponse;
+    if (response.status == "ERR") {
+      return store.setActionState({
+        desc: response.message,
+        status: AlertType.error,
+        title: store.action?.title || "",
+      });
+    }
+
+    const name = SectionFormat(store.records[store.record.index].name);
+    const el = document.getElementsByName(name)?.[0];
+    if (el) setTimeout(() => el.scrollIntoView({ behavior: "smooth" }), 0);
+
+    store.resetRecord();
+    store.loadRecords(response.result);
+    return store.setActionState({
+      title: store.action?.title || "",
+      desc: "New record was added",
+      status: AlertType.success,
+    });
+  } catch (err) {
+    return store.setActionState({
+      title: store.action?.title || "",
+      desc: "Server Side error: " + String(err),
+      status: AlertType.error,
+    });
+  }
 }
 </script>
 
@@ -100,7 +106,7 @@ async function onSubmit() {
 
         <button
           class="flex flex-row mx-3 my-auto px-3 py-2 rounded-md hover:scale-105 hover:drop-shadow-md active:scale-100 active:drop-shadow-none disabled:hover:scale-100 disabled:hover:drop-shadow-none disabled:active:scale-100 text-gray-50 bg-green-500 dark:bg-green-600 hover:bg-green-600 dark:hover:bg-green-700 disabled:bg-yellow-200 disabled:dark:bg-gray-700 disabled:text-gray-600 disabled:dark:text-yellow-200"
-          :disabled="store.submit"
+          :disabled="!store.submit"
           @click="onSubmit"
         >
           <i
@@ -118,7 +124,7 @@ async function onSubmit() {
     >
       <RecordHead
         :index="store.record.index"
-        :label="store.records[store.record.index].name"
+        :label="store.records[store.record.index]?.name || 'Empty value'"
         :keys="Object.keys(store.record.data)"
       >
         <RecordInput />
@@ -127,13 +133,7 @@ async function onSubmit() {
   </div>
 
   <!-- TODO: Use AlertStack !! -->
-  <!-- <Alert
-    v-if="alert"
-    :status="alert.status"
-    :title="alert.title"
-    :desc="alert.desc"
-    :onClose="() => (alert = null)"
-  /> -->
+  <Alert />
 </template>
 
 <style></style>
