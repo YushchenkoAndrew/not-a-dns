@@ -2,12 +2,12 @@ package record
 
 import (
 	"context"
-	"lets-go/src/pb"
+	"lets-go/src/adapters/dns/models"
 )
 
 type Storage interface {
-	List(context.Context, *pb.DnsRequest) ([]*pb.DnsRecordRequest, error)
-	Create(context.Context, *pb.DnsRecordRequest) error
-	Update(context.Context, *pb.DnsUpdateRequest) error
-	Delete(context.Context, *pb.DnsRecordRequest) error
+	List(context.Context) ([]*models.DnsRecordRequest, error)
+	Create(context.Context, *models.DnsRecordRequest) error
+	Update(context.Context, *models.DnsUpdateRequest) error
+	Delete(context.Context, *models.DnsRecordRequest) error
 }

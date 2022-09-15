@@ -3,17 +3,15 @@ package main
 import (
 	"fmt"
 	"lets-go/src/adapters/api"
+	"lets-go/src/adapters/router"
 	"lets-go/src/composites"
 	"lets-go/src/lib/cache"
 	"lets-go/src/lib/dns"
 	"lets-go/src/lib/log"
-	"lets-go/src/pb"
-	"net"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
-
-	"google.golang.org/grpc"
 )
 
 const (
@@ -42,18 +40,11 @@ func main() {
 
 	go func() {
 		logger.Info("Initialize Server")
-		listen, err := net.Listen("tcp", addr)
-		if err != nil {
-			logger.Fatal(err)
-		}
-
 		logger.Infof("Server start on %s", addr)
 
-		var opts []grpc.ServerOption
-		grpcServer := grpc.NewServer(opts...)
+		router.NewRouter(api.NewHandler(composites.NewStorageComposite()))
 
-		pb.RegisterDnsServiceServer(grpcServer, api.NewHandler(composites.NewStorageComposite()))
-		if err = grpcServer.Serve(listen); err != nil {
+		if err := http.ListenAndServe(addr, nil); err != nil {
 			logger.Errorf("gRPC error: %v", err)
 		}
 	}()

@@ -1,25 +1,25 @@
 package record
 
 import (
+	"lets-go/src/adapters/dns/models"
 	config "lets-go/src/lib/dns"
-	"lets-go/src/pb"
 
 	"github.com/miekg/dns"
 )
 
 var (
-	RecordToRequest = map[uint16]func(dns.RR) *pb.DnsRecordRequest{
-		dns.TypeA:     func(r dns.RR) *pb.DnsRecordRequest { return aRecord(r.(*dns.A)) },
-		dns.TypeAAAA:  func(r dns.RR) *pb.DnsRecordRequest { return aaaaRecord(r.(*dns.AAAA)) },
-		dns.TypeCAA:   func(r dns.RR) *pb.DnsRecordRequest { return caaRecord(r.(*dns.CAA)) },
-		dns.TypeCNAME: func(r dns.RR) *pb.DnsRecordRequest { return cnameRecord(r.(*dns.CNAME)) },
-		dns.TypeMX:    func(r dns.RR) *pb.DnsRecordRequest { return mxRecord(r.(*dns.MX)) },
+	RecordToRequest = map[uint16]func(dns.RR) *models.DnsRecordRequest{
+		dns.TypeA:     func(r dns.RR) *models.DnsRecordRequest { return aRecord(r.(*dns.A)) },
+		dns.TypeAAAA:  func(r dns.RR) *models.DnsRecordRequest { return aaaaRecord(r.(*dns.AAAA)) },
+		dns.TypeCAA:   func(r dns.RR) *models.DnsRecordRequest { return caaRecord(r.(*dns.CAA)) },
+		dns.TypeCNAME: func(r dns.RR) *models.DnsRecordRequest { return cnameRecord(r.(*dns.CNAME)) },
+		dns.TypeMX:    func(r dns.RR) *models.DnsRecordRequest { return mxRecord(r.(*dns.MX)) },
 		// dns.TypeNAPTR:    func(records []record, r Record) []record { return append(records, &MXRecord{r}) },
-		dns.TypeNS:  func(r dns.RR) *pb.DnsRecordRequest { return nsRecord(r.(*dns.NS)) },
-		dns.TypePTR: func(r dns.RR) *pb.DnsRecordRequest { return ptrRecord(r.(*dns.PTR)) },
+		dns.TypeNS:  func(r dns.RR) *models.DnsRecordRequest { return nsRecord(r.(*dns.NS)) },
+		dns.TypePTR: func(r dns.RR) *models.DnsRecordRequest { return ptrRecord(r.(*dns.PTR)) },
 		// dns.TypeSOA:   func(records []record, r Record) []record { return append(records, &PTRRecord{r}) },
-		dns.TypeSRV: func(r dns.RR) *pb.DnsRecordRequest { return srvRecord(r.(*dns.SRV)) },
-		dns.TypeTXT: func(r dns.RR) *pb.DnsRecordRequest { return txtRecord(r.(*dns.TXT)) },
+		dns.TypeSRV: func(r dns.RR) *models.DnsRecordRequest { return srvRecord(r.(*dns.SRV)) },
+		dns.TypeTXT: func(r dns.RR) *models.DnsRecordRequest { return txtRecord(r.(*dns.TXT)) },
 	}
 )
 
@@ -40,7 +40,7 @@ func NewRecordRequest() *RecordRequest {
 	return &RecordRequest{}
 }
 
-func (m *RecordRequest) ToModel(p *pb.DnsRecordRequest) *RecordRequest {
+func (m *RecordRequest) ToModel(p *models.DnsRecordRequest) *RecordRequest {
 	return &RecordRequest{
 		Name:     p.Name,
 		Type:     p.Type,

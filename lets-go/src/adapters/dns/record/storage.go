@@ -3,6 +3,7 @@ package record
 import (
 	"context"
 	"fmt"
+	"lets-go/src/adapters/dns/models"
 	"lets-go/src/domain/record"
 	"lets-go/src/lib/cache"
 	config "lets-go/src/lib/dns"
@@ -19,13 +20,13 @@ func NewStorage() record.Storage {
 	return &storage{cache: cache.Client()}
 }
 
-func (s *storage) List(ctx context.Context, req *pb.DnsRequest) ([]*pb.DnsRecordRequest, error) {
+func (s *storage) List(ctx context.Context) ([]*models.DnsRecordRequest, error) {
 	res, err := s.cache.Keys(ctx, &pb.CacheRequest{})
 	if err != nil || res.Status != pb.Status_OK {
 		return nil, err
 	}
 
-	var result = []*pb.DnsRecordRequest{}
+	var result = []*models.DnsRecordRequest{}
 	for _, key := range res.Result {
 		res, err := cache.Client().Get(ctx, &pb.CacheGetRequest{Key: key})
 
@@ -49,7 +50,7 @@ func (s *storage) List(ctx context.Context, req *pb.DnsRequest) ([]*pb.DnsRecord
 	return result, nil
 }
 
-func (s *storage) Create(ctx context.Context, req *pb.DnsRecordRequest) error {
+func (s *storage) Create(ctx context.Context, req *models.DnsRecordRequest) error {
 	r := record.NewRecordRequest().ToModel(req).ToConfig()
 
 	if conv, ok := config.ConfigRecordToString[config.RRTypeToInt[r.Type]]; !ok || conv(r) == "" {
@@ -75,7 +76,7 @@ func (s *storage) Create(ctx context.Context, req *pb.DnsRecordRequest) error {
 	return nil
 }
 
-func (s *storage) Update(ctx context.Context, req *pb.DnsUpdateRequest) error {
+func (s *storage) Update(ctx context.Context, req *models.DnsUpdateRequest) error {
 	if err := s.Delete(ctx, req.Old); err != nil {
 		return err
 	}
@@ -83,7 +84,7 @@ func (s *storage) Update(ctx context.Context, req *pb.DnsUpdateRequest) error {
 	return s.Create(ctx, req.New)
 }
 
-func (s *storage) Delete(ctx context.Context, req *pb.DnsRecordRequest) error {
+func (s *storage) Delete(ctx context.Context, req *models.DnsRecordRequest) error {
 	key, err := s.findKey(ctx, req)
 	if err != nil {
 		return err
@@ -96,7 +97,7 @@ func (s *storage) Delete(ctx context.Context, req *pb.DnsRecordRequest) error {
 	return nil
 }
 
-func (s *storage) findKey(ctx context.Context, req *pb.DnsRecordRequest) (string, error) {
+func (s *storage) findKey(ctx context.Context, req *models.DnsRecordRequest) (string, error) {
 	r := record.NewRecordRequest().ToModel(req).ToConfig()
 
 	if conv, ok := config.ConfigRecordToString[config.RRTypeToInt[r.Type]]; !ok || conv(r) == "" {

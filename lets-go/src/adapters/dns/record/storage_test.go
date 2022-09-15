@@ -3,8 +3,8 @@ package record_test
 import (
 	"context"
 	"fmt"
+	"lets-go/src/adapters/dns/models"
 	"lets-go/src/adapters/dns/record"
-	"lets-go/src/pb"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -17,7 +17,7 @@ var (
 func TestBasic(t *testing.T) {
 	ctx := context.Background()
 
-	records := []pb.DnsRecordRequest{
+	records := []models.DnsRecordRequest{
 		{Name: "test_basic_a.net", Ttl: 3600, Type: "A", Value: "192.168.1.1"},
 		{Name: "test_basic_srv.net", Ttl: 400, Type: "SRV", Target: "test.net"},
 		{Name: "test_basic_cname.net", Ttl: 410, Type: "CNAME", Target: "test.net"},
@@ -31,7 +31,7 @@ func TestBasic(t *testing.T) {
 
 	checkIfRecordsExists(t, records)
 
-	newRecord := []pb.DnsRecordRequest{
+	newRecord := []models.DnsRecordRequest{
 		{Name: "test_basic_a.net", Ttl: 5, Type: "A", Value: "192.168.1.1"},
 		{Name: "test_basic_srv.net", Ttl: 400, Type: "SRV", Target: "test2.net"},
 		{Name: "test_basic_cname.net.com", Ttl: 410, Type: "CNAME", Target: "test.net"},
@@ -40,7 +40,7 @@ func TestBasic(t *testing.T) {
 	}
 
 	for i, r := range records {
-		require.NoError(t, store.Update(ctx, &pb.DnsUpdateRequest{Old: &r, New: &newRecord[i]}))
+		require.NoError(t, store.Update(ctx, &models.DnsUpdateRequest{Old: &r, New: &newRecord[i]}))
 	}
 
 	checkIfRecordsExists(t, newRecord)
@@ -49,7 +49,7 @@ func TestBasic(t *testing.T) {
 		require.NoError(t, store.Delete(ctx, &r))
 	}
 
-	list, err := store.List(ctx, &pb.DnsRequest{})
+	list, err := store.List(ctx)
 	require.NoError(t, err)
 	require.NotEmpty(t, list)
 
@@ -67,15 +67,15 @@ func TestBasic(t *testing.T) {
 	}
 }
 
-func checkIfRecordsExists(t *testing.T, records []pb.DnsRecordRequest) {
+func checkIfRecordsExists(t *testing.T, records []models.DnsRecordRequest) {
 	ctx := context.Background()
 
-	list, err := store.List(ctx, &pb.DnsRequest{})
+	list, err := store.List(ctx)
 	require.NoError(t, err)
 	require.NotEmpty(t, list)
 
 	for _, r := range records {
-		var item *pb.DnsRecordRequest = nil
+		var item *models.DnsRecordRequest = nil
 
 		for _, res := range list {
 			if res.Name == r.Name+"." {

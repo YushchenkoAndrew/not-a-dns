@@ -2,13 +2,12 @@ package api
 
 import (
 	"context"
+	"lets-go/src/adapters/dns/models"
 	"lets-go/src/composites"
 	"lets-go/src/lib/log"
-	"lets-go/src/pb"
 )
 
 type Handler struct {
-	pb.UnimplementedDnsServiceServer
 	storage *composites.StorageComposite
 	logger  log.Logger
 }
@@ -17,35 +16,35 @@ func NewHandler(storage *composites.StorageComposite) *Handler {
 	return &Handler{storage: storage, logger: log.GetLogger()}
 }
 
-func (h *Handler) ListRecord(ctx context.Context, req *pb.DnsRequest) (*pb.DnsListResponse, error) {
-	res, err := h.storage.Record.List(ctx, req)
+func (h *Handler) ListRecord(ctx context.Context) *models.DnsListResponse {
+	res, err := h.storage.Record.List(ctx)
 	if err != nil {
-		return &pb.DnsListResponse{Status: pb.Status_ERR, Message: err.Error()}, nil
+		return &models.DnsListResponse{Status: models.Status_ERR, Message: err.Error()}
 	}
 
-	return &pb.DnsListResponse{Status: pb.Status_OK, Message: "Success", Result: res}, nil
+	return &models.DnsListResponse{Status: models.Status_OK, Message: "Success", Result: res}
 }
 
-func (h *Handler) CreateRecord(ctx context.Context, req *pb.DnsRecordRequest) (*pb.DnsStatResponse, error) {
+func (h *Handler) CreateRecord(ctx context.Context, req *models.DnsRecordRequest) *models.DnsStatResponse {
 	if err := h.storage.Record.Create(ctx, req); err != nil {
-		return &pb.DnsStatResponse{Status: pb.Status_ERR, Message: err.Error()}, nil
+		return &models.DnsStatResponse{Status: models.Status_ERR, Message: err.Error()}
 	}
 
-	return &pb.DnsStatResponse{Status: pb.Status_OK, Message: "Success"}, nil
+	return &models.DnsStatResponse{Status: models.Status_OK, Message: "Success"}
 }
 
-func (h *Handler) UpdateRecord(ctx context.Context, req *pb.DnsUpdateRequest) (*pb.DnsStatResponse, error) {
+func (h *Handler) UpdateRecord(ctx context.Context, req *models.DnsUpdateRequest) *models.DnsStatResponse {
 	if err := h.storage.Record.Update(ctx, req); err != nil {
-		return &pb.DnsStatResponse{Status: pb.Status_ERR, Message: err.Error()}, nil
+		return &models.DnsStatResponse{Status: models.Status_ERR, Message: err.Error()}
 	}
 
-	return &pb.DnsStatResponse{Status: pb.Status_OK, Message: "Success"}, nil
+	return &models.DnsStatResponse{Status: models.Status_OK, Message: "Success"}
 }
 
-func (h *Handler) DeleteRecord(ctx context.Context, req *pb.DnsRecordRequest) (*pb.DnsStatResponse, error) {
+func (h *Handler) DeleteRecord(ctx context.Context, req *models.DnsRecordRequest) *models.DnsStatResponse {
 	if err := h.storage.Record.Delete(ctx, req); err != nil {
-		return &pb.DnsStatResponse{Status: pb.Status_ERR, Message: err.Error()}, nil
+		return &models.DnsStatResponse{Status: models.Status_ERR, Message: err.Error()}
 	}
 
-	return &pb.DnsStatResponse{Status: pb.Status_OK, Message: "Success"}, nil
+	return &models.DnsStatResponse{Status: models.Status_OK, Message: "Success"}
 }
