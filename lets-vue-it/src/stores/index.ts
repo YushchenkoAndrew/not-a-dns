@@ -15,6 +15,9 @@ export const defaultStore = defineStore("default", {
     view: window.location.hash?.slice(1) || "general",
 
     action: null as null | AlertProps,
+    origin: JSON.parse(
+      localStorage.getItem("origin") as string
+    ) as null | ObjectLiteral,
 
     record: JSON.parse(
       localStorage.getItem("record") as string
@@ -57,6 +60,7 @@ export const defaultStore = defineStore("default", {
       this.view = v;
     },
 
+    // FIXME:
     loadRecords(data: ObjectLiteral[], name: string = "type") {
       const res = {} as { [key: string]: RecordData };
       for (const item of data) {
@@ -79,10 +83,16 @@ export const defaultStore = defineStore("default", {
 
     selectRecord(index: number, data: ObjectLiteral) {
       this.record = { index, data };
+      this.origin = Object.values(data).reduce((acc, curr) => acc && curr, true)
+        ? { ...data }
+        : null;
+
+      localStorage.setItem("origin", JSON.stringify(this.origin));
     },
 
     resetRecord() {
       this.record = null;
+      this.origin = null;
       localStorage.removeItem("record");
     },
 

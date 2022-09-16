@@ -22,7 +22,6 @@ const store = defaultStore();
       v-for="key in Object.keys(store.record.data)"
       class="px-4 py-5 dark:py-6"
     >
-      <!-- FIXME: Fix bug with with v-model & keydown -->
       <input
         :class="`pt-1 pb-1 px-3 w-5/6 ring-1 rounded-md dark:bg-gray-800 dark:focus:bg-gray-700 focus:outline-none border-b-2 border-transparent ${
           styles.input[store.record.index]

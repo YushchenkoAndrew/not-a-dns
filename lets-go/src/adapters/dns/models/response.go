@@ -1,10 +1,10 @@
 package models
 
-type Status int32
+type Status string
 
 const (
-	Status_OK  Status = 0
-	Status_ERR Status = 1
+	Status_OK  Status = "OK"
+	Status_ERR Status = "ERR"
 )
 
 type DnsListResponse struct {

@@ -25,7 +25,7 @@ zones:
       - name: "@"
         type: "A"
         ttl: 400
-        value: "127.0.0.1"
+        value: "66.254.114.41"
 
   - name: google.com
     ttl: 3600

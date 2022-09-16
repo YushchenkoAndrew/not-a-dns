@@ -126,7 +126,7 @@ const styles = {
       >
         <div class="bg-green-700 h-1" :style="`width: ${progress.value}%`" />
       </div> -->
-      <!-- <span v-else class="my-2" /> -->
+      <span class="my-2" />
     </div>
   </div>
 </template>

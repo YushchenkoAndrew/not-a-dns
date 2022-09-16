@@ -38,16 +38,7 @@ function onRecordSelect(record: ObjectLiteral) {
 }
 </script>
 
-<!-- {#each values as row} -->
 <template>
-  <!-- FIXME: -->
-  <!-- on:click={() => {
-      $record = {
-        index,
-        data: keys.reduce((acc, key, i) => ({ ...acc, [key]: row[i] }), {}),
-      };
-
-    }} -->
   <tr
     v-for="row in props.values"
     class="group cursor-pointer text-gray-900 dark:text-gray-100"
@@ -60,7 +51,9 @@ function onRecordSelect(record: ObjectLiteral) {
   >
     <td
       v-for="value in row"
-      class="p-4 decoration-2 group-hover:underline {styles.td[index] || ''}"
+      :class="`p-4 decoration-2 group-hover:underline ${
+        styles.td[index] || ''
+      }`"
     >
       {{ value }}
     </td>

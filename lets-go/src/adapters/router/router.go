@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"lets-go/src/adapters/api"
 	"lets-go/src/adapters/dns/models"
+	"lets-go/src/lib/log"
 	"lets-go/src/pb"
 	"net/http"
 )
@@ -16,6 +17,12 @@ type storage struct {
 
 func NewRouter(h *api.Handler) {
 	http.HandleFunc("/dns/api", func(w http.ResponseWriter, r *http.Request) {
+		log.GetLogger().Infof("%s %s", r.Method, r.RemoteAddr)
+
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
 		w.Header().Set("Content-Type", "application/json")
 
 		body, err := ioutil.ReadAll(r.Body)
@@ -54,7 +61,6 @@ func NewRouter(h *api.Handler) {
 			}
 
 			json.NewEncoder(w).Encode(h.DeleteRecord(context.Background(), req))
-
 		}
 	})
 }

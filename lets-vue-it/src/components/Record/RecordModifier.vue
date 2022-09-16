@@ -10,6 +10,7 @@ import RecordHead from "./RecordHead.vue";
 import RecordLabel from "./RecordLabel.vue";
 import Alert from "../Alert.vue";
 import { SectionFormat } from "../../lib/string";
+import { loadRecord, saveRecord } from "../../lib/api";
 
 const props = defineProps<{
   label: string;
@@ -38,16 +39,10 @@ async function onSubmit() {
   });
 
   try {
-    const res = await fetch("localhost:5000/dns/record", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(store.record.data),
-    });
-
-    const response = (await res.json()) as DefaultResponse;
-    if (response.status == "ERR") {
+    const res = await saveRecord(store.record.data, store.origin);
+    if (res.status == "ERR") {
       return store.setActionState({
-        desc: response.message,
+        desc: res.message,
         status: AlertType.error,
         title: store.action?.title || "",
       });
@@ -58,7 +53,7 @@ async function onSubmit() {
     if (el) setTimeout(() => el.scrollIntoView({ behavior: "smooth" }), 0);
 
     store.resetRecord();
-    store.loadRecords(response.result);
+    store.loadRecords(await loadRecord());
     return store.setActionState({
       title: store.action?.title || "",
       desc: "New record was added",
