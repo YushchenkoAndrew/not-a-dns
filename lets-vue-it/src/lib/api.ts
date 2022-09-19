@@ -24,3 +24,13 @@ export async function saveRecord(
 
   return (await res.json()) as DefaultResponse;
 }
+
+export async function delRecord(data: ObjectLiteral): Promise<DefaultResponse> {
+  const res = await fetch(`${DNS_API}/dns/api`, {
+    headers: { "Content-Type": "application/json" },
+    method: "DELETE",
+    body: JSON.stringify(data),
+  });
+
+  return (await res.json()) as DefaultResponse;
+}

@@ -2,9 +2,9 @@ package record_test
 
 import (
 	"context"
-	"fmt"
 	"lets-go/src/adapters/dns/models"
 	"lets-go/src/adapters/dns/record"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -32,7 +32,7 @@ func TestBasic(t *testing.T) {
 	checkIfRecordsExists(t, records)
 
 	newRecord := []models.DnsRecordRequest{
-		{Name: "test_basic_a.net", Ttl: 5, Type: "A", Value: "192.168.1.1"},
+		{Name: "test_basic_a.net.2", Ttl: 5, Type: "A", Value: "192.168.1.1"},
 		{Name: "test_basic_srv.net", Ttl: 400, Type: "SRV", Target: "test2.net"},
 		{Name: "test_basic_cname.net.com", Ttl: 410, Type: "CNAME", Target: "test.net"},
 		{Name: "test_basic_txt.net", Ttl: 3600, Type: "TXT", Value: "hello world"},
@@ -45,7 +45,21 @@ func TestBasic(t *testing.T) {
 
 	checkIfRecordsExists(t, newRecord)
 
-	for _, r := range newRecord {
+	finalRecord := []models.DnsRecordRequest{
+		{Name: "test_basic_a.net.", Ttl: 5, Type: "A", Value: "192.168.1.1"},
+		{Name: "test_basic_srv.net2", Ttl: 400, Type: "SRV", Target: "test2.net"},
+		{Name: "test_basic_cname.net2.com", Ttl: 410, Type: "CNAME", Target: "test.net"},
+		{Name: "test_basic_txt.net2", Ttl: 3600, Type: "TXT", Value: "hello world"},
+		{Name: "test_basic_mx.net2", Ttl: 3600, Type: "MX", Target: "brr.com"},
+	}
+
+	for i, r := range newRecord {
+		require.NoError(t, store.Update(ctx, &models.DnsUpdateRequest{Old: &r, New: &finalRecord[i]}))
+	}
+
+	checkIfRecordsExists(t, finalRecord)
+
+	for _, r := range finalRecord {
 		require.NoError(t, store.Delete(ctx, &r))
 	}
 
@@ -78,16 +92,14 @@ func checkIfRecordsExists(t *testing.T, records []models.DnsRecordRequest) {
 		var item *models.DnsRecordRequest = nil
 
 		for _, res := range list {
-			if res.Name == r.Name+"." {
+			if strings.TrimRight(res.Name, ".") == strings.TrimRight(r.Name, ".") {
 				item = res
 				break
 			}
 		}
 
-		fmt.Println(list)
-		fmt.Println(err)
 		require.NotNil(t, item)
-		require.Equal(t, r.Name+".", item.Name)
+		require.Equal(t, strings.Trim(r.Name, ".")+".", item.Name)
 		require.Equal(t, r.Ttl, item.Ttl)
 		require.Equal(t, r.Type, item.Type)
 		require.Equal(t, r.Value, item.Value)
@@ -95,7 +107,7 @@ func checkIfRecordsExists(t *testing.T, records []models.DnsRecordRequest) {
 		if r.Target == "" {
 			require.Empty(t, item.Target)
 		} else {
-			require.Equal(t, r.Target+".", item.Target)
+			require.Equal(t, strings.Trim(r.Target, ".")+".", item.Target)
 		}
 	}
 }

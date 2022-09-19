@@ -62,20 +62,24 @@ func (c *ConfigRecord) copy() *ConfigRecord {
 	}
 }
 
-func (c *ConfigRecord) parse(cfg *ConfigZone) *ConfigRecord {
+func (c *ConfigRecord) Parse(cfg *ConfigZone) *ConfigRecord {
 	r := c.copy()
-	r.Name = trimHost(strings.ReplaceAll(r.Name, "@", trimHost(cfg.Name)))
-	r.Target = trimHost(r.Target)
+	if cfg != nil {
+		r.Name = strings.ReplaceAll(r.Name, "@", TrimHost(cfg.Name))
+	}
 
-	if r.TTL == 0 {
+	r.Name = TrimHost(r.Name)
+	r.Target = TrimHost(r.Target)
+
+	if r.TTL == 0 && cfg != nil {
 		r.TTL = cfg.TTL
 	}
 
-	if r.Priority == 0 {
+	if r.Priority == 0 && cfg != nil {
 		r.Priority = cfg.Priority
 	}
 
-	if r.Weight == 0 {
+	if r.Weight == 0 && cfg != nil {
 		r.Weight = cfg.Weight
 	}
 

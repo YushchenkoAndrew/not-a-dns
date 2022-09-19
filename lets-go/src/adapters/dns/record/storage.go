@@ -51,7 +51,7 @@ func (s *storage) List(ctx context.Context) ([]*models.DnsRecordRequest, error) 
 }
 
 func (s *storage) Create(ctx context.Context, req *models.DnsRecordRequest) error {
-	r := record.NewRecordRequest().ToModel(req).ToConfig()
+	r := record.NewRecordRequest().ToModel(req).ToConfig().Parse(nil)
 
 	if conv, ok := config.ConfigRecordToString[config.RRTypeToInt[r.Type]]; !ok || conv(r) == "" {
 		return fmt.Errorf("Unsupported type: %s '%s'", r.Type, r.Name)
@@ -98,7 +98,7 @@ func (s *storage) Delete(ctx context.Context, req *models.DnsRecordRequest) erro
 }
 
 func (s *storage) findKey(ctx context.Context, req *models.DnsRecordRequest) (string, error) {
-	r := record.NewRecordRequest().ToModel(req).ToConfig()
+	r := record.NewRecordRequest().ToModel(req).ToConfig().Parse(nil)
 
 	if conv, ok := config.ConfigRecordToString[config.RRTypeToInt[r.Type]]; !ok || conv(r) == "" {
 		return "", fmt.Errorf("Unsupported type: %s '%s'", r.Type, r.Name)

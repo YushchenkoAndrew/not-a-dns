@@ -1,16 +1,12 @@
 <script setup lang="ts">
 import { defaultStore } from "../../stores";
-import {
-  AlertType,
-  type DefaultResponse,
-  type ObjectLiteral,
-} from "../../types";
+import { AlertType, type ObjectLiteral } from "../../types";
 import RecordInput from "./RecordInput.vue";
 import RecordHead from "./RecordHead.vue";
 import RecordLabel from "./RecordLabel.vue";
 import Alert from "../Alert.vue";
 import { SectionFormat } from "../../lib/string";
-import { loadRecord, saveRecord } from "../../lib/api";
+import { loadRecord, saveRecord, delRecord } from "../../lib/api";
 
 const props = defineProps<{
   label: string;
@@ -67,6 +63,46 @@ async function onSubmit() {
     });
   }
 }
+
+async function onDelete() {
+  if (!store.origin) return;
+  store.setActionState({
+    title: "Deleting the Record",
+    desc: "Loading ...",
+    status: AlertType.pending,
+  });
+
+  try {
+    const res = await delRecord(store.origin);
+    if (res.status == "ERR") {
+      return store.setActionState({
+        desc: res.message,
+        status: AlertType.error,
+        title: store.action?.title || "",
+      });
+    }
+
+    if (store.record) {
+      const name = SectionFormat(store.records[store.record.index].name);
+      const el = document.getElementsByName(name)?.[0];
+      if (el) setTimeout(() => el.scrollIntoView({ behavior: "smooth" }), 0);
+    }
+
+    store.resetRecord();
+    store.loadRecords(await loadRecord());
+    return store.setActionState({
+      title: store.action?.title || "",
+      desc: "Record was deleted",
+      status: AlertType.success,
+    });
+  } catch (err) {
+    return store.setActionState({
+      title: store.action?.title || "",
+      desc: "Server Side error: " + String(err),
+      status: AlertType.error,
+    });
+  }
+}
 </script>
 
 <template>
@@ -99,17 +135,27 @@ async function onSubmit() {
           </button>
         </span>
 
-        <button
-          class="flex flex-row mx-3 my-auto px-3 py-2 rounded-md hover:scale-105 hover:drop-shadow-md active:scale-100 active:drop-shadow-none disabled:hover:scale-100 disabled:hover:drop-shadow-none disabled:active:scale-100 text-gray-50 bg-green-500 dark:bg-green-600 hover:bg-green-600 dark:hover:bg-green-700 disabled:bg-yellow-200 disabled:dark:bg-gray-700 disabled:text-gray-600 disabled:dark:text-yellow-200"
-          :disabled="!store.submit"
-          @click="onSubmit"
-        >
-          <i
-            :class="`fas ${
-              store.submit ? 'fa-check' : 'fa-minus'
-            } my-auto mr-2`"
-          />Submit
-        </button>
+        <div class="flex flex-row my-auto">
+          <button
+            v-if="store.origin"
+            class="flex my-auto px-4 py-3 rounded-md hover:scale-105 hover:drop-shadow-md active:scale-100 active:drop-shadow-none disabled:hover:scale-100 disabled:hover:drop-shadow-none disabled:active:scale-100 text-gray-50 bg-red-500 dark:bg-red-600 hover:bg-red-600 dark:hover:bg-red-700"
+            @click="onDelete"
+          >
+            <i class="fa-solid fa-trash"></i>
+          </button>
+
+          <button
+            class="flex ml-2 mr-3 my-auto px-3 py-2 rounded-md hover:scale-105 hover:drop-shadow-md active:scale-100 active:drop-shadow-none disabled:hover:scale-100 disabled:hover:drop-shadow-none disabled:active:scale-100 text-gray-50 bg-green-500 dark:bg-green-600 hover:bg-green-600 dark:hover:bg-green-700 disabled:bg-yellow-200 disabled:dark:bg-gray-700 disabled:text-gray-600 disabled:dark:text-yellow-200"
+            :disabled="!store.submit"
+            @click="onSubmit"
+          >
+            <i
+              :class="`fas ${
+                store.submit ? 'fa-check' : 'fa-minus'
+              } my-auto mr-2`"
+            />Submit
+          </button>
+        </div>
       </div>
     </div>
 

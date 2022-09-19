@@ -60,12 +60,11 @@ export const defaultStore = defineStore("default", {
       this.view = v;
     },
 
-    // FIXME:
     loadRecords(data: ObjectLiteral[], name: string = "type") {
       const res = {} as { [key: string]: RecordData };
       for (const item of data) {
         const keys = Object.keys(item).filter((k) => item[k]);
-        const key = keys.sort().join("_");
+        const key = `${item[name]}_${keys.sort().join("_")}`;
 
         if (!res[key]) {
           res[key] = {
@@ -77,7 +76,9 @@ export const defaultStore = defineStore("default", {
         res[key].values.push(keys.map((k) => item[k]));
       }
 
-      this.records = Object.values(res);
+      this.records = Object.values(res).sort((a, b) =>
+        a.name.localeCompare(b.name)
+      );
       localStorage.setItem("records", JSON.stringify(this.records));
     },
 
