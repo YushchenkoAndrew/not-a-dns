@@ -1,15 +1,17 @@
+import { ReactNode } from 'react';
+
 import { isSideBarChapter } from '../../redux/reducer/sidebar';
 import { useAppSelector } from '../../redux/storage';
-import SideBarItem from './SideBarItem';
+import SideBarItem, { SideBarItemProps } from './SideBarItem';
 
-export interface SideBarChapterProps {
-  name: string;
-  chapter_id: string;
-}
+export type SideBarChapterProps = Omit<SideBarItemProps, 'icon' | 'anchor'> & {
+  chapter_id?: string;
+  children?: ReactNode;
+};
 
 export default function SideBarChapter(props: SideBarChapterProps) {
   const items = useAppSelector(
-    (state) => state.sidebar.chapters[props.chapter_id],
+    (state) => props.chapter_id && state.sidebar.chapters[props.chapter_id],
   );
 
   return (
@@ -21,15 +23,15 @@ export default function SideBarChapter(props: SideBarChapterProps) {
         </p>
       </li>
 
-      <li className="pl-2 flex flex-col">
-        {items.map((props, index) =>
+      <span className="pl-2 flex flex-col">
+        {items?.map((props, index) =>
           isSideBarChapter(props) ? (
             <SideBarChapter key={index} {...props} />
           ) : (
             <SideBarItem key={index} {...props} />
           ),
-        )}
-      </li>
+        ) || props.children}
+      </span>
     </>
   );
 }

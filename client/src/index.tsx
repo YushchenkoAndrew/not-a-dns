@@ -12,15 +12,12 @@ const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement,
 );
 root.render(
-  <React.StrictMode>
-    {/* <script
-      src="https://kit.fontawesome.com/b31803f9ae.js"
-      crossOrigin="anonymous"
-    ></script> */}
-    <Provider store={store}>
-      <App />
-    </Provider>
-  </React.StrictMode>,
+  // NOTE: Some problems with rendering twice
+  // <React.StrictMode>
+  <Provider store={store}>
+    <App />
+  </Provider>,
+  // </React.StrictMode>,
 );
 
 // If you want to start measuring performance in your app, pass a function

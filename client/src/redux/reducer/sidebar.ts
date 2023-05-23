@@ -16,18 +16,18 @@ export const sidebarStore = createSlice({
   initialState: {
     section: window.location.hash?.slice(1) || 'general',
     items: [
-      { name: 'General' },
-      { name: 'records', chapter_id: 'temp#id1' },
+      { name: 'General', icon: 'gear', anchor: 'general' },
+      { name: 'records', anchor: 'records', chapter_id: 'temp#id1' },
     ] as SideBarItemsT[],
 
     chapters: {
       'temp#id1': [
-        { name: 'A Records' },
-        { name: 'AAAA Records' },
-        { name: 'CNAME Records' },
-        { name: 'PTR Records' },
-        { name: 'MX Records' },
-        { name: 'TXT Records' },
+        { name: 'A Records', icon: 'circle', anchor: 'a_record' },
+        { name: 'AAAA Records', icon: 'circle', anchor: '' },
+        { name: 'CNAME Records', icon: 'circle', anchor: '' },
+        { name: 'PTR Records', icon: 'circle', anchor: '' },
+        { name: 'MX Records', icon: 'circle', anchor: '' },
+        { name: 'TXT Records', icon: 'circle', anchor: '' },
       ],
     } as ObjectLiteral<SideBarItemsT[]>,
   },
