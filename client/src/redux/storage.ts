@@ -11,6 +11,11 @@ export const store = configureStore({
     navbar: navbarStore.reducer,
     sidebar: sidebarStore.reducer,
   },
+
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: false,
+    }),
 });
 
 // Use throughout your app instead of plain `useDispatch` and `useSelector`

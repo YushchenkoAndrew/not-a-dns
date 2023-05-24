@@ -1,10 +1,10 @@
-import { sidebarStore } from '../../redux/reducer/sidebar';
-import { useAppDispatch } from '../../redux/storage';
-import RecordLabel from '../Record/RecordLabel';
+import { sidebarStore } from '../../../redux/reducer/sidebar';
+import { useAppDispatch } from '../../../redux/storage';
+import RecordLabel from '../../Record/RecordLabel';
 
-export interface IndexPageProps {}
+export interface DefaultIndexPageProps {}
 
-export default function IndexPage(props: IndexPageProps) {
+export default function DefaultIndexPage(props: DefaultIndexPageProps) {
   const dispatch = useAppDispatch();
 
   return (

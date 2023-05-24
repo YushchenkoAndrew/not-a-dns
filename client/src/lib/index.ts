@@ -6,4 +6,8 @@ export class StringService {
   static toSection(name: string): string {
     return name.replace(/ /g, '_').replace(/\//g, '').toLowerCase();
   }
+
+  static errToMsg(err: Error) {
+    return 'Request error';
+  }
 }

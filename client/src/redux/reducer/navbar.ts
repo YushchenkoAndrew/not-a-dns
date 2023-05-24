@@ -1,18 +1,20 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 import { NavBarItemProps } from '../../components/NavBar/NavBarItem';
+import { NavbarSettingResponseDto } from '../../response-dto/navbar-setting.response-dto';
+
+type NavbarStoreT = NavbarSettingResponseDto;
 
 export const navbarStore = createSlice({
   name: 'navbar',
   initialState: {
-    items: [
-      { name: '/mortis-greamreaper', href: 'home', target: '_blank' },
-      { name: '/grape', href: 'test', target: '_blank' },
-      { name: '/void', href: 't', target: '_blank' },
-      { name: '/botodachi', href: 't', target: '_blank' },
-    ] as NavBarItemProps[],
-  },
+    items: [] as NavBarItemProps[],
+  } as NavbarStoreT,
   reducers: {
+    init(state, { payload }: PayloadAction<Partial<NavbarStoreT>>) {
+      if (payload.items) state.items = payload.items;
+    },
+
     addFavorite: (state, action: PayloadAction<NavBarItemProps>) => {
       state.items.push(action.payload);
     },
