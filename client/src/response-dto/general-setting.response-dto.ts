@@ -1,3 +1,4 @@
+import { ResponseProperty } from '../decorators/response-property';
 import { CommonResponseDto } from './common.response-dto';
 
 export class GeneralSettingResponseDto extends CommonResponseDto {
@@ -6,5 +7,6 @@ export class GeneralSettingResponseDto extends CommonResponseDto {
     this.assign(init, this);
   }
 
+  @ResponseProperty()
   mode: { state: boolean; name: string; icon: string };
 }
