@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 
-import { isSideBarChapter } from '../../redux/reducer/sidebar';
+import { isSideBarChapter } from '../../redux/reducer/sidebar.reducer';
 import { useAppSelector } from '../../redux/storage';
 import SideBarItem, { SideBarItemProps } from './SideBarItem';
 

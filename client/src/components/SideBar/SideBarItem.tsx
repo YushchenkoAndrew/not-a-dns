@@ -1,7 +1,7 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ReactNode } from 'react';
 
-import { sidebarStore } from '../../redux/reducer/sidebar';
+import { sidebarStore } from '../../redux/reducer/sidebar.reducer';
 import { useAppDispatch, useAppSelector } from '../../redux/storage';
 
 export interface SideBarItemProps {

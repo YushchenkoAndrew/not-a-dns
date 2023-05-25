@@ -10,18 +10,14 @@ import DefaultIndexPage from './components/default/Page/DefaultIndexPage';
 import LoadingScreen from './components/LodingScreen';
 import NavBar from './components/NavBar/NavBar';
 import NavBarItem from './components/NavBar/NavBarItem';
-import SideBar from './components/SideBar/SideBar';
 import SideBarChapter from './components/SideBar/SideBarChapter.';
 import SideBarItem from './components/SideBar/SideBarItem';
-import { API_URL } from './config';
 import { StringService } from './lib';
-import { generalStore } from './redux/reducer/general';
-import { navbarStore } from './redux/reducer/navbar';
-import { isSideBarChapter, sidebarStore } from './redux/reducer/sidebar';
+import { isSideBarChapter } from './redux/reducer/sidebar.reducer';
 import { useAppDispatch, useAppSelector } from './redux/storage';
-import { GeneralSettingResponseDto } from './response-dto/general-setting.response-dto';
-import { NavbarSettingResponseDto } from './response-dto/navbar-setting.response-dto';
-import { SidebarSettingResponseDto } from './response-dto/sidebar-setting.response-dto';
+import { preloadGeneral } from './redux/thunk/general.thunk';
+import { preloadNavbar } from './redux/thunk/navbar.thunk';
+import { preloadSidebar } from './redux/thunk/sidebar.thunk';
 
 library.add(fas);
 
@@ -29,30 +25,15 @@ export default function App() {
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    (async function () {
-      const navbar = new NavbarSettingResponseDto(
-        await fetch(`${API_URL}/setting/navbar`).then((res) => res.json()),
-      );
-
-      const sidebar = new SidebarSettingResponseDto(
-        await fetch(`${API_URL}/setting/sidebar`).then((res) => res.json()),
-      );
-
-      const general = new GeneralSettingResponseDto(
-        await fetch(`${API_URL}/setting/general`).then((res) => res.json()),
-      );
-
-      await new Promise<void>((resolve) =>
-        setTimeout(() => {
-          dispatch(navbarStore.actions.init(navbar));
-          dispatch(sidebarStore.actions.init(sidebar));
-          dispatch(generalStore.actions.init(general));
-          resolve();
-        }, 2000),
-      );
-    })().catch((err) => {
-      toast(StringService.errToMsg(err), { type: 'error' });
-    });
+    setTimeout(async () => {
+      try {
+        await dispatch(preloadNavbar()).unwrap();
+        await dispatch(preloadSidebar()).unwrap();
+        await dispatch(preloadGeneral()).unwrap();
+      } catch (err) {
+        toast(StringService.errToMsg(err), { type: 'error' });
+      }
+    }, 1000);
   }, []);
 
   const items = {
@@ -87,7 +68,7 @@ export default function App() {
           </NavBar>
 
           <div className="flex flex-col sm:flex-row container mx-auto">
-            <SideBar>
+            <DefaultSideBar>
               {items.sidebar.map((props, index) =>
                 isSideBarChapter(props) ? (
                   <SideBarChapter key={index} {...props} />
@@ -95,9 +76,7 @@ export default function App() {
                   <SideBarItem key={index} {...props} />
                 ),
               )}
-
-              <DefaultSideBar />
-            </SideBar>
+            </DefaultSideBar>
 
             <DefaultIndexPage />
           </div>

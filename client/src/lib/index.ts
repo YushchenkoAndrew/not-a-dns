@@ -1,3 +1,5 @@
+import { ObjectLiteral } from '../types';
+
 export class StringService {
   static capitalize(str: string) {
     return str.charAt(0).toUpperCase() + str.slice(1);
@@ -7,7 +9,20 @@ export class StringService {
     return name.replace(/ /g, '_').replace(/\//g, '').toLowerCase();
   }
 
+  static toQuery(obj: ObjectLiteral) {
+    const params = [] as string[];
+
+    for (var p in obj) {
+      if (!obj.hasOwnProperty(p)) continue;
+      params.push(encodeURIComponent(p) + '=' + encodeURIComponent(obj[p]));
+    }
+
+    return params.join('&');
+  }
+
   static errToMsg(err: Error) {
-    return 'Request error';
+    // console.log(err);
+    // return  'Request error';
+    return err.message;
   }
 }

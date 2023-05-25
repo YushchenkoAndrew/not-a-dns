@@ -1,4 +1,4 @@
-import { sidebarStore } from '../../../redux/reducer/sidebar';
+import { sidebarStore } from '../../../redux/reducer/sidebar.reducer';
 import { useAppDispatch } from '../../../redux/storage';
 import RecordLabel from '../../Record/RecordLabel';
 import RecordModifier from '../../Record/RecordModifier';
@@ -26,16 +26,9 @@ export default function DefaultIndexPage(props: DefaultIndexPageProps) {
         </div>
 
         <RecordTable
-          // v-for="({ name, keys, values }, i) in store.records"
-          // :index="i"
-          label="name"
-          columns={['test', 'test2', 'test3']}
-          rows={[
-            ['test', 'test2', 'test3'],
-            ['test', 'test2', 'test3'],
-            ['test', 'test2', 'test3'],
-            ['test', 'test2', 'test3'],
-          ]}
+          className="record-table-red"
+          label="Hosts"
+          store="host_record"
         />
 
         {/* <RecordModifier label="Modify Record" /> */}

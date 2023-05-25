@@ -28,19 +28,19 @@ export class SettingService {
       sidebar: {
         items: [
           { name: 'General', icon: 'gear', anchor: 'general' },
-          { name: 'records', anchor: 'records', chapter_id: 'temp#id1' },
+          {
+            name: 'records',
+            anchor: 'records',
+            chapters: [
+              { name: 'A Records', icon: 'circle', anchor: 'a_record' },
+              { name: 'AAAA Records', icon: 'circle', anchor: '' },
+              { name: 'CNAME Records', icon: 'circle', anchor: '' },
+              { name: 'PTR Records', icon: 'circle', anchor: '' },
+              { name: 'MX Records', icon: 'circle', anchor: '' },
+              { name: 'TXT Records', icon: 'circle', anchor: '' },
+            ],
+          },
         ],
-
-        chapters: {
-          'temp#id1': [
-            { name: 'A Records', icon: 'circle', anchor: 'a_record' },
-            { name: 'AAAA Records', icon: 'circle', anchor: '' },
-            { name: 'CNAME Records', icon: 'circle', anchor: '' },
-            { name: 'PTR Records', icon: 'circle', anchor: '' },
-            { name: 'MX Records', icon: 'circle', anchor: '' },
-            { name: 'TXT Records', icon: 'circle', anchor: '' },
-          ],
-        },
       },
     }[type];
   }
