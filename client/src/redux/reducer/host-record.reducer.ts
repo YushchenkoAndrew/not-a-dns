@@ -19,13 +19,8 @@ export const hostRecordStore = createSlice({
     items: [],
 
     table: {
-      columns: ['test', 'test2', 'test3'],
-      rows: [
-        ['test', 'test2', 'test3'],
-        ['test', 'test2', 'test3'],
-        ['test', 'test2', 'test3'],
-        ['test', 'test2', 'test3'],
-      ],
+      columns: new Array(3).fill(''),
+      rows: new Array(3).fill(new Array(3).fill('')),
     },
   } as HostStoreT,
 

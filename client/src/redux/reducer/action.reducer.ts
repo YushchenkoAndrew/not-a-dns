@@ -1,17 +1,20 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+
+import { CommonEntity } from '../../entities/common.entity';
+
+type ActionT = {
+  selected: CommonEntity;
+};
 
 export const actionStore = createSlice({
   name: 'action',
   initialState: {
-    // TODO:
-    loaded: false,
-    mode: { state: true, name: 'Dark Mode', icon: 'moon' },
-  },
+    selected: null,
+  } as ActionT,
   reducers: {
-    invertMode: (state) => {
-      state.mode = state.mode.state
-        ? { state: false, name: 'Light Mode', icon: 'sun' }
-        : { state: true, name: 'Dark Mode', icon: 'moon' };
+    onSelect: (state, { payload }: PayloadAction<CommonEntity>) => {
+      state.selected = payload;
+      console.log(payload);
     },
   },
   extraReducers(builder) {
