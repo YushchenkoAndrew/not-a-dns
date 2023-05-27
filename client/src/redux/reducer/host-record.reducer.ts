@@ -1,6 +1,6 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-import { TableT } from '../../components/Record/RecordTable';
+import { TableT } from '../../components/Record/RecordTable/RecordTableData';
 import { HostPageResponseDto } from '../../response-dto/host-page.response-dto';
 import { loadHostRecords } from '../thunk/host-record.thunk';
 
@@ -15,12 +15,14 @@ export const hostRecordStore = createSlice({
     loaded: false,
 
     page: 1,
-    total: 0,
+    per_page: 6,
+    total: 100,
+
     items: [],
 
     table: {
       columns: new Array(3).fill(''),
-      rows: new Array(3).fill(new Array(3).fill('')),
+      rows: new Array(6).fill(new Array(3).fill('')),
     },
   } as HostStoreT,
 
@@ -28,6 +30,12 @@ export const hostRecordStore = createSlice({
     // setSection: (state, action: PayloadAction<string>) => {
     //   state.section = action.payload;
     // },
+    temp: (state, { payload }: PayloadAction<number>) => {
+      console.log(payload);
+
+      state.page = payload;
+    },
+
     // deleteFavorite: (state, action: PayloadAction<NavBarItemProps>) => {
     //   state.items.push(action.payload);
     // },

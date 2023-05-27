@@ -1,8 +1,12 @@
+import { hostRecordStore } from '../../../redux/reducer/host-record.reducer';
 import { sidebarStore } from '../../../redux/reducer/sidebar.reducer';
 import { useAppDispatch } from '../../../redux/storage';
 import RecordLabel from '../../Record/RecordLabel';
 import RecordModifier from '../../Record/RecordModifier';
-import RecordTable from '../../Record/RecordTable';
+import RecordTable from '../../Record/RecordTable/RecordTable';
+import RecordTableData from '../../Record/RecordTable/RecordTableData';
+import RecordTablePage from '../../Record/RecordTable/RecordTablePage';
+import RecordTableSearch from '../../Record/RecordTable/RecordTableSearch';
 
 export interface DefaultIndexPageProps {}
 
@@ -25,11 +29,14 @@ export default function DefaultIndexPage(props: DefaultIndexPageProps) {
           <p className="text-gray-900 dark:text-gray-200">Simple DNS Server</p>
         </div>
 
-        <RecordTable
-          className="record-table-red"
-          label="Hosts"
-          store="host_record"
-        />
+        <RecordTable label="Hosts" anchor="host_record">
+          <RecordTableSearch />
+          <RecordTableData className="record-table-red" store="host_record" />
+          <RecordTablePage
+            store="host_record"
+            onClick={(page) => dispatch(hostRecordStore.actions.temp(page))}
+          />
+        </RecordTable>
 
         {/* <RecordModifier label="Modify Record" /> */}
       </div>

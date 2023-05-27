@@ -6,6 +6,9 @@ export abstract class CommonPageResponseDto extends CommonResponseDto {
   page: number;
 
   @ResponseProperty()
+  per_page: number;
+
+  @ResponseProperty()
   total: number;
 
   @ResponseProperty()

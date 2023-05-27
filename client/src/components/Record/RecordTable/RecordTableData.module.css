@@ -6,6 +6,10 @@
   @apply bg-red-300 dark:bg-transparent dark:border-red-400;
 }
 
+.record-table-red > thead span.block {
+  @apply bg-red-400 dark:bg-gray-700;
+}
+
 .record-table-red > tbody > tr:hover td {
   @apply underline decoration-2 decoration-red-300 dark:decoration-red-400;
 }
