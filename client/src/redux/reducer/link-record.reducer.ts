@@ -3,17 +3,17 @@ import { createSlice } from '@reduxjs/toolkit';
 import { TableT } from '../../components/Record/RecordTable/RecordTableData';
 import { HostPageResponseDto } from '../../response-dto/host-page.response-dto';
 import { PageType, QueryType } from '../../types/request.type';
-import { loadHostRecords } from '../thunk/host-record.thunk';
+import { loadLinkRecords } from '../thunk/link-record.thunk';
 
-export type HostStoreT = HostPageResponseDto & {
+export type LinkStoreT = HostPageResponseDto & {
   loaded: boolean;
   options: PageType & QueryType;
 
   table: TableT;
 };
 
-export const hostRecordStore = createSlice({
-  name: 'host_record',
+export const linkRecordStore = createSlice({
+  name: 'link_record',
   initialState: {
     loaded: false,
     options: {},
@@ -28,12 +28,12 @@ export const hostRecordStore = createSlice({
       columns: new Array(3).fill(''),
       rows: new Array(6).fill(new Array(3).fill('')),
     },
-  } as HostStoreT,
+  } as LinkStoreT,
 
   reducers: {},
   extraReducers(builder) {
     builder.addCase(
-      loadHostRecords.fulfilled,
+      loadLinkRecords.fulfilled,
       (state, { payload: { options, res } }) => {
         state.loaded = true;
         state.options = options;

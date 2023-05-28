@@ -22,6 +22,7 @@ export default function RecordTablePage<
     (state) => state[props.store as string],
   );
 
+  // FIXME: Bug with strange behavior when page is loaded
   const [offset, changeOffset] = useState(0);
   useEffect(() => changeOffset(0), [page]);
 
@@ -68,7 +69,7 @@ export default function RecordTablePage<
         <li>
           <a
             className="px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-            onClick={() => props.onClick(page - 1)}
+            onClick={() => (page - 1 < 1 ? null : props.onClick(page - 1))}
           >
             <FontAwesomeIcon icon="chevron-left" className="w-3 h-3" />
           </a>
@@ -117,7 +118,9 @@ export default function RecordTablePage<
         <li>
           <a
             className="px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-            onClick={() => props.onClick(page + 1)}
+            onClick={() =>
+              page + 1 > finalPage ? null : props.onClick(page + 1)
+            }
           >
             <FontAwesomeIcon icon="chevron-right" className="w-3 h-3" />
           </a>

@@ -5,6 +5,11 @@ export class StringService {
     return str.charAt(0).toUpperCase() + str.slice(1);
   }
 
+  static humanize(str: string, sep: string = '_') {
+    const [word, ...sentence] = str.split(sep);
+    return [this.capitalize(word), ...sentence].join(' ');
+  }
+
   static toSection(name: string): string {
     return name.replace(/ /g, '_').replace(/\//g, '').toLowerCase();
   }

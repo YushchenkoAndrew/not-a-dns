@@ -1,72 +1,149 @@
-import RecordLabel from './RecordLabel';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useEffect, useRef, useState } from 'react';
+
+import { ActionOptions, actionStore } from '../../redux/reducer/action.reducer';
+import { useAppDispatch, useAppSelector } from '../../redux/storage';
+import { ObjectLiteral } from '../../types';
+import DropdownButton from '../DropdownButton';
 
 export interface RecordModifierProps {
-  label: string;
+  onSubmit: (prop: ActionOptions, res: ObjectLiteral) => void;
+  onDelete: (prop: ActionOptions) => void;
 }
 
 export default function RecordModifier(props: RecordModifierProps) {
-  return (
-    <>
-      <div className="flex flex-col mt-6 py-6 w-full border-t-2 border-gray-200 dark:border-gray-600">
-        <RecordLabel value={props.label} />
+  const popupRef = useRef(null);
 
-        <div className="flex flex-col border-2 border-gray-100 dark:border-gray-700 rounded-md py-1 px-2">
-          <p className="text-sm font-semibold mx-1 my-1 text-gray-900 dark:text-gray-200">
-            Records
-          </p>
+  const { options, data } = useAppSelector((state) => state.action);
+  const dispatch = useAppDispatch();
 
-          {/* <!-- FIXME: Change behavior on md & sm --> */}
-          <div className="flex flex-row pb-4">
-            <span className="mr-auto">
+  useEffect(() => {
+    const handler = (event: MouseEvent) =>
+      popupRef.current && !popupRef.current.contains(event.target)
+        ? dispatch(actionStore.actions.unfocus())
+        : undefined;
+
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [popupRef]);
+
+  return data ? (
+    <div>
+      <div
+        ref={popupRef}
+        className="fixed top-1/2 left-1/2 w-full max-w-2xl lg:max-w-4xl xl:max-w-6xl max-h-full -translate-y-1/2 -translate-x-1/2 z-50 p-4 overflow-x-hidden overflow-y-auto"
+      >
+        <div className="relative bg-white rounded-lg shadow dark:bg-gray-700">
+          <div className="flex items-start justify-between p-4 border-b rounded-t dark:border-gray-600">
+            <h3 className="text-xl ml-1 font-semibold text-gray-900 dark:text-white">
+              Record Modifier
+            </h3>
+            <FontAwesomeIcon
+              icon="xmark"
+              className="w-5 h-5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white"
+              onClick={() => dispatch(actionStore.actions.unfocus())}
+            />
+          </div>
+
+          <form
+            className="flex flex-col p-6"
+            onSubmit={(event) => {
+              event?.preventDefault();
+              if (!event.currentTarget.checkValidity()) {
+                event.stopPropagation();
+                return;
+              }
+
+              props.onSubmit(options, { ...data });
+              dispatch(actionStore.actions.unfocus());
+            }}
+          >
+            <div className="py-3 flex items-center justify-between">
+              <DropdownButton
+                actions={{
+                  favorite: {
+                    name: (
+                      <>
+                        <FontAwesomeIcon icon="star" className="mr-2" />
+                        {options.isFavorite
+                          ? 'Unset from favorite'
+                          : 'Set as favorite'}
+                      </>
+                    ),
+                    hidden: options.isFavorite === undefined,
+                    onClick: () =>
+                      dispatch(actionStore.actions.toggleFavorite()),
+                  },
+                  delete: {
+                    name: (
+                      <>
+                        <FontAwesomeIcon icon="trash" className="mr-2" />
+                        Delete record
+                      </>
+                    ),
+                    hidden: options.id === undefined,
+                    onClick: () => (
+                      props.onDelete(options),
+                      dispatch(actionStore.actions.unfocus())
+                    ),
+                  },
+                }}
+              />
+
               <button
-                // v-for="({ name, keys }, i) in store.records"
-                className={`px-3 py-2 m-2 rounded-md ${
-                  ''
-                  // styles.button[i] || ''
-                } hover:scale-105 hover:drop-shadow-md active:scale-100 active:drop-shadow-none dark:bg-gray-700 text-gray-900 dark:text-gray-200`}
-                // @click="() => store.selectRecord(i, keys.reduce((acc, k) => (acc[k] = '', acc), {} as ObjectLiteral))"
+                type="submit"
+                className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
               >
-                FIXME:
-                {/* {{ name }} */}
-              </button>
-            </span>
-
-            <div className="flex flex-row my-auto">
-              <button
-                // v-if="store.origin"
-                className="flex my-auto px-4 py-3 rounded-md hover:scale-105 hover:drop-shadow-md active:scale-100 active:drop-shadow-none disabled:hover:scale-100 disabled:hover:drop-shadow-none disabled:active:scale-100 text-gray-50 bg-red-500 dark:bg-red-600 hover:bg-red-600 dark:hover:bg-red-700"
-                // @click="onDelete"
-              >
-                <i className="fa-solid fa-trash"></i>
-              </button>
-
-              <button
-                className="flex ml-2 mr-3 my-auto px-3 py-2 rounded-md hover:scale-105 hover:drop-shadow-md active:scale-100 active:drop-shadow-none disabled:hover:scale-100 disabled:hover:drop-shadow-none disabled:active:scale-100 text-gray-50 bg-green-500 dark:bg-green-600 hover:bg-green-600 dark:hover:bg-green-700 disabled:bg-yellow-200 disabled:dark:bg-gray-700 disabled:text-gray-600 disabled:dark:text-yellow-200"
-                // :disabled="!store.submit"
-                // @click="onSubmit"
-              >
-                FIXME:
-                {/* <i className="`fas ${ store.submit ? 'fa-check' : 'fa-minus' } my-auto mr-2`" /> */}
-                Submit{' '}
+                Submit
               </button>
             </div>
-          </div>
-        </div>
 
-        <div
-          // v-if="store.record && Object.keys(store.record.data).length"
-          className="flex flex-col border-2 border-gray-100 dark:border-gray-700 rounded-md pb-5 px-5 my-2"
-        >
-          TODO:
-          {/* <RecordHead
-        :index="store.record.index"
-        :label="store.records[store.record.index]?.name || 'Empty value'"
-        :keys="Object.keys(store.record.data)"
-      >
-        <RecordInput />
-      </RecordHead> */}
+            <table className="record-modifier border-b-2 border-collapse table-auto">
+              <thead className="dark:border-b-4">
+                <tr>
+                  {Object.keys(data).map((name, index) => (
+                    <th
+                      key={`modifier_thead_${index}`}
+                      className="font-semibold text-gray-900 dark:text-gray-100 px-4 py-2 text-left"
+                    >
+                      {name}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="text-gray-900 dark:text-gray-100 ">
+                  {Object.entries(data).map(([name, value], index) => (
+                    <td
+                      key={`modifier_tbody_td_${index}`}
+                      className="p-4 decoration-2"
+                    >
+                      <input
+                        name={name}
+                        value={value}
+                        required={options.required?.includes(name)}
+                        className="pt-1 pb-1 px-3 w-full border-b-2 focus:border-b-4 last:border-r-0 dark:bg-gray-800 dark:focus:bg-gray-700 focus:outline-none"
+                        placeholder="Insert value"
+                        onChange={(event) =>
+                          dispatch(
+                            actionStore.actions.onUpdate({
+                              name,
+                              value: event.target.value,
+                            }),
+                          )
+                        }
+                      />
+                    </td>
+                  ))}
+                </tr>
+              </tbody>
+            </table>
+          </form>
         </div>
       </div>
-    </>
+      <div className="bg-gray-900 bg-opacity-50 dark:bg-opacity-80 fixed inset-0 z-40"></div>
+    </div>
+  ) : (
+    <></>
   );
 }
