@@ -1,1 +1,1 @@
-export const ActionTypes = ['host'] as const;
+export const ActionTypes = ['alias'] as const;

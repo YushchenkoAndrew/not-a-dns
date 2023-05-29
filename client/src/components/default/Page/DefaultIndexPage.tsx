@@ -1,7 +1,11 @@
+import { faPlus } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useEffect } from 'react';
 
+import { AliasEntity } from '../../../entities/alias.entity';
+import { actionStore } from '../../../redux/reducer/action.reducer';
 import { useAppDispatch, useAppSelector } from '../../../redux/storage';
-import { loadHostRecords } from '../../../redux/thunk/host-record.thunk';
+import { loadAlias } from '../../../redux/thunk/alias.thunk';
 import RecordLabel from '../../Record/RecordLabel';
 import RecordModifier from '../../Record/RecordModifier';
 import RecordTable from '../../Record/RecordTable/RecordTable';
@@ -13,13 +17,12 @@ export interface DefaultIndexPageProps {}
 
 export default function DefaultIndexPage(props: DefaultIndexPageProps) {
   const dispatch = useAppDispatch();
-  const options = {
-    hosts: useAppSelector((state) => state.host_record.options),
-  };
+  const alias = useAppSelector((state) => state.alias);
 
   useEffect(() => {
     (async function () {
-      await dispatch(loadHostRecords(undefined)).unwrap();
+      // FIXME: Strange bug when page loaded
+      await dispatch(loadAlias(undefined)).unwrap();
     })();
   }, []);
 
@@ -42,7 +45,7 @@ export default function DefaultIndexPage(props: DefaultIndexPageProps) {
             </p>
           </div>
 
-          <RecordTable label="Hosts" anchor="host_record">
+          <RecordTable label="Alias" anchor="alias">
             <p className="mb-5 text-gray-900 dark:text-gray-200">
               You can define custom alias here and save time by reusing them
               later. It's like having a secret stash of cookies hidden away for
@@ -50,35 +53,50 @@ export default function DefaultIndexPage(props: DefaultIndexPageProps) {
             </p>
 
             <RecordTableAction
-              actions={{ create_new_record: () => console.log('TODO: Create') }}
+              actions={{
+                create_alias: {
+                  name: (
+                    <>
+                      <FontAwesomeIcon icon={faPlus} className="-ml-2 mr-1" />
+                      Create new record
+                    </>
+                  ),
+                  onClick: () =>
+                    dispatch(
+                      actionStore.actions.onSelect({
+                        type: 'alias',
+                        table: alias.table,
+                        data: new AliasEntity(),
+                      }),
+                    ),
+                },
+              }}
               onSearch={(query) =>
-                dispatch(loadHostRecords({ ...options.hosts, query })).unwrap()
+                dispatch(loadAlias({ ...alias.query, query })).unwrap()
               }
             />
-            <RecordTableData className="record-table-red" store="host_record" />
+            <RecordTableData className="record-table-red" store="alias" />
             <RecordTablePage
-              store="host_record"
-              onClick={(page) =>
-                dispatch(loadHostRecords({ ...options.hosts, page }))
-              }
+              store="alias"
+              onClick={(page) => dispatch(loadAlias({ ...alias.query, page }))}
             />
           </RecordTable>
+
+          {/* TODO: */}
 
           <RecordTable label="Links" anchor="host_record">
             <p className="mb-5 text-gray-900 dark:text-gray-200">FIXME:</p>
 
             <RecordTableAction
-              actions={{ create_new_record: () => console.log('TODO: Create') }}
+              actions={{}}
               onSearch={(query) =>
-                dispatch(loadHostRecords({ ...options.hosts, query })).unwrap()
+                dispatch(loadAlias({ ...alias.query, query })).unwrap()
               }
             />
-            <RecordTableData className="record-table-red" store="host_record" />
+            <RecordTableData className="record-table-red" store="alias" />
             <RecordTablePage
-              store="host_record"
-              onClick={(page) =>
-                dispatch(loadHostRecords({ ...options.hosts, page }))
-              }
+              store="alias"
+              onClick={(page) => dispatch(loadAlias({ ...alias.query, page }))}
             />
           </RecordTable>
         </div>

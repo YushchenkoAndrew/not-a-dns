@@ -1,11 +1,11 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 import { TableT } from '../../components/Record/RecordTable/RecordTableData';
-import { HostPageResponseDto } from '../../response-dto/host-page.response-dto';
+import { AliasPageResponseDto } from '../../response-dto/alias-page.response-dto';
 import { PageType, QueryType } from '../../types/request.type';
-import { loadLinkRecords } from '../thunk/link-record.thunk';
+import { loadLinks } from '../thunk/links.thunk';
 
-export type LinkStoreT = HostPageResponseDto & {
+export type LinkStoreT = AliasPageResponseDto & {
   loaded: boolean;
   options: PageType & QueryType;
 
@@ -13,7 +13,7 @@ export type LinkStoreT = HostPageResponseDto & {
 };
 
 export const linkRecordStore = createSlice({
-  name: 'link_record',
+  name: 'links',
   initialState: {
     loaded: false,
     options: {},
@@ -27,13 +27,16 @@ export const linkRecordStore = createSlice({
     table: {
       columns: new Array(3).fill(''),
       rows: new Array(6).fill(new Array(3).fill('')),
+
+      ignore: [],
+      relation: [],
     },
   } as LinkStoreT,
 
   reducers: {},
   extraReducers(builder) {
     builder.addCase(
-      loadLinkRecords.fulfilled,
+      loadLinks.fulfilled,
       (state, { payload: { options, res } }) => {
         state.loaded = true;
         state.options = options;
@@ -42,14 +45,11 @@ export const linkRecordStore = createSlice({
         state.total = res.total;
         state.items = res.items;
 
-        state.table = {
-          columns: Object.keys(res.items[0] ?? {}),
-          rows: [],
-        };
+        state.table.rows = [];
+        state.table.columns = Object.keys(res.items[0] ?? {});
+
         for (const item of res.items) {
-          state.table.rows.push(
-            state.table.columns.map((k) => String(item[k])),
-          );
+          state.table.rows.push(state.table.columns.map((k) => item[k]));
         }
       },
     );

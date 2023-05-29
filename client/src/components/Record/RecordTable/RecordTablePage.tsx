@@ -22,7 +22,6 @@ export default function RecordTablePage<
     (state) => state[props.store as string],
   );
 
-  // FIXME: Bug with strange behavior when page is loaded
   const [offset, changeOffset] = useState(0);
   useEffect(() => changeOffset(0), [page]);
 
@@ -39,7 +38,7 @@ export default function RecordTablePage<
       .filter((item) => item <= finalPage);
 
     return { showItems, finalPage, pages };
-  }, [offset]);
+  }, [offset, page, per_page, total]);
 
   return (
     <nav
@@ -49,7 +48,7 @@ export default function RecordTablePage<
       <span className="text-sm font-normal text-gray-500 dark:text-gray-400">
         Showing
         <span className="font-semibold mx-2 text-gray-900 dark:text-white">
-          {`${(page - 1) * per_page + 1}-${page * per_page}`}
+          {`${(page - 1) * per_page + 1}-${Math.min(page * per_page, total)}`}
         </span>
         of
         <span className="font-semibold mx-2 text-gray-900 dark:text-white">

@@ -2,8 +2,8 @@ import { configureStore } from '@reduxjs/toolkit';
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
 
 import { actionStore } from './reducer/action.reducer';
+import { aliasStore } from './reducer/alias.reducer';
 import { generalStore } from './reducer/general.reducer';
-import { hostRecordStore } from './reducer/host-record.reducer';
 import { navbarStore } from './reducer/navbar.reducer';
 import { sidebarStore } from './reducer/sidebar.reducer';
 
@@ -15,7 +15,7 @@ export const store = configureStore({
     navbar: navbarStore.reducer,
     sidebar: sidebarStore.reducer,
 
-    host_record: hostRecordStore.reducer,
+    alias: aliasStore.reducer,
   },
 
   middleware: (getDefaultMiddleware) =>

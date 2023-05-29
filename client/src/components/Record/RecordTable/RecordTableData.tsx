@@ -1,10 +1,17 @@
+import { faStar as farStar } from '@fortawesome/free-regular-svg-icons';
+import { faStar } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+
 import { CommonEntity } from '../../../entities/common.entity';
 import { actionStore } from '../../../redux/reducer/action.reducer';
 import { StoreT, useAppDispatch, useAppSelector } from '../../../redux/storage';
 
-export type TableT = {
+export type TableT<T = string> = {
   columns: string[];
   rows: string[][];
+
+  ignore: T[];
+  relation: T[];
 };
 
 type RecordT = {
@@ -60,7 +67,13 @@ export default function RecordTableData<
             onClick={() =>
               loaded === false
                 ? null
-                : dispatch(actionStore.actions.onSelect(items[index]))
+                : dispatch(
+                    actionStore.actions.onSelect({
+                      table: table,
+                      type: props.store as any,
+                      data: items[index],
+                    }),
+                  )
             }
           >
             {row.map((value, index) => (
@@ -70,6 +83,11 @@ export default function RecordTableData<
               >
                 {loaded === false ? (
                   <span className="animate-pulse block w-full h-2 bg-gray-200 rounded-full dark:bg-gray-700" />
+                ) : typeof value == 'boolean' ? (
+                  <FontAwesomeIcon
+                    className={value ? 'text-amber-400' : ''}
+                    icon={value ? faStar : farStar}
+                  />
                 ) : (
                   value
                 )}

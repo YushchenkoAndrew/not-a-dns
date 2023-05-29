@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 
 interface ResponsePropertyProps {
-  // type: 'string' | 'number' | 'object' | Number | Object;
+  type: object;
 }
 
 export enum ResponsePropKey {
@@ -14,11 +14,8 @@ export function ResponseProperty(props?: ResponsePropertyProps) {
   return function (target: any, key: string) {
     Reflect.defineMetadata(ResponsePropKey.enabled, true, target, key);
     Reflect.defineMetadata(ResponsePropKey.key, key, target, key);
-    //   Reflect.defineMetadata(
-    //     ResponsePropKey.type,
-    //     typeof props.type === 'string' ? props.type : typeof props.type,
-    //     target,
-    //     key,
-    //   );
+    if (!props) return;
+
+    Reflect.defineMetadata(ResponsePropKey.type, props.type, target, key);
   };
 }

@@ -14,7 +14,7 @@ export class StringService {
     return name.replace(/ /g, '_').replace(/\//g, '').toLowerCase();
   }
 
-  static toQuery(obj: ObjectLiteral) {
+  static toQuery(obj: ObjectLiteral = {}) {
     const params = [] as string[];
 
     for (var p in obj) {

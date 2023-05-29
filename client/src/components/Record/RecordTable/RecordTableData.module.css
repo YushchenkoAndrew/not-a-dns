@@ -1,3 +1,4 @@
+/* red */
 .record-table-red {
   @apply border-red-300 dark:border-red-400;
 }
@@ -12,4 +13,110 @@
 
 .record-table-red > tbody > tr:hover td {
   @apply underline decoration-2 decoration-red-300 dark:decoration-red-400;
+}
+
+.record-table-red > tbody > tr:hover td > svg {
+  @apply scale-125;
+}
+
+/* orange */
+.record-table-orange {
+  @apply border-orange-300 dark:border-orange-400;
+}
+
+.record-table-orange > thead {
+  @apply bg-orange-300 dark:bg-transparent dark:border-orange-400;
+}
+
+.record-table-orange > thead span.block {
+  @apply bg-orange-400 dark:bg-gray-700;
+}
+
+.record-table-orange > tbody > tr:hover td {
+  @apply underline decoration-2 decoration-orange-300 dark:decoration-orange-400;
+}
+
+/* green */
+.record-table-green {
+  @apply border-green-300 dark:border-green-400;
+}
+
+.record-table-green > thead {
+  @apply bg-green-300 dark:bg-transparent dark:border-green-400;
+}
+
+.record-table-green > thead span.block {
+  @apply bg-green-400 dark:bg-gray-700;
+}
+
+.record-table-green > tbody > tr:hover td {
+  @apply underline decoration-2 decoration-green-300 dark:decoration-green-400;
+}
+
+/* teal */
+.record-table-teal {
+  @apply border-teal-300 dark:border-teal-400;
+}
+
+.record-table-teal > thead {
+  @apply bg-teal-300 dark:bg-transparent dark:border-teal-400;
+}
+
+.record-table-teal > thead span.block {
+  @apply bg-teal-400 dark:bg-gray-700;
+}
+
+.record-table-teal > tbody > tr:hover td {
+  @apply underline decoration-2 decoration-teal-300 dark:decoration-teal-400;
+}
+
+/* indigo */
+.record-table-indigo {
+  @apply border-indigo-300 dark:border-indigo-400;
+}
+
+.record-table-indigo > thead {
+  @apply bg-indigo-300 dark:bg-transparent dark:border-indigo-400;
+}
+
+.record-table-indigo > thead span.block {
+  @apply bg-indigo-400 dark:bg-gray-700;
+}
+
+.record-table-indigo > tbody > tr:hover td {
+  @apply underline decoration-2 decoration-indigo-300 dark:decoration-indigo-400;
+}
+
+/* blue */
+.record-table-blue {
+  @apply border-blue-300 dark:border-blue-400;
+}
+
+.record-table-blue > thead {
+  @apply bg-blue-300 dark:bg-transparent dark:border-blue-400;
+}
+
+.record-table-blue > thead span.block {
+  @apply bg-blue-400 dark:bg-gray-700;
+}
+
+.record-table-blue > tbody > tr:hover td {
+  @apply underline decoration-2 decoration-blue-300 dark:decoration-blue-400;
+}
+
+/* yellow */
+.record-table-yellow {
+  @apply border-yellow-200 dark:border-yellow-300;
+}
+
+.record-table-yellow > thead {
+  @apply bg-yellow-200 dark:bg-transparent dark:border-yellow-300;
+}
+
+.record-table-yellow > thead span.block {
+  @apply bg-yellow-300 dark:bg-gray-700;
+}
+
+.record-table-yellow > tbody > tr:hover td {
+  @apply underline decoration-2 decoration-yellow-200 dark:decoration-yellow-300;
 }

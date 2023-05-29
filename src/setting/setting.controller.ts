@@ -11,7 +11,7 @@ export class SettingController {
     return this.appService.getSettingByType(type);
   }
 
-  @Get('hosts')
+  @Get('alias')
   gette(@Param('type') type: string) {
     return {
       page: 1,
@@ -23,30 +23,30 @@ export class SettingController {
         {
           id: 'tes',
           favorite: false,
-          alias: 'test',
-          ip: 'localhost',
-          port: 20,
+          name: 'test',
+          value: 'localhost:20',
+          used_in: [],
         },
         {
           id: 'tes1',
           favorite: false,
-          alias: 'test2',
-          ip: '192.168.0.1',
-          port: 20,
+          name: 'test2',
+          value: '192.168.0.1:20',
+          used_in: [],
         },
         {
           id: 'tes2',
-          favorite: false,
-          alias: 'test2',
-          ip: '192.168.0.2',
-          port: 20,
+          favorite: true,
+          name: 'test2',
+          value: '192.168.0.2:20',
+          used_in: [],
         },
         {
           id: 'tes3',
           favorite: false,
-          alias: 'test2',
-          ip: '192.168.0.5',
-          port: 20,
+          name: 'test2',
+          value: '192.168.0.5:20',
+          used_in: [],
         },
       ],
     };
