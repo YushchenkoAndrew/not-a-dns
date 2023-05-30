@@ -1,8 +1,8 @@
 import { ResponseProperty } from '../decorators/response-property';
+import { AliasEntity } from './alias.entity';
 import { CommonEntity } from './common.entity';
-import { LinksEntity } from './links.entity';
 
-export class AliasEntity extends CommonEntity {
+export class LinksEntity extends CommonEntity {
   @ResponseProperty()
   favorite: boolean = false;
 
@@ -10,7 +10,10 @@ export class AliasEntity extends CommonEntity {
   name: string = '';
 
   @ResponseProperty()
-  value: string = '';
+  from: string = '';
+
+  @ResponseProperty()
+  to: string = '';
 
   @ResponseProperty()
   relations: (AliasEntity | LinksEntity)[] = [];

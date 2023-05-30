@@ -1,18 +1,6 @@
-import { EntityPropKey } from '../decorators/entity-property';
+import { ResponseProperty } from '../decorators/response-property';
 
 export abstract class CommonEntity {
+  @ResponseProperty()
   id: string;
-
-  protected assign<T extends CommonEntity>(src: Partial<T>, dst: T) {
-    for (const k in src || {}) {
-      const enabled = Reflect.getMetadata(
-        EntityPropKey.enabled,
-        this.constructor.prototype,
-        k,
-      );
-
-      if (!enabled) continue;
-      dst[k] = src?.[k];
-    }
-  }
 }

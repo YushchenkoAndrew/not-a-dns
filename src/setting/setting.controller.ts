@@ -11,6 +11,11 @@ export class SettingController {
     return this.appService.getSettingByType(type);
   }
 
+  @Get('info/:id')
+  get(@Param('type') type: string) {
+    return { type: 'alias' };
+  }
+
   @Get('alias')
   gette(@Param('type') type: string) {
     return {
@@ -39,7 +44,15 @@ export class SettingController {
           favorite: true,
           name: 'test2',
           value: '192.168.0.2:20',
-          used_in: [],
+          used_in: [
+            {
+              id: 'tes1',
+              favorite: false,
+              name: 'test2',
+              value: '192.168.0.1:20',
+              used_in: [],
+            },
+          ],
         },
         {
           id: 'tes3',

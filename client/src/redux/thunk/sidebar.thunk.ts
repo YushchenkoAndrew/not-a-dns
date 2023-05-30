@@ -5,6 +5,7 @@ import { SidebarSettingResponseDto } from '../../response-dto/setting/sidebar-se
 
 export const preloadSidebar = createAsyncThunk('sidebar/preload', async () => {
   return new SidebarSettingResponseDto(
+    // FIXME: Change TO /alias?favorite
     await fetch(`${API_URL}/setting/sidebar`).then((res) => res.json()),
   );
 });

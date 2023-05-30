@@ -1,15 +1,22 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-import { TableT } from '../../components/Record/RecordTable/RecordTableData';
+import {
+  RecordT,
+  TableT,
+} from '../../components/Record/RecordTable/RecordTableData';
 import { ObjectLiteral } from '../../types';
 import { ActionTypes } from '../../types/action.types';
 
-export type ActionOptions = { type: (typeof ActionTypes)[number] } & Partial<
+type OptionalT = { id: string } | { type: (typeof ActionTypes)[number] };
+
+export type ActionOptions = Partial<
   {
-    id: string;
+    id?: string;
+    type?: (typeof ActionTypes)[number];
+
     isFavorite: boolean;
     required: string[];
-  } & Pick<TableT, 'ignore' | 'relation'>
+  } & Pick<TableT, 'ignore'>
 >;
 
 type ActionT = {
@@ -17,12 +24,17 @@ type ActionT = {
 
   original: ObjectLiteral;
   data: ObjectLiteral;
+
+  additional: ObjectLiteral<RecordT>;
 };
 
 export const actionStore = createSlice({
   name: 'action',
   initialState: {
     options: { type: null },
+
+    additional: null,
+    original: null,
     data: null,
   } as ActionT,
   reducers: {
@@ -31,25 +43,56 @@ export const actionStore = createSlice({
       {
         payload,
       }: PayloadAction<{
-        type: (typeof ActionTypes)[number];
-        table: Pick<TableT, 'ignore' | 'relation'>;
+        /**
+         * This param has the next logic:
+         * if id is set then UPDATE / DELETE,
+         * if type is set CREATE
+         */
+        optional: OptionalT;
+        ignore: string[];
         data: ObjectLiteral;
       }>,
     ) => {
-      state.options.id = payload.data.id;
-      state.options.type = payload.type as any;
-      state.options.isFavorite = payload.data.favorite;
+      if ('id' in payload.optional) state.options.id = payload.data.id;
+      else state.options.type = payload.optional.type as any;
 
-      state.options.ignore = payload.table.ignore.concat('favorite');
-      state.options.relation = payload.table.relation;
+      state.options.isFavorite = payload.data.favorite;
+      state.options.ignore = payload.ignore.concat('favorite');
 
       state.original = { ...payload.data };
+      state.additional = {};
       state.data = {};
 
       for (const k in payload.data) {
-        if (state.options.ignore.includes(k)) continue;
-        if (state.options.relation.includes(k)) continue;
+        if (typeof payload.data[k] == 'object') {
+          const items = Array.isArray(payload.data[k])
+            ? payload.data[k]
+            : [payload.data[k]];
 
+          const keys = Object.keys(items[0] || {}).filter(
+            (k) => !payload.ignore.includes(k),
+          );
+
+          if (!state.additional[keys.join(';')]) {
+            state.additional[keys.join(';')] = {
+              table: {
+                ignore: state.options.ignore.concat(),
+                columns: keys,
+                rows: [],
+              },
+              items: [],
+            };
+          }
+
+          const store = state.additional[keys.join(';')];
+          store.items.push(...items);
+
+          for (const item of items) {
+            store.table.rows.push(store.table.columns.map((k) => item[k]));
+          }
+        }
+
+        if (state.options.ignore.includes(k)) continue;
         state.data[k] = payload.data[k];
       }
     },
@@ -65,7 +108,7 @@ export const actionStore = createSlice({
     },
 
     unfocus: (state) => {
-      state.options = { type: null };
+      state.options = {};
       state.data = null;
     },
   },

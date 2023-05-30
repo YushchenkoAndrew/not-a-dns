@@ -5,6 +5,7 @@ import { NavbarSettingResponseDto } from '../../response-dto/setting/navbar-sett
 
 export const preloadNavbar = createAsyncThunk('navbar/preload', async () => {
   return new NavbarSettingResponseDto(
+    // FIXME: Change TO /alias?favorite
     await fetch(`${API_URL}/setting/navbar`).then((res) => res.json()),
   );
 });

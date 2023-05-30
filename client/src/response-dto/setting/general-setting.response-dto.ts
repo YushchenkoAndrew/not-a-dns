@@ -4,7 +4,7 @@ import { CommonResponseDto } from '../common.response-dto';
 export class GeneralSettingResponseDto extends CommonResponseDto {
   constructor(init?: Partial<GeneralSettingResponseDto>) {
     super();
-    this.assign(init, this);
+    CommonResponseDto.assign(init, this);
   }
 
   @ResponseProperty()

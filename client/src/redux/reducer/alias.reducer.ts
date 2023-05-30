@@ -26,11 +26,10 @@ export const aliasStore = createSlice({
     items: [],
 
     table: {
+      ignore: ['id', 'relations'],
+
       columns: new Array(3).fill(''),
       rows: new Array(6).fill(new Array(3).fill('')),
-
-      ignore: ['id'],
-      relation: ['used_in'],
     },
   } as AliasStoreT,
 
@@ -48,8 +47,7 @@ export const aliasStore = createSlice({
 
       state.table.rows = [];
       state.table.columns = Object.keys(payload.res.items[0] ?? {}).filter(
-        (k: any) =>
-          !state.table.ignore.includes(k) && !state.table.relation.includes(k),
+        (k: any) => !state.table.ignore.includes(k),
       );
 
       for (const item of payload.res.items) {

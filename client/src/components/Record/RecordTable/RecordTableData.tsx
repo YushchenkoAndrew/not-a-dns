@@ -11,31 +11,40 @@ export type TableT<T = string> = {
   rows: string[][];
 
   ignore: T[];
-  relation: T[];
 };
 
-type RecordT = {
+export interface RecordT {
   loaded?: boolean;
   items: CommonEntity[];
   table: TableT;
-};
+}
 
-export interface RecordTableDataProps<
+export interface RecordTableDataStoreProps<
   K extends keyof StoreT,
-  V extends StoreT[K],
+  U extends StoreT[K],
 > {
-  store: V extends RecordT ? K : never;
+  store: U extends RecordT ? K : never;
   className?: string;
+}
+
+export interface RecordTableDataStoreDirect extends RecordT {
+  className?: string;
+}
+
+function isStore<K extends keyof StoreT, U extends StoreT[K]>(
+  props: RecordTableDataStoreProps<K, U> | RecordTableDataStoreDirect,
+): props is RecordTableDataStoreProps<K, U> {
+  return (props as any).store !== undefined;
 }
 
 export default function RecordTableData<
   K extends keyof StoreT,
-  V extends StoreT[K],
->(props: RecordTableDataProps<K, V>) {
-  const { loaded, items, table } = useAppSelector<RecordT>(
-    (state) => state[props.store as string],
-  );
+  U extends StoreT[K],
+>(props: RecordTableDataStoreDirect | RecordTableDataStoreProps<K, U>) {
   const dispatch = useAppDispatch();
+  const { loaded, items, table } = useAppSelector<RecordT>((state) =>
+    isStore(props) ? state[props.store as string] : props,
+  );
 
   return (
     <table
@@ -47,7 +56,7 @@ export default function RecordTableData<
         <tr>
           {table.columns.map((name, index) => (
             <th
-              key={`${props.store}_thead_${index}`}
+              key={`${isStore(props) ? props.store : ''}_thead_${index}`}
               className="font-semibold text-gray-900 dark:text-gray-100 px-4 py-2 text-left"
             >
               {loaded === false ? (
@@ -62,15 +71,15 @@ export default function RecordTableData<
       <tbody>
         {table.rows.map((row, index) => (
           <tr
-            key={`${props.store}_tbody_${index}`}
+            key={`${isStore(props) ? props.store : ''}_tbody_${index}`}
             className="cursor-pointer text-gray-900 dark:text-gray-100"
             onClick={() =>
               loaded === false
                 ? null
                 : dispatch(
                     actionStore.actions.onSelect({
-                      table: table,
-                      type: props.store as any,
+                      ignore: table.ignore,
+                      optional: { id: items[index].id },
                       data: items[index],
                     }),
                   )
@@ -78,7 +87,7 @@ export default function RecordTableData<
           >
             {row.map((value, index) => (
               <td
-                key={`${props.store}_tbody_td_${index}`}
+                key={`${isStore(props) ? props.store : ''}_tbody_td_${index}`}
                 className="p-4 decoration-2"
               >
                 {loaded === false ? (

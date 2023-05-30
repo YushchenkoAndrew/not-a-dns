@@ -1,10 +1,12 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 
 import { ActionOptions, actionStore } from '../../redux/reducer/action.reducer';
 import { useAppDispatch, useAppSelector } from '../../redux/storage';
 import { ObjectLiteral } from '../../types';
 import DropdownButton from '../DropdownButton';
+import RecordTable from './RecordTable/RecordTable';
+import RecordTableData from './RecordTable/RecordTableData';
 
 export interface RecordModifierProps {
   onSubmit: (prop: ActionOptions, res: ObjectLiteral) => void;
@@ -14,17 +16,27 @@ export interface RecordModifierProps {
 export default function RecordModifier(props: RecordModifierProps) {
   const popupRef = useRef(null);
 
-  const { options, data } = useAppSelector((state) => state.action);
+  const { options, data, additional } = useAppSelector((state) => state.action);
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    const handler = (event: MouseEvent) =>
-      popupRef.current && !popupRef.current.contains(event.target)
-        ? dispatch(actionStore.actions.unfocus())
-        : undefined;
+    const handler = {
+      keydown: (event: KeyboardEvent) =>
+        popupRef.current && event.key == 'Escape'
+          ? dispatch(actionStore.actions.unfocus())
+          : undefined,
+      mousedown: (event: MouseEvent) =>
+        popupRef.current && !popupRef.current.contains(event.target)
+          ? dispatch(actionStore.actions.unfocus())
+          : undefined,
+    };
 
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    document.addEventListener('keydown', handler.keydown);
+    document.addEventListener('mousedown', handler.mousedown);
+    return () => {
+      document.removeEventListener('keydown', handler.keydown);
+      document.removeEventListener('mousedown', handler.mousedown);
+    };
   }, [popupRef]);
 
   return data ? (
@@ -81,7 +93,11 @@ export default function RecordModifier(props: RecordModifierProps) {
                         Delete record
                       </>
                     ),
-                    hidden: options.id === undefined,
+                    hidden:
+                      options.id === undefined ||
+                      Object.values(additional).find(
+                        ({ table: { rows } }) => rows.length,
+                      ) !== undefined,
                     onClick: () => (
                       props.onDelete(options),
                       dispatch(actionStore.actions.unfocus())
@@ -139,6 +155,27 @@ export default function RecordModifier(props: RecordModifierProps) {
               </tbody>
             </table>
           </form>
+
+          {Object.values(additional).find(
+            ({ table: { rows } }) => rows.length,
+          ) && (
+            <div className="flex flex-col p-6">
+              <RecordTable label="Linked items" anchor="alias">
+                <p className="mb-5 text-gray-900 dark:text-gray-200">TODO:</p>
+
+                {Object.values(additional)
+                  .filter(({ table: { rows } }) => rows.length)
+                  .map(({ table, items }, index) => (
+                    <RecordTableData
+                      key={index}
+                      className="record-table-orange last:mb-0 mb-6"
+                      table={table}
+                      items={items}
+                    />
+                  ))}
+              </RecordTable>
+            </div>
+          )}
         </div>
       </div>
       <div className="bg-gray-900 bg-opacity-50 dark:bg-opacity-80 fixed inset-0 z-40"></div>

@@ -1,11 +1,22 @@
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useEffect } from 'react';
+import { toast } from 'react-toastify';
 
 import { AliasEntity } from '../../../entities/alias.entity';
-import { actionStore } from '../../../redux/reducer/action.reducer';
+import { StringService } from '../../../lib';
+import {
+  ActionOptions,
+  actionStore,
+} from '../../../redux/reducer/action.reducer';
 import { useAppDispatch, useAppSelector } from '../../../redux/storage';
-import { loadAlias } from '../../../redux/thunk/alias.thunk';
+import {
+  deleteAlias,
+  loadAlias,
+  upsertAlias,
+} from '../../../redux/thunk/alias.thunk';
+import { getInfo } from '../../../redux/thunk/info.thunk';
+import { ObjectLiteral } from '../../../types';
 import RecordLabel from '../../Record/RecordLabel';
 import RecordModifier from '../../Record/RecordModifier';
 import RecordTable from '../../Record/RecordTable/RecordTable';
@@ -21,17 +32,35 @@ export default function DefaultIndexPage(props: DefaultIndexPageProps) {
 
   useEffect(() => {
     (async function () {
-      // FIXME: Strange bug when page loaded
       await dispatch(loadAlias(undefined)).unwrap();
-    })();
+    })().catch((err) => toast(StringService.errToMsg(err), { type: 'error' }));
   }, []);
+
+  const eventHandler = async (options: ActionOptions, body?: ObjectLiteral) => {
+    const { type } = options.type
+      ? options
+      : await dispatch(getInfo(options.id)).unwrap();
+
+    switch (type) {
+      case 'alias':
+        return (
+          body
+            ? dispatch(upsertAlias({ body: body as any, id: options.id }))
+            : dispatch(deleteAlias(options.id))
+        )
+          .unwrap()
+          .then(() => dispatch(loadAlias(alias.query)).unwrap());
+
+      default:
+        throw new Error('Unknown type');
+    }
+  };
 
   return (
     <>
       <RecordModifier
-        // TODO:
-        onSubmit={(res) => console.log(res)}
-        onDelete={() => console.log(`DELETE: id`)}
+        onDelete={(options) => eventHandler(options)}
+        onSubmit={(options, body) => eventHandler(options, body)}
       />
 
       <div className="w-full h-full p-4 overflow-y-auto">
@@ -64,8 +93,8 @@ export default function DefaultIndexPage(props: DefaultIndexPageProps) {
                   onClick: () =>
                     dispatch(
                       actionStore.actions.onSelect({
-                        type: 'alias',
-                        table: alias.table,
+                        optional: { type: 'alias' },
+                        ignore: alias.table.ignore,
                         data: new AliasEntity(),
                       }),
                     ),

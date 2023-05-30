@@ -31,3 +31,13 @@ export class StringService {
     return err.message;
   }
 }
+
+export class ArrayService {
+  static isEqual<T>(a: T[], b: T[]) {
+    if (a === b) return true;
+    if (a == null || b == null) return false;
+    if (a.length !== b.length) return false;
+
+    return a.reduce((acc, curr, i) => acc && curr == b[i], true);
+  }
+}
