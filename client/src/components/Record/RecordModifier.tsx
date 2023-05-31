@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import { ActionOptions, actionStore } from '../../redux/reducer/action.reducer';
 import { useAppDispatch, useAppSelector } from '../../redux/storage';
 import { ObjectLiteral } from '../../types';
+import { RECORD_TABLE_COLOR_TYPE } from '../../types/record-table-color.type';
 import DropdownButton from '../DropdownButton';
 import RecordTable from './RecordTable/RecordTable';
 import RecordTableData from './RecordTable/RecordTableData';
@@ -16,8 +17,10 @@ export interface RecordModifierProps {
 export default function RecordModifier(props: RecordModifierProps) {
   const popupRef = useRef(null);
 
-  const { options, data, additional } = useAppSelector((state) => state.action);
   const dispatch = useAppDispatch();
+  const { options, data, original, additional } = useAppSelector(
+    (state) => state.action,
+  );
 
   useEffect(() => {
     const handler = {
@@ -66,7 +69,7 @@ export default function RecordModifier(props: RecordModifierProps) {
                 return;
               }
 
-              props.onSubmit(options, { ...data });
+              props.onSubmit(options, { ...original, ...data });
               dispatch(actionStore.actions.unfocus());
             }}
           >
@@ -114,7 +117,11 @@ export default function RecordModifier(props: RecordModifierProps) {
               </button>
             </div>
 
-            <table className="record-modifier border-b-2 border-collapse table-auto">
+            <table
+              className={`${
+                options.className ?? 'record-table-red'
+              } border-b-2 border-collapse table-auto`}
+            >
               <thead className="dark:border-b-4">
                 <tr>
                   {Object.keys(data).map((name, index) => (
@@ -134,6 +141,7 @@ export default function RecordModifier(props: RecordModifierProps) {
                       key={`modifier_tbody_td_${index}`}
                       className="p-4 decoration-2"
                     >
+                      {/* TODO: Add auto suggestion and linking */}
                       <input
                         name={name}
                         value={value}
@@ -161,14 +169,22 @@ export default function RecordModifier(props: RecordModifierProps) {
           ) && (
             <div className="flex flex-col p-6">
               <RecordTable label="Linked items" anchor="alias">
-                <p className="mb-5 text-gray-900 dark:text-gray-200">TODO:</p>
+                <p className="mb-5 text-gray-900 dark:text-gray-200">
+                  Trying to describe why you liked that weird items: 'It's, um,
+                  a conversation starter?'
+                </p>
 
                 {Object.values(additional)
                   .filter(({ table: { rows } }) => rows.length)
                   .map(({ table, items }, index) => (
                     <RecordTableData
                       key={index}
-                      className="record-table-orange last:mb-0 mb-6"
+                      className={`${
+                        RECORD_TABLE_COLOR_TYPE.concat().filter(
+                          (item) =>
+                            item != (options.className ?? 'record-table-red'),
+                        )[index] ?? RECORD_TABLE_COLOR_TYPE[5]
+                      } last:mb-0 mb-6`}
                       table={table}
                       items={items}
                     />

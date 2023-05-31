@@ -19,6 +19,10 @@
   @apply scale-125;
 }
 
+.record-table-red td > input {
+  @apply border-red-300;
+}
+
 /* orange */
 .record-table-orange {
   @apply border-orange-300 dark:border-orange-400;
@@ -34,6 +38,10 @@
 
 .record-table-orange > tbody > tr:hover td {
   @apply underline decoration-2 decoration-orange-300 dark:decoration-orange-400;
+}
+
+.record-table-orange td > input {
+  @apply border-orange-300;
 }
 
 /* green */
@@ -53,6 +61,10 @@
   @apply underline decoration-2 decoration-green-300 dark:decoration-green-400;
 }
 
+.record-table-green td > input {
+  @apply border-green-300;
+}
+
 /* teal */
 .record-table-teal {
   @apply border-teal-300 dark:border-teal-400;
@@ -68,6 +80,10 @@
 
 .record-table-teal > tbody > tr:hover td {
   @apply underline decoration-2 decoration-teal-300 dark:decoration-teal-400;
+}
+
+.record-table-teal td > input {
+  @apply border-teal-300;
 }
 
 /* indigo */
@@ -87,6 +103,10 @@
   @apply underline decoration-2 decoration-indigo-300 dark:decoration-indigo-400;
 }
 
+.record-table-indigo td > input {
+  @apply border-indigo-300;
+}
+
 /* blue */
 .record-table-blue {
   @apply border-blue-300 dark:border-blue-400;
@@ -104,6 +124,10 @@
   @apply underline decoration-2 decoration-blue-300 dark:decoration-blue-400;
 }
 
+.record-table-blue td > input {
+  @apply border-blue-300;
+}
+
 /* yellow */
 .record-table-yellow {
   @apply border-yellow-200 dark:border-yellow-300;
@@ -119,4 +143,8 @@
 
 .record-table-yellow > tbody > tr:hover td {
   @apply underline decoration-2 decoration-yellow-200 dark:decoration-yellow-300;
+}
+
+.record-table-yellow td > input {
+  @apply border-yellow-200;
 }

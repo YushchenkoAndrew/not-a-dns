@@ -17,13 +17,9 @@ export default function DefaultSideBar(props: DefaultSideBarProps) {
 
   return (
     <SideBar>
-      <SideBarItem
-        name="Action"
-        anchor="action"
-        // onClick={() => dispatch(generalStore.actions.invertMode())}
-      >
+      <SideBarItem name="General" anchor="general">
         <div className="group-hover:text-blue-600 dark:group-hover:text-yellow-200">
-          <FontAwesomeIcon icon={mode.icon as any} className="dar mr-3" />
+          <FontAwesomeIcon icon="gear" className="dar mr-3" />
           {mode.name}
         </div>
       </SideBarItem>

@@ -8,5 +8,5 @@ export class GeneralSettingResponseDto extends CommonResponseDto {
   }
 
   @ResponseProperty()
-  mode: { state: boolean; name: string; icon: string };
+  mode: boolean;
 }

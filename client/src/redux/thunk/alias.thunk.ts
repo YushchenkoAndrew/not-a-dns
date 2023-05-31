@@ -2,7 +2,7 @@ import { createAsyncThunk } from '@reduxjs/toolkit';
 
 import { API_URL } from '../../config';
 import { AliasEntity } from '../../entities/alias.entity';
-import { StringService } from '../../lib';
+import { ErrorService, StringService } from '../../lib';
 import { AliasPageResponseDto } from '../../response-dto/alias-page.response-dto';
 import { CommonResponseDto } from '../../response-dto/common.response-dto';
 import { AliasStoreT } from '../reducer/alias.reducer';
@@ -14,7 +14,7 @@ export const loadAlias = createAsyncThunk(
       options: query,
       res: new AliasPageResponseDto(
         await fetch(`${API_URL}/alias?${StringService.toQuery(query)}`).then(
-          (res) => res.json(),
+          (res) => (ErrorService.validate(res), res.json()),
         ),
       ),
     };
@@ -30,7 +30,7 @@ export const upsertAlias = createAsyncThunk(
         method: id ? 'POST' : 'PUT',
         body: JSON.stringify(CommonResponseDto.assign(body, new AliasEntity())),
         headers: { 'Content-Type': 'application/json' },
-      }).then((res) => res.json()),
+      }).then((res) => (ErrorService.validate(res), res.json())),
       new AliasEntity(),
     );
   },
@@ -42,7 +42,7 @@ export const deleteAlias = createAsyncThunk(
     return CommonResponseDto.assign(
       await fetch(`${API_URL}/alias/${id}`, {
         method: 'DELETE',
-      }).then((res) => res.json()),
+      }).then((res) => (ErrorService.validate(res), res.json())),
       new AliasEntity(),
     );
   },

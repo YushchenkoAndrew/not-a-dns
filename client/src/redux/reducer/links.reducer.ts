@@ -1,22 +1,23 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 import { TableT } from '../../components/Record/RecordTable/RecordTableData';
-import { AliasPageResponseDto } from '../../response-dto/alias-page.response-dto';
+import { LinksEntity } from '../../entities/links.entity';
+import { LinksPageResponseDto } from '../../response-dto/links-page.response-dto';
 import { PageType, QueryType } from '../../types/request.type';
 import { loadLinks } from '../thunk/links.thunk';
 
-export type LinkStoreT = AliasPageResponseDto & {
+export type LinkStoreT = LinksPageResponseDto & {
   loaded: boolean;
-  options: PageType & QueryType;
+  query: PageType & QueryType;
 
-  table: TableT;
+  table: TableT<keyof LinksEntity>;
 };
 
-export const linkRecordStore = createSlice({
+export const linkStore = createSlice({
   name: 'links',
   initialState: {
     loaded: false,
-    options: {},
+    query: {},
 
     page: 1,
     per_page: 6,
@@ -28,30 +29,30 @@ export const linkRecordStore = createSlice({
       columns: new Array(3).fill(''),
       rows: new Array(6).fill(new Array(3).fill('')),
 
-      ignore: [],
-      relation: [],
+      ignore: ['id', 'relations'],
     },
   } as LinkStoreT,
 
   reducers: {},
   extraReducers(builder) {
-    builder.addCase(
-      loadLinks.fulfilled,
-      (state, { payload: { options, res } }) => {
-        state.loaded = true;
-        state.options = options;
+    builder.addCase(loadLinks.fulfilled, (state, { payload }) => {
+      state.loaded = true;
 
-        state.page = res.page;
-        state.total = res.total;
-        state.items = res.items;
+      state.query = payload.options;
+      state.items = payload.res.items;
 
-        state.table.rows = [];
-        state.table.columns = Object.keys(res.items[0] ?? {});
+      state.page = payload.res.page;
+      state.per_page = payload.res.per_page;
+      state.total = payload.res.total;
 
-        for (const item of res.items) {
-          state.table.rows.push(state.table.columns.map((k) => item[k]));
-        }
-      },
-    );
+      state.table.rows = [];
+      state.table.columns = Object.keys(payload.res.items[0] ?? {}).filter(
+        (k: any) => !state.table.ignore.includes(k),
+      );
+
+      for (const item of payload.res.items) {
+        state.table.rows.push(state.table.columns.map((k) => item[k]));
+      }
+    });
   },
 });

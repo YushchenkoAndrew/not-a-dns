@@ -1,3 +1,4 @@
+import { API_URL } from '../config';
 import { ObjectLiteral } from '../types';
 
 export class StringService {
@@ -39,5 +40,14 @@ export class ArrayService {
     if (a.length !== b.length) return false;
 
     return a.reduce((acc, curr, i) => acc && curr == b[i], true);
+  }
+}
+
+export class ErrorService {
+  static validate(res: Response) {
+    if (res.ok) return;
+    throw new Error(
+      `HTTP  status code: ${res.status}; '${res.url.replace(API_URL, '')}'`,
+    );
   }
 }

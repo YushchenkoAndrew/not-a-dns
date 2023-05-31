@@ -5,14 +5,17 @@ import {
   TableT,
 } from '../../components/Record/RecordTable/RecordTableData';
 import { ObjectLiteral } from '../../types';
-import { ActionTypes } from '../../types/action.types';
+import { ACTION_TYPES } from '../../types/action.types';
 
-type OptionalT = { id: string } | { type: (typeof ActionTypes)[number] };
+type OptionalT = ({ id: string } | { type: (typeof ACTION_TYPES)[number] }) & {
+  className?: string;
+};
 
 export type ActionOptions = Partial<
   {
     id?: string;
-    type?: (typeof ActionTypes)[number];
+    type?: (typeof ACTION_TYPES)[number];
+    className?: string;
 
     isFavorite: boolean;
     required: string[];
@@ -57,6 +60,7 @@ export const actionStore = createSlice({
       else state.options.type = payload.optional.type as any;
 
       state.options.isFavorite = payload.data.favorite;
+      state.options.className = payload.optional.className;
       state.options.ignore = payload.ignore.concat('favorite');
 
       state.original = { ...payload.data };

@@ -1,1 +1,1 @@
-export const ActionTypes = ['alias'] as const;
+export const ACTION_TYPES = ['alias', 'links'] as const;

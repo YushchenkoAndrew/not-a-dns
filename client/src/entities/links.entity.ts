@@ -7,9 +7,6 @@ export class LinksEntity extends CommonEntity {
   favorite: boolean = false;
 
   @ResponseProperty()
-  name: string = '';
-
-  @ResponseProperty()
   from: string = '';
 
   @ResponseProperty()

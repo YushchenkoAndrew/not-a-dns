@@ -79,7 +79,10 @@ export default function RecordTableData<
                 : dispatch(
                     actionStore.actions.onSelect({
                       ignore: table.ignore,
-                      optional: { id: items[index].id },
+                      optional: {
+                        id: items[index].id,
+                        className: props.className,
+                      },
                       data: items[index],
                     }),
                   )

@@ -1,7 +1,21 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+
+import { AliasService } from '../alias/alias.service';
+import { LinksService } from '../links/links.service';
+import { SettingsEntity } from './entities/settings.entity';
 
 @Injectable()
 export class SettingService {
+  constructor(
+    @InjectRepository(SettingsEntity)
+    public readonly settingsRepository: Repository<SettingsEntity>,
+
+    private readonly aliasService: AliasService,
+    private readonly linksService: LinksService,
+  ) {}
+
   getSettings() {
     return {
       types: ['general', 'navbar', 'sidebar'],

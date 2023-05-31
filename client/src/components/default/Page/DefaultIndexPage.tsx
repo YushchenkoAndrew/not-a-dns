@@ -16,7 +16,15 @@ import {
   upsertAlias,
 } from '../../../redux/thunk/alias.thunk';
 import { getInfo } from '../../../redux/thunk/info.thunk';
+import {
+  deleteLinks,
+  loadLinks,
+  upsertLinks,
+} from '../../../redux/thunk/links.thunk';
+import { preloadNavbar } from '../../../redux/thunk/navbar.thunk';
+import { preloadSidebar } from '../../../redux/thunk/sidebar.thunk';
 import { ObjectLiteral } from '../../../types';
+import { ACTION_TYPES } from '../../../types/action.types';
 import RecordLabel from '../../Record/RecordLabel';
 import RecordModifier from '../../Record/RecordModifier';
 import RecordTable from '../../Record/RecordTable/RecordTable';
@@ -28,11 +36,14 @@ export interface DefaultIndexPageProps {}
 
 export default function DefaultIndexPage(props: DefaultIndexPageProps) {
   const dispatch = useAppDispatch();
+
   const alias = useAppSelector((state) => state.alias);
+  const links = useAppSelector((state) => state.links);
 
   useEffect(() => {
     (async function () {
-      await dispatch(loadAlias(undefined)).unwrap();
+      await dispatch(loadAlias({})).unwrap();
+      await dispatch(loadLinks({})).unwrap();
     })().catch((err) => toast(StringService.errToMsg(err), { type: 'error' }));
   }, []);
 
@@ -41,7 +52,7 @@ export default function DefaultIndexPage(props: DefaultIndexPageProps) {
       ? options
       : await dispatch(getInfo(options.id)).unwrap();
 
-    switch (type) {
+    switch (type as (typeof ACTION_TYPES)[number]) {
       case 'alias':
         return (
           body
@@ -49,7 +60,18 @@ export default function DefaultIndexPage(props: DefaultIndexPageProps) {
             : dispatch(deleteAlias(options.id))
         )
           .unwrap()
-          .then(() => dispatch(loadAlias(alias.query)).unwrap());
+          .then(() => dispatch(loadAlias(alias.query)).unwrap())
+          .then(() => dispatch(preloadSidebar()).unwrap());
+
+      case 'links':
+        return (
+          body
+            ? dispatch(upsertLinks({ body: body as any, id: options.id }))
+            : dispatch(deleteLinks(options.id))
+        )
+          .unwrap()
+          .then(() => dispatch(loadLinks(alias.query)).unwrap())
+          .then(() => dispatch(preloadNavbar()).unwrap());
 
       default:
         throw new Error('Unknown type');
@@ -58,6 +80,7 @@ export default function DefaultIndexPage(props: DefaultIndexPageProps) {
 
   return (
     <>
+      {/* TODO: Add relation with auto suggestions */}
       <RecordModifier
         onDelete={(options) => eventHandler(options)}
         onSubmit={(options, body) => eventHandler(options, body)}
@@ -93,7 +116,10 @@ export default function DefaultIndexPage(props: DefaultIndexPageProps) {
                   onClick: () =>
                     dispatch(
                       actionStore.actions.onSelect({
-                        optional: { type: 'alias' },
+                        optional: {
+                          type: 'alias',
+                          className: 'record-table-red',
+                        },
                         ignore: alias.table.ignore,
                         data: new AliasEntity(),
                       }),
@@ -113,19 +139,39 @@ export default function DefaultIndexPage(props: DefaultIndexPageProps) {
 
           {/* TODO: */}
 
-          <RecordTable label="Links" anchor="host_record">
+          <RecordTable label="Links" anchor="links">
             <p className="mb-5 text-gray-900 dark:text-gray-200">FIXME:</p>
 
             <RecordTableAction
-              actions={{}}
+              actions={{
+                create_alias: {
+                  name: (
+                    <>
+                      <FontAwesomeIcon icon={faPlus} className="-ml-2 mr-1" />
+                      Create new record
+                    </>
+                  ),
+                  onClick: () =>
+                    dispatch(
+                      actionStore.actions.onSelect({
+                        optional: {
+                          type: 'alias',
+                          className: 'record-table-orange',
+                        },
+                        ignore: alias.table.ignore,
+                        data: new AliasEntity(),
+                      }),
+                    ),
+                },
+              }}
               onSearch={(query) =>
-                dispatch(loadAlias({ ...alias.query, query })).unwrap()
+                dispatch(loadLinks({ ...links.query, query })).unwrap()
               }
             />
-            <RecordTableData className="record-table-red" store="alias" />
+            <RecordTableData className="record-table-orange" store="links" />
             <RecordTablePage
-              store="alias"
-              onClick={(page) => dispatch(loadAlias({ ...alias.query, page }))}
+              store="links"
+              onClick={(page) => dispatch(loadLinks({ ...links.query, page }))}
             />
           </RecordTable>
         </div>

@@ -4,6 +4,7 @@ import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
 import { actionStore } from './reducer/action.reducer';
 import { aliasStore } from './reducer/alias.reducer';
 import { generalStore } from './reducer/general.reducer';
+import { linkStore } from './reducer/links.reducer';
 import { navbarStore } from './reducer/navbar.reducer';
 import { sidebarStore } from './reducer/sidebar.reducer';
 
@@ -16,6 +17,7 @@ export const store = configureStore({
     sidebar: sidebarStore.reducer,
 
     alias: aliasStore.reducer,
+    links: linkStore.reducer,
   },
 
   middleware: (getDefaultMiddleware) =>
