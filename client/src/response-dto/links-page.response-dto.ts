@@ -9,6 +9,6 @@ export class LinksPageResponseDto extends CommonPageResponseDto {
     CommonResponseDto.assign(init, this);
   }
 
-  @ResponseProperty({ type: [LinksEntity] })
+  @ResponseProperty({ type: LinksEntity, isArray: true })
   items: LinksEntity[];
 }

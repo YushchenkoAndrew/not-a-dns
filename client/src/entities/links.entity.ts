@@ -12,6 +12,6 @@ export class LinksEntity extends CommonEntity {
   @ResponseProperty()
   to: string = '';
 
-  @ResponseProperty()
+  @ResponseProperty({ recursive: true })
   relations: (AliasEntity | LinksEntity)[] = [];
 }

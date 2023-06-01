@@ -9,6 +9,6 @@ export class AliasPageResponseDto extends CommonPageResponseDto {
     CommonResponseDto.assign(init, this);
   }
 
-  @ResponseProperty({ type: [AliasEntity] })
+  @ResponseProperty({ type: AliasEntity, isArray: true })
   items: AliasEntity[];
 }

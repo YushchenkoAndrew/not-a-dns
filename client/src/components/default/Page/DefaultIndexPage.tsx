@@ -42,8 +42,10 @@ export default function DefaultIndexPage(props: DefaultIndexPageProps) {
 
   useEffect(() => {
     (async function () {
-      await dispatch(loadAlias({})).unwrap();
-      await dispatch(loadLinks({})).unwrap();
+      await Promise.all([
+        dispatch(loadAlias({})).unwrap(),
+        dispatch(loadLinks({})).unwrap(),
+      ]);
     })().catch((err) => toast(StringService.errToMsg(err), { type: 'error' }));
   }, []);
 

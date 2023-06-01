@@ -1,24 +1,26 @@
 import 'reflect-metadata';
 
 interface ResponsePropertyProps {
-  type: object;
+  type?: object;
+  isArray?: boolean;
+  recursive?: boolean;
 }
 
 export enum ResponsePropKey {
-  enabled = 'RESPONSE',
-  key = 'RESPONSE/KEY',
-  type = 'RESPONSE/TYPE',
+  type = 'RESPONSE',
+  isArray = 'RESPONSE_IS_ARRAY',
 }
 
 export function ResponseProperty(props?: ResponsePropertyProps) {
   return function (target: any, key: string) {
-    // Reflect.defineMetadata(ResponsePropKey.enabled, true, target, key);
-    // Reflect.defineMetadata(ResponsePropKey.key, key, target, key);
-    Reflect.defineMetadata(
-      ResponsePropKey.enabled,
-      props?.type ?? true,
-      target,
-      key,
+    const set = (flag: ResponsePropKey, value: any) =>
+      Reflect.defineMetadata(flag, value, target, key);
+
+    set(
+      ResponsePropKey.type,
+      props?.recursive ? target : (props?.type as any)?.prototype ?? true,
     );
+
+    set(ResponsePropKey.isArray, props?.isArray ?? false);
   };
 }
