@@ -1,5 +1,7 @@
 import { MigrationInterface, QueryRunner, Table, TableIndex } from 'typeorm';
 
+import { SettingsEntity } from '../../setting/entities/settings.entity';
+
 export class CreateSettingsTable1685549063808 implements MigrationInterface {
   public async up(query: QueryRunner): Promise<void> {
     await query.createTable(
@@ -19,9 +21,14 @@ export class CreateSettingsTable1685549063808 implements MigrationInterface {
       'settings',
       new TableIndex({ name: 'IDX_SETTINGS_NANOID', columnNames: ['nanoid'] }),
     );
+
+
+    const repo = query.manager.getRepository(SettingsEntity);
+    await repo.save(repo.create({ mode: true }))
   }
 
-  public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropIndex("settings", "IDX_SETTINGS_NANOID")
-    await queryRunner.dropTable("settings")
-  }}
+  public async down(query: QueryRunner): Promise<void> {
+    await query.dropIndex("settings", "IDX_SETTINGS_NANOID")
+    await query.dropTable("settings")
+  }
+}

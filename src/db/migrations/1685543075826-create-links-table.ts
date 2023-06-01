@@ -28,9 +28,9 @@ export class CreateLinksTable1685543075826 implements MigrationInterface {
     );
   }
 
-  public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropIndex("links", "IDX_LINKS_TO")
-    await queryRunner.dropIndex("links", "IDX_LINKS_NANOID")
-    await queryRunner.dropTable("links")
+  public async down(query: QueryRunner): Promise<void> {
+    await query.dropIndex("links", "IDX_LINKS_TO")
+    await query.dropIndex("links", "IDX_LINKS_NANOID")
+    await query.dropTable("links")
   }
 }

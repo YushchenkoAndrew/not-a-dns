@@ -11,7 +11,7 @@ export class CreateAliasTable1685539257571 implements MigrationInterface {
           { name: 'created_at', type: 'DATETIME', isNullable: false },
           { name: 'updated_at', type: 'DATETIME', isNullable: false },
           { name: 'name', type: 'TEXT', isNullable: false },
-          { name: 'value', type: 'TEXT', isNullable: false },
+          { name: 'value', type: 'TEXT', isNullable: true },
           { name: 'favorite', type: 'BOOLEAN', isNullable: false, default: false },
         ],
       }),
@@ -28,9 +28,9 @@ export class CreateAliasTable1685539257571 implements MigrationInterface {
     );
   }
 
-  public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropIndex("alias", "IDX_ALIAS_NAME")
-    await queryRunner.dropIndex("alias", "IDX_ALIAS_NANOID")
-    await queryRunner.dropTable("alias")
+  public async down(query: QueryRunner): Promise<void> {
+    await query.dropIndex("alias", "IDX_ALIAS_NAME")
+    await query.dropIndex("alias", "IDX_ALIAS_NANOID")
+    await query.dropTable("alias")
   }
 }

@@ -25,9 +25,9 @@ export class CreateAliasLinksTable1685544812570 implements MigrationInterface {
     );
   }
 
-  public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropIndex("alias_links", "IDX_ALIAS_LINKS_LINKABLE_ID")
-    await queryRunner.dropIndex("alias_links", "IDX_ALIAS_LINKS_IDS")
-    await queryRunner.dropTable("alias_links")
+  public async down(query: QueryRunner): Promise<void> {
+    await query.dropIndex("alias_links", "IDX_ALIAS_LINKS_LINKABLE_ID")
+    await query.dropIndex("alias_links", "IDX_ALIAS_LINKS_IDS")
+    await query.dropTable("alias_links")
   }
 }

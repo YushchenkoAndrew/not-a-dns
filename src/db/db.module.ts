@@ -1,18 +1,11 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-@Module({
-  imports: [
-    TypeOrmModule.forRoot({
-      type: 'sqlite',
-      database: 'db/main.db',
-      entities: ['dist/**/*.entity{ .ts,.js}'],
+import { Config } from '../config';
+import { ConfigModule } from '../config/config.module';
 
-      synchronize: false,
-      // migrations: ['{dist,src}/db/migrations/*{.ts,.js}'],
-      // migrationsRun: true,
-    }),
-  ],
+@Module({
+  imports: [ConfigModule, TypeOrmModule.forRoot(Config.self.db)],
   controllers: [],
   providers: [],
 })

@@ -1,12 +1,5 @@
 import { customAlphabet, urlAlphabet } from 'nanoid';
-import {
-  BeforeInsert,
-  BeforeUpdate,
-  Column,
-  CreateDateColumn,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { BeforeInsert, BeforeUpdate, Column, CreateDateColumn, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
 export class IdEntity {
   @PrimaryGeneratedColumn({ type: 'integer' })
@@ -40,7 +33,6 @@ export class NanoidEntity extends TimestampedEntity {
   async beforeInsert() {
     super.beforeInsert();
 
-    if (this.nanoid) return;
-    this.nanoid = customAlphabet(urlAlphabet, 10)();
+    this.nanoid ||= customAlphabet(urlAlphabet, 12)();
   }
 }
