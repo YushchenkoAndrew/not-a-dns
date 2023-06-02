@@ -10,13 +10,14 @@ import {
 } from '@nestjs/common';
 
 import { AliasService } from './alias.service';
+import { AliasDto } from './request-dto/alias.dto';
 
 @Controller()
 export class AliasController {
   constructor(private readonly aliasService: AliasService) {}
 
   @Get('alias')
-  getAll(@Query() options: unknown): Promise<unknown> {
+  getAll(@Query() options: AliasDto): Promise<unknown> {
     return this.aliasService.getAll(options);
   }
 

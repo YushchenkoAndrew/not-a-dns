@@ -1,9 +1,16 @@
 import { customAlphabet, urlAlphabet } from 'nanoid';
-import { BeforeInsert, BeforeUpdate, Column, CreateDateColumn, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import {
+  BeforeInsert,
+  BeforeUpdate,
+  Column,
+  CreateDateColumn,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 export class IdEntity {
   @PrimaryGeneratedColumn({ type: 'integer' })
-  id: string;
+  id: number;
 }
 
 export class TimestampedEntity extends IdEntity {

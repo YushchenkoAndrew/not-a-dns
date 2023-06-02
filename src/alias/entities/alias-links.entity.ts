@@ -15,6 +15,9 @@ export class AliasLinksEntity extends IdEntity {
   @Column({ type: 'integer', nullable: true })
   linkable_id: number;
 
+  /**
+   * @see {@link LinkableTypeEnum}
+   */
   @Column({ type: 'integer', nullable: true })
   linkable_type: number; // LinkableTypeEnum
 }

@@ -1,22 +1,32 @@
 import { randomBytes } from 'crypto';
 import { In, MigrationInterface, QueryRunner } from 'typeorm';
 
+import { AliasLinksEntity } from '../../alias/entities/alias-links.entity';
 import { AliasEntity } from '../../alias/entities/alias.entity';
+import { LinkableTypeEnum } from '../../alias/types/linkable-type.enum';
 import { SecretEntity } from '../../user/entities/secret.entity';
 
 export class InsertDefaultData1685617654359 implements MigrationInterface {
   public async up(query: QueryRunner): Promise<void> {
     const repo = {
       alias: query.manager.getRepository(AliasEntity),
+      alias_links: query.manager.getRepository(AliasLinksEntity),
       secret: query.manager.getRepository(SecretEntity)
     };
 
-    await repo.alias.save([
+    const res = await repo.alias.save([
       repo.alias.create({ name: 'WEB_URL', value: 'http://127.0.0.1:8000/projects', favorite: true }),
       repo.alias.create({ name: 'API_URL', value: 'http://127.0.0.1:31337/api', favorite: true }),
       repo.alias.create({ name: 'VOID_URL', value: 'http://127.0.0.1:8003/files', favorite: true }),
       repo.alias.create({ name: 'BOT_URL', value: 'http://127.0.0.1:3000/bot', favorite: true }),
     ]);
+
+
+    await repo.alias_links.save([
+      repo.alias_links.create({ alias: res[0], linkable_type: LinkableTypeEnum.alias, linkable_id: res[1].id }),
+      repo.alias_links.create({ alias: res[1], linkable_type: LinkableTypeEnum.alias, linkable_id: res[2].id }),
+      repo.alias_links.create({ alias: res[2], linkable_type: LinkableTypeEnum.alias, linkable_id: res[3].id }),
+    ])
 
     await repo.alias.save([
       repo.alias.create({ 
@@ -44,6 +54,7 @@ export class InsertDefaultData1685617654359 implements MigrationInterface {
         )
       }),
     ]);
+
   }
 
   public async down(query: QueryRunner): Promise<void> {

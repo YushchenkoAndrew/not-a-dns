@@ -1,7 +1,8 @@
-import { Column, Entity, JoinColumn, OneToOne } from 'typeorm';
+import { Column, Entity, JoinColumn, OneToMany, OneToOne } from 'typeorm';
 
 import { NanoidEntity } from '../../common/common.entity';
 import { SecretEntity } from '../../user/entities/secret.entity';
+import { AliasLinksEntity } from './alias-links.entity';
 
 @Entity({ name: 'alias' })
 export class AliasEntity extends NanoidEntity {
@@ -17,4 +18,9 @@ export class AliasEntity extends NanoidEntity {
   @OneToOne(() => SecretEntity, { nullable: true })
   @JoinColumn({ name: 'secret_id' })
   secret: SecretEntity;
+
+  @OneToMany(() => AliasLinksEntity, (e) => e.alias)
+  alias_link: AliasLinksEntity[];
+
+  alias: AliasEntity[];
 }

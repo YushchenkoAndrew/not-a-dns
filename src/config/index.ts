@@ -13,8 +13,8 @@ export class Config {
     entities: ['dist/**/*.entity{ .ts,.js}'],
 
     synchronize: false,
-    migrations: ['dist/db/migrations/*{.ts,.js}'],
-    migrationsRun: true,
+    migrations: ['dist/**/db/migrations/*{.ts,.js}'],
+    migrationsRun: process.env.DB_MIGRATION === 'true',
 
     logging: process.env.DB_LOGS === 'true',
     keepConnectionAlive: true,
