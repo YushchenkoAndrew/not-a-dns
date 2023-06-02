@@ -5,6 +5,13 @@ export class ArrayService {
     if (arr?.length) return arr;
     return [null];
   }
+
+  static extract<T extends object, K extends keyof T>(
+    arr: T[],
+    key: K,
+  ): T[K][] {
+    return arr.reduce((acc, curr) => (acc.push(curr[key as string]), acc), []);
+  }
 }
 
 export class ObjectService {

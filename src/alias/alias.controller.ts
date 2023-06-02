@@ -11,6 +11,7 @@ import {
 
 import { AliasService } from './alias.service';
 import { AliasDto } from './request-dto/alias.dto';
+import { AliasResponseDto } from './response-dto/alias-response.dto';
 
 @Controller()
 export class AliasController {
@@ -22,7 +23,7 @@ export class AliasController {
   }
 
   @Get('alias/:id')
-  getOne(@Param('id') id: string): Promise<unknown> {
+  getOne(@Param('id') id: string): Promise<AliasResponseDto> {
     return this.aliasService.getOne(id);
   }
 
