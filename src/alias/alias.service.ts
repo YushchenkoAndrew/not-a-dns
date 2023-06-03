@@ -31,11 +31,13 @@ export class AliasService {
     const entity = await this.validateAlias(nanoid);
     const roots = await this.findTree('root', {
       where: { id: entity.id },
-      relations: { secret: true },
+      relations: {
+        alias_link: { linkable_links: true },
+      },
     });
 
     // TODO: Add somehow links
-    console.log(roots[entity.id]);
+    console.dir(roots[entity.id], { depth: null });
 
     return new AliasResponseDto({
       children: new AliasLinksResponseDto().build(roots[entity.id]),
@@ -109,7 +111,7 @@ export class AliasService {
       .find({
         ...(options || {}),
         where: { id: In(tree_ids) },
-        relations: { ...(options?.relations || {}), alias_link: true },
+        relations: { alias_link: true, ...(options?.relations || {}) },
       })
       .then((items) => ObjectService.toMap(items, 'id'));
 

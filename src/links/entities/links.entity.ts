@@ -8,7 +8,7 @@ export class LinksEntity extends NanoidEntity {
   link_from: string;
 
   @Column({ type: 'text', nullable: false })
-  link_t: string;
+  link_to: string;
 
   @Column({ type: 'boolean', nullable: false, default: false })
   favorite: boolean;

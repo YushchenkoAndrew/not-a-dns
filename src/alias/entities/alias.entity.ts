@@ -1,11 +1,4 @@
-import {
-  AfterLoad,
-  Column,
-  Entity,
-  JoinColumn,
-  OneToMany,
-  OneToOne,
-} from 'typeorm';
+import { AfterLoad, Column, Entity, JoinColumn, OneToMany, OneToOne } from 'typeorm';
 
 import { NanoidEntity } from '../../common/common.entity';
 import { SecretEntity } from '../../user/entities/secret.entity';
@@ -34,5 +27,6 @@ export class AliasEntity extends NanoidEntity {
   @AfterLoad()
   afterLoad() {
     this.secret?.afterLoad();
+    this.alias_link?.forEach((item) => item?.afterLoad());
   }
 }
