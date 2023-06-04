@@ -4,13 +4,14 @@ import { LinksResponseDto } from '../../links/response-dto/links-response.dto';
 import { AliasResponseDto } from './alias-response.dto';
 
 export class AliasLinksResponseDto extends CommonResponseDto {
-  @ResponseProperty((e) => new AliasResponseDto().buildAll(e.alias))
+  constructor(init?: Partial<AliasLinksResponseDto>) {
+    super();
+    this.assign(init, this);
+  }
+
+  @ResponseProperty((e) => [])
   alias: AliasResponseDto[] = [];
 
-  @ResponseProperty((e) =>
-    new LinksResponseDto().buildAll(
-      e?.alias_link.map((e) => e?.linkable_links).filter((item) => item),
-    ),
-  )
+  @ResponseProperty((e) => [])
   links: LinksResponseDto[] = [];
 }

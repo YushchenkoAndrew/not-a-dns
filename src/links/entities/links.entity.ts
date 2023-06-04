@@ -5,10 +5,10 @@ import { NanoidEntity } from '../../common/common.entity';
 @Entity({ name: 'links' })
 export class LinksEntity extends NanoidEntity {
   @Column({ type: 'text', nullable: false })
-  link_from: string;
+  name: string;
 
   @Column({ type: 'text', nullable: false })
-  link_to: string;
+  url: string;
 
   @Column({ type: 'boolean', nullable: false, default: false })
   favorite: boolean;

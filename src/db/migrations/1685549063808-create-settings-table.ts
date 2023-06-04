@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner, Table, TableIndex } from 'typeorm';
 
-import { SettingsEntity } from '../../setting/entities/settings.entity';
+import { SettingsEntity } from '../../settings/entities/settings.entity';
 
 export class CreateSettingsTable1685549063808 implements MigrationInterface {
   public async up(query: QueryRunner): Promise<void> {
@@ -12,6 +12,7 @@ export class CreateSettingsTable1685549063808 implements MigrationInterface {
           { name: 'nanoid', type: 'TEXT', isNullable: false },
           { name: 'created_at', type: 'DATETIME', isNullable: false },
           { name: 'updated_at', type: 'DATETIME', isNullable: false },
+          { name: 'name', type: 'TEXT', isNullable: false },
           { name: 'mode', type: 'BOOLEAN', isNullable: false, default: true },
         ],
       }),
@@ -24,7 +25,7 @@ export class CreateSettingsTable1685549063808 implements MigrationInterface {
 
 
     const repo = query.manager.getRepository(SettingsEntity);
-    await repo.save(repo.create({ mode: true }))
+    await repo.save(repo.create({ name: 'DEFAULT', mode: true }))
   }
 
   public async down(query: QueryRunner): Promise<void> {

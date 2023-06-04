@@ -5,10 +5,10 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { DbModule } from './db/db.module';
 import { LinksModule } from './links/links.module';
-import { SettingModule } from './setting/setting.module';
+import { SettingsModule } from './settings/settings.module';
 
 @Module({
-  imports: [DbModule, SettingModule, AliasModule, LinksModule],
+  imports: [DbModule, SettingsModule, AliasModule, LinksModule],
   controllers: [AppController],
   providers: [AppService],
 })

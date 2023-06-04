@@ -1,7 +1,14 @@
-import { AfterLoad, Column, Entity, JoinColumn, OneToMany, OneToOne } from 'typeorm';
+import {
+  AfterLoad,
+  Column,
+  Entity,
+  JoinColumn,
+  OneToMany,
+  OneToOne,
+} from 'typeorm';
 
 import { NanoidEntity } from '../../common/common.entity';
-import { SecretEntity } from '../../user/entities/secret.entity';
+import { SecretEntity } from '../../secret/entities/secret.entity';
 import { AliasLinksEntity } from './alias-links.entity';
 
 @Entity({ name: 'alias' })
@@ -19,10 +26,14 @@ export class AliasEntity extends NanoidEntity {
   @JoinColumn({ name: 'secret_id' })
   secret: SecretEntity;
 
+  @Column({ type: 'integer', nullable: true })
+  secret_id: number;
+
   @OneToMany(() => AliasLinksEntity, (e) => e.alias)
   alias_link: AliasLinksEntity[];
 
-  alias: AliasEntity[];
+  children: AliasEntity[];
+  parent: AliasEntity[];
 
   @AfterLoad()
   afterLoad() {

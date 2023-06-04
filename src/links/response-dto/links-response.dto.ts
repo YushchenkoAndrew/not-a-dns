@@ -24,6 +24,6 @@ export class LinksResponseDto extends CommonResponseDto {
   @ResponseProperty((e) => new AliasLinksResponseDto().build(e))
   children: AliasLinksResponseDto = null;
 
-  // TODO:
-  // parent:
+  @ResponseProperty((e) => new AliasLinksResponseDto().build(e))
+  parent: AliasLinksResponseDto = null;
 }

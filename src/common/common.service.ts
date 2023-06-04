@@ -6,11 +6,26 @@ export class ArrayService {
     return [null];
   }
 
+  static unique<T>(arr: T[]): T[] {
+    return Object.keys(
+      arr.reduce((acc, curr) => ((acc[curr as string] = true), acc), {}),
+    ) as T[];
+  }
+
   static extract<T extends object, K extends keyof T>(
     arr: T[],
     key: K,
   ): T[K][] {
     return arr.reduce((acc, curr) => (acc.push(curr[key as string]), acc), []);
+  }
+
+  static extractAndFilter<T extends object, K extends keyof T>(
+    arr: T[],
+    key: K,
+  ): T[K][] {
+    return arr
+      .reduce((acc, curr) => (acc.push(curr[key as string]), acc), [])
+      .filter((item) => item);
   }
 }
 
@@ -23,5 +38,11 @@ export class ObjectService {
       (acc, curr) => ((acc[curr[key as string]] = curr), acc),
       {},
     );
+  }
+}
+
+export class EnumService {
+  static keys<T extends object>(obj: T) {
+    return Object.keys(obj).filter((k) => isNaN(Number(k)));
   }
 }

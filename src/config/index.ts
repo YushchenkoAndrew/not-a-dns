@@ -4,7 +4,6 @@ import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 export class Config {
   public readonly secrets = {
     secret: process.env.APPLICATION_SECRET,
-    pepper: process.env.APPLICATION_PEPPER,
   };
 
   public readonly db: Readonly<TypeOrmModuleOptions> = {
@@ -25,6 +24,18 @@ export class Config {
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     preflightContinue: false,
     optionsSuccessStatus: 204,
+  };
+
+  /**
+   * This config param is dynamic, which means that it will have
+   * a different value on each request
+   */
+  public dynamic = {
+    /**
+     * Default value of secret is loaded from env,
+     * such approach only needs for migration
+     */
+    secret: process.env.APPLICATION_PEPPER,
   };
 
   private constructor() {}

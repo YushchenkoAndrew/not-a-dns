@@ -35,7 +35,11 @@ export class AliasLinksEntity extends IdEntity {
   linkable_links: LinksEntity;
 
   /**
-   * Not the best solution but works
+   * Not the best solution because it will load every
+   * possible relation, but i guess it just works
+   *
+   * @see {@link afterLoad}, where I just make variable nullable
+   * if it has incorrect {@link linkable_type}
    */
   @OneToOne(() => AliasEntity, { nullable: true })
   @JoinColumn({ name: 'linkable_id' })

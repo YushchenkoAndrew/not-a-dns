@@ -30,7 +30,9 @@ export class CommonResponseDto {
   }
 
   buildAll<T>(entities: T[]): this[] {
-    return entities?.length ? entities.map((item) => this.build(item)) : [];
+    return entities?.length
+      ? entities.map((item) => ({ ...this.build(item) }))
+      : [];
   }
 
   private getGlobal(type: ResponsePropKey, key: string) {

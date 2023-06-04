@@ -7,9 +7,12 @@ import {
   Post,
   Put,
   Query,
+  Res,
 } from '@nestjs/common';
+import { Response } from 'express';
 
 import { LinksService } from './links.service';
+import { LinksResponseDto } from './response-dto/links-response.dto';
 
 @Controller()
 export class LinksController {
@@ -21,7 +24,7 @@ export class LinksController {
   }
 
   @Get('links/:id')
-  getOne(@Param('id') id: string): Promise<unknown> {
+  getOne(@Param('id') id: string): Promise<LinksResponseDto> {
     return this.linksService.getOne(id);
   }
 
@@ -38,5 +41,12 @@ export class LinksController {
   @Delete('links/:id')
   deleteLinks(@Param('id') id: string): Promise<unknown> {
     return this.linksService.deleteLinks(id);
+  }
+
+  @Get('links/:id/redirect')
+  async getLinkAndRedirect(@Res() res: Response, @Param('id') id: string) {
+    // FIXME: Change name to url
+    const { name } = await this.linksService.getOne(id);
+    return res.redirect(name);
   }
 }

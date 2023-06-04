@@ -38,7 +38,7 @@ export class SecretEntity extends NanoidEntity {
     const salt = Buffer.from(this.salt, 'hex');
     const iv = Buffer.from(this.iv, 'hex');
 
-    const key = scryptSync(Config.self.secrets.pepper, salt, 32);
+    const key = scryptSync(Config.self.dynamic.secret, salt, 32);
     const authTag = this.auth_tag ? Buffer.from(this.auth_tag, 'hex') : null;
 
     if (!authTag) throw new Error('Not supported');
@@ -64,7 +64,7 @@ export class SecretEntity extends NanoidEntity {
     const iv = randomBytes(16);
     const salt = randomBytes(32);
 
-    const key = scryptSync(Config.self.secrets.pepper, salt, 32);
+    const key = scryptSync(Config.self.dynamic.secret, salt, 32);
     const cipher = createCipheriv(this.algorithm, key, iv) as CipherGCM;
 
     this.salt = salt.toString('hex');
@@ -87,7 +87,7 @@ export class SecretEntity extends NanoidEntity {
     const salt = Buffer.from(this.salt, 'hex');
     const iv = Buffer.from(this.iv, 'hex');
 
-    const key = scryptSync(Config.self.secrets.pepper, salt, 32);
+    const key = scryptSync(Config.self.dynamic.secret, salt, 32);
     const cipher = createCipheriv(this.algorithm, key, iv) as CipherGCM;
 
     this.is_encrypted = true;

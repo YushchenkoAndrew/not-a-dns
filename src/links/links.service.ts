@@ -2,13 +2,17 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
+import { AliasService } from '../alias/alias.service';
 import { LinksEntity } from './entities/links.entity';
+import { LinksResponseDto } from './response-dto/links-response.dto';
 
 @Injectable()
 export class LinksService {
   constructor(
     @InjectRepository(LinksEntity)
     public readonly linksRepository: Repository<LinksEntity>,
+
+    private readonly aliasService: AliasService,
   ) {}
 
   getAll(options: unknown): Promise<unknown> {
@@ -31,7 +35,7 @@ export class LinksService {
     // return null;
   }
 
-  getOne(id: string): Promise<unknown> {
+  getOne(id: string): Promise<LinksResponseDto> {
     return null;
   }
 

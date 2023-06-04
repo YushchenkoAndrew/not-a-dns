@@ -4,7 +4,7 @@ import { In, MigrationInterface, QueryRunner } from 'typeorm';
 import { AliasLinksEntity } from '../../alias/entities/alias-links.entity';
 import { AliasEntity } from '../../alias/entities/alias.entity';
 import { LinkableTypeEnum } from '../../alias/types/linkable-type.enum';
-import { SecretEntity } from '../../user/entities/secret.entity';
+import { SecretEntity } from '../../secret/entities/secret.entity';
 
 export class InsertDefaultData1685617654359 implements MigrationInterface {
   public async up(query: QueryRunner): Promise<void> {
@@ -14,11 +14,18 @@ export class InsertDefaultData1685617654359 implements MigrationInterface {
       secret: query.manager.getRepository(SecretEntity)
     };
 
+    //  await repo.alias.save([
+    //   repo.alias.create({ name: 'WEB_URL', value: 'http://127.0.0.1:8000/projects', favorite: true }),
+    //   repo.alias.create({ name: 'API_URL', value: 'http://127.0.0.1:31337/api', favorite: true }),
+    //   repo.alias.create({ name: 'VOID_URL', value: 'http://127.0.0.1:8003/files', favorite: true }),
+    //   repo.alias.create({ name: 'BOT_URL', value: 'http://127.0.0.1:3000/bot', favorite: true }),
+    // ]);
+
     const res = await repo.alias.save([
       repo.alias.create({ name: 'WEB_URL', value: 'http://127.0.0.1:8000/projects', favorite: true }),
-      repo.alias.create({ name: 'API_URL', value: 'http://127.0.0.1:31337/api', favorite: true }),
-      repo.alias.create({ name: 'VOID_URL', value: 'http://127.0.0.1:8003/files', favorite: true }),
-      repo.alias.create({ name: 'BOT_URL', value: 'http://127.0.0.1:3000/bot', favorite: true }),
+      repo.alias.create({ name: 'API_URL', value: `{{ WEB_URL }}/api`, favorite: true }),
+      repo.alias.create({ name: 'VOID_URL', value: '{{ API_URL }}/files', favorite: true }),
+      repo.alias.create({ name: 'BOT_URL', value: '{{ VOID_URL }}/bot', favorite: true }),
     ]);
 
 

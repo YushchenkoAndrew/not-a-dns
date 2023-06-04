@@ -4,8 +4,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AliasModule } from '../alias/alias.module';
 import { LinksModule } from '../links/links.module';
 import { SettingsEntity } from './entities/settings.entity';
-import { SettingController } from './setting.controller';
-import { SettingService } from './setting.service';
+import { SettingsController } from './settings.controller';
+import { SettingsService } from './settings.service';
 
 @Module({
   imports: [
@@ -13,8 +13,8 @@ import { SettingService } from './setting.service';
     AliasModule,
     LinksModule,
   ],
-  controllers: [SettingController],
-  providers: [SettingService],
-  exports: [SettingService],
+  controllers: [SettingsController],
+  providers: [SettingsService],
+  exports: [SettingsService],
 })
-export class SettingModule {}
+export class SettingsModule {}
