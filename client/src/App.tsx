@@ -5,19 +5,14 @@ import { fas } from '@fortawesome/free-solid-svg-icons';
 import { useEffect } from 'react';
 import { Bounce, toast, ToastContainer } from 'react-toastify';
 
-import DefaultSideBar from './components/default/DefaultSideBar';
 import DefaultIndexPage from './components/default/Page/DefaultIndexPage';
 import LoadingScreen from './components/LodingScreen';
 import NavBar from './components/NavBar/NavBar';
 import NavBarItem from './components/NavBar/NavBarItem';
-import SideBarChapter from './components/SideBar/SideBarChapter.';
-import SideBarItem from './components/SideBar/SideBarItem';
 import { StringService } from './lib';
-import { isSideBarChapter } from './redux/reducer/sidebar.reducer';
 import { useAppDispatch, useAppSelector } from './redux/storage';
 import { preloadGeneral } from './redux/thunk/general.thunk';
 import { preloadNavbar } from './redux/thunk/navbar.thunk';
-import { preloadSidebar } from './redux/thunk/sidebar.thunk';
 
 library.add(fas);
 
@@ -28,7 +23,7 @@ export default function App() {
     setTimeout(async () => {
       try {
         await dispatch(preloadNavbar()).unwrap();
-        await dispatch(preloadSidebar()).unwrap();
+        // await dispatch(preloadSidebar()).unwrap();
         await dispatch(preloadGeneral()).unwrap();
       } catch (err) {
         toast(StringService.errToMsg(err), { type: 'error' });
@@ -61,14 +56,18 @@ export default function App() {
         <LoadingScreen />
       ) : (
         <div className="bg-gray-50 dark:bg-gray-800">
-          <NavBar name="lets-dns-it">
+          <NavBar name="not-a-dns">
             {items.navbar.map((props, index) => (
-              <NavBarItem key={index} {...props} />
+              <NavBarItem
+                key={index}
+                name={props.name || props.alias}
+                href={props.value}
+              />
             ))}
           </NavBar>
 
           <div className="flex flex-col sm:flex-row container mx-auto">
-            <DefaultSideBar>
+            {/* <DefaultSideBar>
               {items.sidebar.map((props, index) =>
                 isSideBarChapter(props) ? (
                   <SideBarChapter key={index} {...props} />
@@ -76,7 +75,7 @@ export default function App() {
                   <SideBarItem key={index} {...props} />
                 ),
               )}
-            </DefaultSideBar>
+            </DefaultSideBar> */}
 
             <DefaultIndexPage />
           </div>

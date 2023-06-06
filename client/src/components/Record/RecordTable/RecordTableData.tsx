@@ -2,7 +2,6 @@ import { faStar as farStar } from '@fortawesome/free-regular-svg-icons';
 import { faStar } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-import { CommonEntity } from '../../../entities/common.entity';
 import { actionStore } from '../../../redux/reducer/action.reducer';
 import { StoreT, useAppDispatch, useAppSelector } from '../../../redux/storage';
 
@@ -15,7 +14,7 @@ export type TableT<T = string> = {
 
 export interface RecordT {
   loaded?: boolean;
-  items: CommonEntity[];
+  items: { id: string }[];
   table: TableT;
 }
 

@@ -1,8 +1,8 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 import { TableT } from '../../components/Record/RecordTable/RecordTableData';
-import { LinksEntity } from '../../entities/links.entity';
-import { LinksPageResponseDto } from '../../response-dto/links-page.response-dto';
+import { LinksPageResponseDto } from '../../response-dto/links/links-page-response.dto';
+import { LinksResponseDto } from '../../response-dto/links/links-response.dto';
 import { PageType, QueryType } from '../../types/request.type';
 import { loadLinks } from '../thunk/links.thunk';
 
@@ -10,7 +10,7 @@ export type LinkStoreT = LinksPageResponseDto & {
   loaded: boolean;
   query: PageType & QueryType;
 
-  table: TableT<keyof LinksEntity>;
+  table: TableT<keyof LinksResponseDto>;
 };
 
 export const linkStore = createSlice({

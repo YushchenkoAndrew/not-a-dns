@@ -30,31 +30,50 @@ export class AliasService {
     public readonly repository: Repository<AliasEntity>,
   ) {}
 
-  async getAll(options: AliasDto): Promise<AliasPageResponseDto> {
+  async getAll(dto: AliasDto): Promise<AliasPageResponseDto> {
     const [alias, total] = await this.repository.findAndCount({
       where: {
-        name: options.query && Like(options.query),
-        favorite: options.favorite,
+        // TODO: Add OR condition with name
+        alias: dto.query && Like(dto.query),
+        favorite: dto.favorite,
         secret:
-          typeof options.secret != 'boolean'
+          typeof dto.secret != 'boolean'
             ? undefined
-            : options.secret
+            : dto.secret
             ? Not(IsNull())
             : IsNull(),
       },
-      take: options.per_page,
-      skip: options.skip,
+      take: dto.per_page,
+      skip: dto.skip,
     });
 
-    const items = await this.findTree('root', {
+    const options: FindManyOptions<AliasEntity> = {
       where: { id: In(ArrayService.values(ArrayService.extract(alias, 'id'))) },
       relations: { alias_link: { linkable_links: true }, secret: true },
-    }).then((obj) => Object.values(obj));
+    };
+
+    if (dto.view == AliasViewEnum.tree) {
+      const items = await this.findTree('root', options).then((obj) =>
+        Object.values(obj),
+      );
+
+      return new AliasPageResponseDto({
+        total,
+        items: new AliasResponseDto().buildAll(items),
+      }).build(dto);
+    }
+
+    const items = await this.findTree('leaf', options).then((e) =>
+      Object.values(e),
+    );
 
     return new AliasPageResponseDto({
       total,
-      items: new AliasResponseDto().buildAll(items),
-    }).build(options);
+      items: new AliasResponseDto({
+        parent: undefined,
+        children: undefined,
+      }).buildAll(items.map((e) => (e.unwrap(), e))),
+    }).build(dto);
   }
 
   async getOne(nanoid: string, dto: AliasDto): Promise<AliasResponseDto> {
@@ -74,21 +93,12 @@ export class AliasService {
       });
     }
 
-    const final = (function unwrap(e: AliasEntity) {
-      if (!e.parent?.length) return e.value || e.secret?.value || '';
-
-      return e.parent.reduce(
-        (acc, alias) =>
-          acc.replace(new RegExp(`{{ ${alias.name} }}`, 'g'), unwrap(alias)),
-        e.value || e.secret?.value || '',
-      );
-    })(await this.findTree('leaf', options).then((e) => e[entity.id]));
+    const item = await this.findTree('leaf', options).then((e) => e[entity.id]);
 
     return new AliasResponseDto({
-      value: final,
       parent: undefined,
       children: undefined,
-    }).build(entity);
+    }).build((item.unwrap(), item));
   }
 
   async upsertAlias(

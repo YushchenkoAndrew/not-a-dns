@@ -3,7 +3,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useEffect } from 'react';
 import { toast } from 'react-toastify';
 
-import { AliasEntity } from '../../../entities/alias.entity';
 import { StringService } from '../../../lib';
 import {
   ActionOptions,
@@ -23,6 +22,7 @@ import {
 } from '../../../redux/thunk/links.thunk';
 import { preloadNavbar } from '../../../redux/thunk/navbar.thunk';
 import { preloadSidebar } from '../../../redux/thunk/sidebar.thunk';
+import { AliasResponseDto } from '../../../response-dto/alias/alias-response.dto';
 import { ObjectLiteral } from '../../../types';
 import { ACTION_TYPES } from '../../../types/action.types';
 import RecordLabel from '../../Record/RecordLabel';
@@ -123,7 +123,7 @@ export default function DefaultIndexPage(props: DefaultIndexPageProps) {
                           className: 'record-table-red',
                         },
                         ignore: alias.table.ignore,
-                        data: new AliasEntity(),
+                        data: new AliasResponseDto(),
                       }),
                     ),
                 },
@@ -161,7 +161,7 @@ export default function DefaultIndexPage(props: DefaultIndexPageProps) {
                           className: 'record-table-orange',
                         },
                         ignore: alias.table.ignore,
-                        data: new AliasEntity(),
+                        data: new AliasResponseDto(),
                       }),
                     ),
                 },

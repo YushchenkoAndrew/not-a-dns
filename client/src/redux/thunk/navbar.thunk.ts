@@ -1,14 +1,17 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 
 import { API_URL } from '../../config';
-import { ErrorService } from '../../lib';
-import { NavbarSettingResponseDto } from '../../response-dto/setting/navbar-setting.response-dto';
+import { ErrorService, StringService } from '../../lib';
+import { AliasPageResponseDto } from '../../response-dto/alias/alias-page-response.dto';
 
 export const preloadNavbar = createAsyncThunk('navbar/preload', async () => {
-  return new NavbarSettingResponseDto(
-    // FIXME: Change TO /alias?favorite
-    await fetch(`${API_URL}/setting/navbar`).then(
-      (res) => (ErrorService.validate(res), res.json()),
-    ),
+  return new AliasPageResponseDto().build(
+    await fetch(
+      // TODO: Add RequestDto
+      `${API_URL}/alias?${StringService.toQuery({
+        favorite: true,
+        view: 'final',
+      })}`,
+    ).then((res) => (ErrorService.validate(res), res.json())),
   );
 });

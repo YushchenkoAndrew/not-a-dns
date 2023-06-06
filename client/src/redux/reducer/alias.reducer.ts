@@ -1,8 +1,8 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 import { TableT } from '../../components/Record/RecordTable/RecordTableData';
-import { AliasEntity } from '../../entities/alias.entity';
-import { AliasPageResponseDto } from '../../response-dto/alias-page.response-dto';
+import { AliasPageResponseDto } from '../../response-dto/alias/alias-page-response.dto';
+import { AliasResponseDto } from '../../response-dto/alias/alias-response.dto';
 import { PageType, QueryType } from '../../types/request.type';
 import { loadAlias } from '../thunk/alias.thunk';
 
@@ -10,7 +10,7 @@ export type AliasStoreT = AliasPageResponseDto & {
   loaded: boolean;
   query: PageType & QueryType;
 
-  table: TableT<keyof AliasEntity>;
+  table: TableT<keyof AliasResponseDto>;
 };
 
 export const aliasStore = createSlice({
@@ -26,7 +26,7 @@ export const aliasStore = createSlice({
     items: [],
 
     table: {
-      ignore: ['id', 'relations'],
+      ignore: ['id', 'children', 'parent'],
 
       columns: new Array(3).fill(''),
       rows: new Array(6).fill(new Array(3).fill('')),

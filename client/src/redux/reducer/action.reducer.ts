@@ -116,10 +116,4 @@ export const actionStore = createSlice({
       state.data = null;
     },
   },
-  extraReducers(builder) {
-    // builder.addCase(preloadGeneral.fulfilled, (state, { payload }) => {
-    //   state.loaded = true;
-    //   if (payload.mode) state.mode = payload.mode;
-    // });
-  },
 });

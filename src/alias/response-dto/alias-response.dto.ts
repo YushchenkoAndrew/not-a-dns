@@ -17,6 +17,9 @@ export class AliasResponseDto extends CommonResponseDto {
   @ResponseProperty()
   name: string = '';
 
+  @ResponseProperty()
+  alias: string = '';
+
   @ResponseProperty((e: AliasEntity) => e.value || e.secret?.value || '')
   value: string = '';
 

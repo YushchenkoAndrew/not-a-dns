@@ -12,7 +12,7 @@ export type NavBarItemT = {
 export class SidebarSettingResponseDto extends CommonResponseDto {
   constructor(init?: Partial<SidebarSettingResponseDto>) {
     super();
-    CommonResponseDto.assign(init, this);
+    this.assign(init, this);
   }
 
   @ResponseProperty()

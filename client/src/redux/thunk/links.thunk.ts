@@ -1,10 +1,9 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 
 import { API_URL } from '../../config';
-import { LinksEntity } from '../../entities/links.entity';
 import { ErrorService, StringService } from '../../lib';
-import { CommonResponseDto } from '../../response-dto/common.response-dto';
-import { LinksPageResponseDto } from '../../response-dto/links-page.response-dto';
+import { LinksPageResponseDto } from '../../response-dto/links/links-page-response.dto';
+import { LinksResponseDto } from '../../response-dto/links/links-response.dto';
 import { LinkStoreT } from '../reducer/links.reducer';
 
 export const loadLinks = createAsyncThunk(
@@ -12,7 +11,7 @@ export const loadLinks = createAsyncThunk(
   async (options?: LinkStoreT['query']) => {
     return {
       options,
-      res: new LinksPageResponseDto(
+      res: new LinksPageResponseDto().build(
         await fetch(`${API_URL}/links?${StringService.toQuery(options)}`).then(
           (res) => (ErrorService.validate(res), res.json()),
         ),
@@ -23,15 +22,14 @@ export const loadLinks = createAsyncThunk(
 
 export const upsertLinks = createAsyncThunk(
   'links/upsert',
-  async ({ body, id }: { body: LinksEntity; id?: string }) => {
-    return CommonResponseDto.assign(
+  async ({ body, id }: { body: LinksResponseDto; id?: string }) => {
+    return new LinksResponseDto().build(
       await fetch(`${API_URL}/links${id ? '' : `/${id}`}`, {
         mode: 'cors',
         method: id ? 'POST' : 'PUT',
-        body: JSON.stringify(CommonResponseDto.assign(body, new LinksEntity())),
+        body: JSON.stringify(new LinksResponseDto().build(body)),
         headers: { 'Content-Type': 'application/json' },
       }).then((res) => (ErrorService.validate(res), res.json())),
-      new LinksEntity(),
     );
   },
 );
@@ -39,11 +37,10 @@ export const upsertLinks = createAsyncThunk(
 export const deleteLinks = createAsyncThunk(
   'links/delete',
   async (id: string) => {
-    return CommonResponseDto.assign(
+    return new LinksResponseDto().build(
       await fetch(`${API_URL}/links/${id}`, {
         method: 'DELETE',
       }).then((res) => (ErrorService.validate(res), res.json())),
-      new LinksEntity(),
     );
   },
 );

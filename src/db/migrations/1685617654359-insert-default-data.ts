@@ -15,17 +15,17 @@ export class InsertDefaultData1685617654359 implements MigrationInterface {
     };
 
     //  await repo.alias.save([
-    //   repo.alias.create({ name: 'WEB_URL', value: 'http://127.0.0.1:8000/projects', favorite: true }),
-    //   repo.alias.create({ name: 'API_URL', value: 'http://127.0.0.1:31337/api', favorite: true }),
-    //   repo.alias.create({ name: 'VOID_URL', value: 'http://127.0.0.1:8003/files', favorite: true }),
-    //   repo.alias.create({ name: 'BOT_URL', value: 'http://127.0.0.1:3000/bot', favorite: true }),
+    //   repo.alias.create({ alias: 'WEB_URL', value: 'http://127.0.0.1:8000/projects', favorite: true }),
+    //   repo.alias.create({ alias: 'API_URL', value: 'http://127.0.0.1:31337/api', favorite: true }),
+    //   repo.alias.create({ alias: 'VOID_URL', value: 'http://127.0.0.1:8003/files', favorite: true }),
+    //   repo.alias.create({ alias: 'BOT_URL', value: 'http://127.0.0.1:3000/bot', favorite: true }),
     // ]);
 
     const res = await repo.alias.save([
-      repo.alias.create({ name: 'WEB_URL', value: 'http://127.0.0.1:8000/projects', favorite: true }),
-      repo.alias.create({ name: 'API_URL', value: `{{ WEB_URL }}/api`, favorite: true }),
-      repo.alias.create({ name: 'VOID_URL', value: '{{ API_URL }}/files', favorite: true }),
-      repo.alias.create({ name: 'BOT_URL', value: '{{ VOID_URL }}/bot', favorite: true }),
+      repo.alias.create({ name: "/mortis-grimreaper", alias: 'WEB_URL', value: 'http://127.0.0.1:8000/projects', favorite: true }),
+      repo.alias.create({ name: "/grape", alias: 'API_URL', value: `{{ WEB_URL }}/api`, favorite: true }),
+      repo.alias.create({ name: "/void", alias: 'VOID_URL', value: '{{ API_URL }}/files', favorite: true }),
+      repo.alias.create({ name: "/botodachi", alias: 'BOT_URL', value: '{{ VOID_URL }}/bot', favorite: true }),
     ]);
 
 
@@ -37,25 +37,25 @@ export class InsertDefaultData1685617654359 implements MigrationInterface {
 
     await repo.alias.save([
       repo.alias.create({ 
-        name: 'WEB_SECRET', 
+        alias: 'WEB_SECRET', 
         secret: await repo.secret.save(
           repo.secret.create({ value: process.env.WEB_SECRET || randomBytes(128).toString("hex") })
         )
       }),
       repo.alias.create({ 
-        name: 'API_SECRET', 
+        alias: 'API_SECRET', 
         secret: await repo.secret.save(
           repo.secret.create({ value: process.env.API_SECRET || randomBytes(128).toString("hex") })
         )
       }),
       repo.alias.create({ 
-        name: 'VOID_SECRET', 
+        alias: 'VOID_SECRET', 
         secret: await repo.secret.save(
           repo.secret.create({ value: process.env.VOID_SECRET || randomBytes(128).toString("hex") })
         )
       }),
       repo.alias.create({ 
-        name: 'BOT_SECRET', 
+        alias: 'BOT_SECRET', 
         secret: await repo.secret.save(
           repo.secret.create({ value: process.env.BOT_SECRET || randomBytes(128).toString("hex") })
         )
@@ -71,7 +71,7 @@ export class InsertDefaultData1685617654359 implements MigrationInterface {
     }
 
     const alias = await repo.alias.find({
-      where: { name: In(['WEB_SECRET', 'API_SECRET', 'VOID_SECRET', 'BOT_SECRET']) },
+      where: { alias: In(['WEB_SECRET', 'API_SECRET', 'VOID_SECRET', 'BOT_SECRET']) },
       relations: { secret: true }
     });
 
@@ -79,7 +79,7 @@ export class InsertDefaultData1685617654359 implements MigrationInterface {
     await repo.alias.remove(alias);
 
     await repo.alias.remove(await repo.alias.find({
-      where: { name: In(['WEB_URL', 'API_URL', 'VOID_URL', 'BOT_URL']) }
+      where: { alias: In(['WEB_URL', 'API_URL', 'VOID_URL', 'BOT_URL']) }
     }));
   }
 }

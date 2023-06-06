@@ -13,8 +13,11 @@ import { AliasLinksEntity } from './alias-links.entity';
 
 @Entity({ name: 'alias' })
 export class AliasEntity extends NanoidEntity {
-  @Column({ type: 'text', nullable: false })
+  @Column({ type: 'text', nullable: true })
   name: string;
+
+  @Column({ type: 'text', nullable: false })
+  alias: string;
 
   @Column({ type: 'text', nullable: true })
   value: string;
@@ -39,5 +42,18 @@ export class AliasEntity extends NanoidEntity {
   afterLoad() {
     this.secret?.afterLoad();
     this.alias_link?.forEach((item) => item?.afterLoad());
+  }
+
+  unwrap(e: AliasEntity = this) {
+    if (!e.parent?.length) return e.value || e.secret?.value || '';
+
+    return (e.value = e.parent.reduce(
+      (acc, alias) =>
+        acc.replace(
+          new RegExp(`{{ ${alias.alias} }}`, 'g'),
+          this.unwrap(alias),
+        ),
+      e.value || e.secret?.value || '',
+    ));
   }
 }

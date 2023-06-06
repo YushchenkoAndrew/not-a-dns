@@ -1,29 +1,106 @@
 import 'reflect-metadata';
 
-import { ResponsePropKey } from '../decorators/response-property';
+import {
+  ResponsePropKey,
+  ResponseProps,
+} from '../decorators/response-property';
 
 export class CommonResponseDto {
-  static assign<T extends CommonResponseDto>(src: Partial<T>, dst: T) {
-    const get = (type: ResponsePropKey, key: string) =>
-      Reflect.getMetadata(type, dst.constructor.prototype, key);
+  // static assign<T extends CommonResponseDto>(src: Partial<T>, dst: T) {
+  //   const get = (type: ResponsePropKey, key: string) =>
+  //     Reflect.getMetadata(type, dst.constructor.prototype, key);
 
+  //   for (const k in src || {}) {
+  //     const type = get(ResponsePropKey.type, k);
+  //     const isArray = get(ResponsePropKey.isArray, k);
+
+  //     if (!type) continue;
+  //     if (typeof src[k] != 'object' || typeof type != 'object') {
+  //       dst[k] = src[k];
+  //       continue;
+  //     }
+
+  //     if (isArray) {
+  //       dst[k] = src[k].map((item) =>
+  //         this.assign(item, new type.constructor()),
+  //       );
+  //     } else dst[k] = this.assign(src[k], new type.constructor());
+  //   }
+
+  //   return dst;
+  // }
+
+  assign<T extends CommonResponseDto>(src: Partial<T>, dst: T) {
     for (const k in src || {}) {
-      const type = get(ResponsePropKey.type, k);
-      const isArray = get(ResponsePropKey.isArray, k);
+      const enabled = this.getGlobal(ResponsePropKey.type, k);
 
-      if (!type) continue;
-      if (typeof src[k] != 'object' || typeof type != 'object') {
-        dst[k] = src[k];
-        continue;
-      }
-
-      if (isArray) {
-        dst[k] = src[k].map((item) =>
-          this.assign(item, new type.constructor()),
-        );
-      } else dst[k] = this.assign(src[k], new type.constructor());
+      if (!enabled) continue;
+      dst[k] = src[k];
+      this.setLocal(ResponsePropKey.defined, true, k);
     }
 
     return dst;
+  }
+
+  build<T>(entity: T): this {
+    if (!entity) return null;
+    // const res = new (this as any).constructor();
+
+    for (const k of this.getGlobal(ResponsePropKey.keys) || []) {
+      const transformer = this.getGlobal(ResponsePropKey.type, k);
+
+      const defined = this.getLocal(ResponsePropKey.defined, k);
+      if (defined) continue;
+
+      if (typeof transformer !== 'function') {
+        this[k] = entity[k as string];
+        continue;
+      }
+
+      const props: ResponseProps = this.getGlobal(ResponsePropKey.props, k);
+
+      this[k] =
+        transformer(
+          entity,
+          new ResponseProps({ ...props, self: this, key: k }),
+        ) ?? props.default;
+    }
+
+    return this;
+  }
+
+  buildAll<T>(entities: T[]): this[] {
+    return entities?.length
+      ? entities.map((item) => this.newInstance(this.defined()).build(item))
+      : [];
+  }
+
+  defined(): Partial<any> {
+    const res = this.newInstance();
+
+    for (const k in res) {
+      const isDefined = this.getLocal(ResponsePropKey.defined, k);
+      if (isDefined) res[k] = this[k];
+      else delete res[k];
+    }
+
+    return res;
+  }
+
+  newInstance(props?: any): this {
+    return new (this as any).constructor(props);
+  }
+
+  private getGlobal(type: ResponsePropKey, key?: string) {
+    if (!key) return Reflect.getMetadata(type, this.constructor.prototype);
+    return Reflect.getMetadata(type, this.constructor.prototype, key);
+  }
+
+  private getLocal(type: ResponsePropKey, key: string) {
+    return Reflect.getMetadata(type, this, key);
+  }
+
+  private setLocal(type: ResponsePropKey, value: any, key: string) {
+    return Reflect.defineMetadata(type, value, this, key);
   }
 }
