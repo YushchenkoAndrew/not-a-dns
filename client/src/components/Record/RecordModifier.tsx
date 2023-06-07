@@ -1,6 +1,7 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useEffect, useRef } from 'react';
 
+import { StringService } from '../../lib';
 import { ActionOptions, actionStore } from '../../redux/reducer/action.reducer';
 import { useAppDispatch, useAppSelector } from '../../redux/storage';
 import { ObjectLiteral } from '../../types';
@@ -18,7 +19,7 @@ export default function RecordModifier(props: RecordModifierProps) {
   const popupRef = useRef(null);
 
   const dispatch = useAppDispatch();
-  const { options, data, original, additional } = useAppSelector(
+  const { options, table, original, additional } = useAppSelector(
     (state) => state.action,
   );
 
@@ -42,11 +43,11 @@ export default function RecordModifier(props: RecordModifierProps) {
     };
   }, [popupRef]);
 
-  return data ? (
+  return table ? (
     <div>
       <div
         ref={popupRef}
-        className="fixed top-1/2 left-1/2 w-full max-w-2xl lg:max-w-4xl xl:max-w-6xl max-h-full -translate-y-1/2 -translate-x-1/2 z-50 p-4 overflow-x-hidden overflow-y-auto"
+        className="record-modifier fixed top-1/2 left-1/2 w-full max-w-2xl lg:max-w-4xl xl:max-w-6xl max-h-full -translate-y-1/2 -translate-x-1/2 z-50 p-4 overflow-x-hidden overflow-y-auto"
       >
         <div className="relative bg-white rounded-lg shadow dark:bg-gray-700">
           <div className="flex items-start justify-between p-4 border-b rounded-t dark:border-gray-600">
@@ -69,26 +70,28 @@ export default function RecordModifier(props: RecordModifierProps) {
                 return;
               }
 
-              props.onSubmit(options, { ...original, ...data });
+              console.log('FIXME: ON SUBMIT');
+              // props.onSubmit(options, { ...original, ...data });
               dispatch(actionStore.actions.unfocus());
             }}
           >
             <div className="py-3 flex items-center justify-between">
               <DropdownButton
                 actions={{
-                  favorite: {
-                    name: (
-                      <>
-                        <FontAwesomeIcon icon="star" className="mr-2" />
-                        {options.isFavorite
-                          ? 'Unset from favorite'
-                          : 'Set as favorite'}
-                      </>
-                    ),
-                    hidden: options.isFavorite === undefined,
-                    onClick: () =>
-                      dispatch(actionStore.actions.toggleFavorite()),
-                  },
+                  // favorite: {
+                  //   name: (
+                  //     <>
+                  //     FIXME:
+                  //       {/* <FontAwesomeIcon icon="star" className="mr-2" />
+                  //       {options.isFavorite
+                  //         ? 'Unset from favorite'
+                  //         : 'Set as favorite'} */}
+                  //     </>
+                  //   ),
+                  //   // hidden: options.isFavorite === undefined,
+                  //   // onClick: () =>
+                  //   //   dispatch(actionStore.actions.toggleFavorite()),
+                  // },
                   delete: {
                     name: (
                       <>
@@ -118,13 +121,11 @@ export default function RecordModifier(props: RecordModifierProps) {
             </div>
 
             <table
-              className={`${
-                options.className ?? 'record-table-red'
-              } border-b-2 border-collapse table-auto`}
+              className={`${'record-table-red'} border-b-2 border-collapse table-auto`}
             >
               <thead className="dark:border-b-4">
                 <tr>
-                  {Object.keys(data).map((name, index) => (
+                  {table.columns.map((name, index) => (
                     <th
                       key={`modifier_thead_${index}`}
                       className="font-semibold text-gray-900 dark:text-gray-100 px-4 py-2 text-left"
@@ -135,63 +136,80 @@ export default function RecordModifier(props: RecordModifierProps) {
                 </tr>
               </thead>
               <tbody>
-                <tr className="text-gray-900 dark:text-gray-100 ">
-                  {Object.entries(data).map(([name, value], index) => (
-                    <td
-                      key={`modifier_tbody_td_${index}`}
-                      className="p-4 decoration-2"
-                    >
-                      {/* TODO: Add auto suggestion and linking */}
-                      <input
-                        name={name}
-                        value={value}
-                        required={options.required?.includes(name)}
-                        className="pt-1 pb-1 px-3 w-full border-b-2 focus:border-b-4 last:border-r-0 dark:bg-gray-800 dark:focus:bg-gray-700 focus:outline-none"
-                        placeholder="Insert value"
-                        onChange={(event) =>
-                          dispatch(
-                            actionStore.actions.onUpdate({
-                              name,
-                              value: event.target.value,
-                            }),
-                          )
-                        }
-                      />
-                    </td>
-                  ))}
-                </tr>
+                {table.rows.map((row) => (
+                  <tr className="text-gray-900 dark:text-gray-100 ">
+                    {row.map((value, index) => (
+                      <td
+                        key={`modifier_tbody_td_${index}`}
+                        className="p-4 decoration-2"
+                      >
+                        {/* TODO: Add auto suggestion and linking */}
+                        <input
+                          name={table.columns[index]}
+                          value={value}
+                          // required={options.required?.includes(name)}
+                          className="pt-1 pb-1 px-3 w-full border-b-2 focus:border-b-4 last:border-r-0 dark:bg-gray-800 dark:focus:bg-gray-700 focus:outline-none"
+                          placeholder="Insert value"
+                          onChange={(event) =>
+                            dispatch(
+                              actionStore.actions.onUpdate({
+                                name: table.columns[index],
+                                value: event.target.value,
+                              }),
+                            )
+                          }
+                        />
+                      </td>
+                    ))}
+                  </tr>
+                ))}
               </tbody>
             </table>
           </form>
 
-          {Object.values(additional).find(
-            ({ table: { rows } }) => rows.length,
-          ) && (
-            <div className="flex flex-col p-6">
-              <RecordTable label="Linked items" anchor="alias">
-                <p className="mb-5 text-gray-900 dark:text-gray-200">
-                  Trying to describe why you liked that weird items: 'It's, um,
-                  a conversation starter?'
-                </p>
+          {Object.values(original.options)
+            .filter(({ related }) => related)
+            .map(({ key }) =>
+              Object.entries(original[key] || []).map((res) => [key, res]),
+            )
+            .flat()
+            .map(([section, [name, items]]: any, index) => (
+              <div className="flex flex-col p-6">
+                <RecordTable
+                  label={`${StringService.capitalize(section)} ${name} items`}
+                  anchor="alias"
+                >
+                  <p className="mb-5 text-gray-900 dark:text-gray-200">
+                    Trying to describe why you liked that weird items: 'It's,
+                    um, a conversation starter?'
+                  </p>
 
-                {Object.values(additional)
-                  .filter(({ table: { rows } }) => rows.length)
-                  .map(({ table, items }, index) => (
-                    <RecordTableData
-                      key={index}
-                      className={`${
-                        RECORD_TABLE_COLOR_TYPE.concat().filter(
-                          (item) =>
-                            item != (options.className ?? 'record-table-red'),
-                        )[index] ?? RECORD_TABLE_COLOR_TYPE[5]
-                      } last:mb-0 mb-6`}
-                      table={table}
-                      items={items}
-                    />
-                  ))}
-              </RecordTable>
-            </div>
-          )}
+                  <RecordTableData
+                    key={index}
+                    className={`${RECORD_TABLE_COLOR_TYPE[5]} last:mb-0 mb-6`}
+                    table={(function () {
+                      const columns = Object.keys(items[0] ?? {})
+                        .filter((k: any) => !items[0].options[k]?.hidden)
+                        .sort(
+                          (a, b) =>
+                            (items[0].options[a]?.index ?? Infinity) -
+                            (items[0].options[b]?.index ?? Infinity),
+                        );
+
+                      const rows = [];
+                      for (const item of items) {
+                        rows.push(columns.map((k) => item[k]));
+                      }
+
+                      console.log({ columns, rows });
+
+                      return { columns, rows };
+                    })()}
+                    items={items}
+                  />
+                </RecordTable>
+              </div>
+            ))}
         </div>
       </div>
       <div className="bg-gray-900 bg-opacity-50 dark:bg-opacity-80 fixed inset-0 z-40"></div>

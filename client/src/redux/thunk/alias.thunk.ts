@@ -25,7 +25,6 @@ export const upsertAlias = createAsyncThunk(
   async ({ body, id }: { body: AliasResponseDto; id?: string }) => {
     return new AliasResponseDto().build(
       await fetch(`${API_URL}/alias${id ? '' : `/${id}`}`, {
-        mode: 'cors',
         method: id ? 'POST' : 'PUT',
         body: JSON.stringify(new AliasResponseDto().build(body)),
         headers: { 'Content-Type': 'application/json' },

@@ -7,7 +7,9 @@ import { AliasViewEnum } from '../types/alias-view.enum';
 
 export class AliasDto extends PageDto {
   @IsOptional()
-  @Transform(({ value }) => value || undefined)
+  @Transform(({ value }) =>
+    value ? `%${value.replace(/^\%+|\%+$/g, '')}%` : undefined,
+  )
   query: string;
 
   @IsOptional()

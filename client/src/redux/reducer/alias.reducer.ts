@@ -10,7 +10,7 @@ export type AliasStoreT = AliasPageResponseDto & {
   loaded: boolean;
   query: PageType & QueryType;
 
-  table: TableT<keyof AliasResponseDto>;
+  table: TableT;
 };
 
 export const aliasStore = createSlice({
@@ -26,8 +26,6 @@ export const aliasStore = createSlice({
     items: [],
 
     table: {
-      ignore: ['id', 'children', 'parent'],
-
       columns: new Array(3).fill(''),
       rows: new Array(6).fill(new Array(3).fill('')),
     },
@@ -45,10 +43,15 @@ export const aliasStore = createSlice({
       state.per_page = payload.res.per_page;
       state.total = payload.res.total;
 
+      const options = AliasResponseDto.options;
+
       state.table.rows = [];
-      state.table.columns = Object.keys(payload.res.items[0] ?? {}).filter(
-        (k: any) => !state.table.ignore.includes(k),
-      );
+      state.table.columns = Object.keys(payload.res.items[0] ?? {})
+        .filter((k: any) => !options[k]?.hidden)
+        .sort(
+          (a, b) =>
+            (options[a]?.index ?? Infinity) - (options[b]?.index ?? Infinity),
+        );
 
       for (const item of payload.res.items) {
         state.table.rows.push(state.table.columns.map((k) => item[k]));

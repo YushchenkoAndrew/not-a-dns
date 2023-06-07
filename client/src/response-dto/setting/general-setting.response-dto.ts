@@ -1,7 +1,7 @@
 import { ResponseProperty } from '../../decorators/response-property';
 import { CommonResponseDto } from '../common.response-dto';
 
-export class GeneralSettingResponseDto extends CommonResponseDto {
+export class SettingResponseDto extends CommonResponseDto {
   @ResponseProperty()
   id: string;
 

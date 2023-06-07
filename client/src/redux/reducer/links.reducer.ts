@@ -2,7 +2,6 @@ import { createSlice } from '@reduxjs/toolkit';
 
 import { TableT } from '../../components/Record/RecordTable/RecordTableData';
 import { LinksPageResponseDto } from '../../response-dto/links/links-page-response.dto';
-import { LinksResponseDto } from '../../response-dto/links/links-response.dto';
 import { PageType, QueryType } from '../../types/request.type';
 import { loadLinks } from '../thunk/links.thunk';
 
@@ -10,7 +9,7 @@ export type LinkStoreT = LinksPageResponseDto & {
   loaded: boolean;
   query: PageType & QueryType;
 
-  table: TableT<keyof LinksResponseDto>;
+  table: TableT;
 };
 
 export const linkStore = createSlice({
@@ -28,8 +27,6 @@ export const linkStore = createSlice({
     table: {
       columns: new Array(3).fill(''),
       rows: new Array(6).fill(new Array(3).fill('')),
-
-      ignore: ['id', 'relations'],
     },
   } as LinkStoreT,
 
@@ -46,9 +43,10 @@ export const linkStore = createSlice({
       state.total = payload.res.total;
 
       state.table.rows = [];
-      state.table.columns = Object.keys(payload.res.items[0] ?? {}).filter(
-        (k: any) => !state.table.ignore.includes(k),
-      );
+      // FIXME:
+      // state.table.columns = Object.keys(payload.res.items[0] ?? {}).filter(
+      //   (k: any) => !state.table.ignore.includes(k),
+      // );
 
       for (const item of payload.res.items) {
         state.table.rows.push(state.table.columns.map((k) => item[k]));

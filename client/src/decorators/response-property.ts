@@ -1,5 +1,7 @@
 import 'reflect-metadata';
 
+import { IconProp } from '@fortawesome/fontawesome-svg-core';
+
 import { CommonResponseDto } from '../response-dto/common.response-dto';
 
 export enum ResponsePropKey {
@@ -36,6 +38,36 @@ export class ResponseProps {
    * If set to ```true``` then will overwrite property to {@link default} value
    */
   overwrite: true;
+
+  /**
+   * Entity property
+   * Will hide this field to user
+   */
+  hidden: true;
+
+  /**
+   * Entity property
+   * If set then it will displayed in related block
+   */
+  related: true;
+
+  /**
+   * Entity property
+   * Will show specified icon depends on a state
+   */
+  icon: { [state: string]: IconProp };
+
+  /**
+   * Entity property
+   * Will show this value based on index
+   */
+  index: number;
+
+  /**
+   * Entity property
+   * Will display column with the next width
+   */
+  className: string;
 }
 
 type TransformerT = (entity: any, props: ResponseProps) => any;
@@ -54,11 +86,11 @@ export function ResponseProperty(
 
     if (typeof transformer == 'function' || typeof transformer == 'undefined') {
       set(ResponsePropKey.type, transformer ?? true);
-      set(ResponsePropKey.props, new ResponseProps(props));
+      set(ResponsePropKey.props, new ResponseProps({ ...(props || {}), key }));
       return;
     }
 
     set(ResponsePropKey.type, true);
-    set(ResponsePropKey.props, new ResponseProps(props));
+    set(ResponsePropKey.props, new ResponseProps({ ...transformer, key }));
   };
 }

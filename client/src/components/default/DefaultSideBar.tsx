@@ -1,8 +1,8 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ReactNode } from 'react';
 
-import { generalStore } from '../../redux/reducer/general.reducer';
 import { useAppDispatch, useAppSelector } from '../../redux/storage';
+import { invertMode } from '../../redux/thunk/general.thunk';
 import SideBar from '../SideBar/SideBar';
 import SideBarChapter from '../SideBar/SideBarChapter.';
 import SideBarItem from '../SideBar/SideBarItem';
@@ -12,7 +12,7 @@ export interface DefaultSideBarProps {
 }
 
 export default function DefaultSideBar(props: DefaultSideBarProps) {
-  const mode = useAppSelector((state) => state.general.mode);
+  const { mode, res } = useAppSelector((state) => state.general);
   const dispatch = useAppDispatch();
 
   return (
@@ -30,7 +30,7 @@ export default function DefaultSideBar(props: DefaultSideBarProps) {
         <SideBarItem
           name=""
           anchor=""
-          onClick={() => dispatch(generalStore.actions.invertMode())}
+          onClick={() => dispatch(invertMode(res))}
         >
           <div className="group-hover:text-blue-600 dark:group-hover:text-yellow-200">
             <FontAwesomeIcon icon={mode.icon as any} className="dar mr-3" />

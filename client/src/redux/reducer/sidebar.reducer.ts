@@ -2,7 +2,8 @@ import { createSlice, nanoid, PayloadAction } from '@reduxjs/toolkit';
 
 import { SideBarChapterProps } from '../../components/SideBar/SideBarChapter.';
 import { SideBarItemProps } from '../../components/SideBar/SideBarItem';
-import { NavBarItemT } from '../../response-dto/setting/sidebar-setting.response-dto';
+import { ObjectService } from '../../lib';
+import { AliasResponseDto } from '../../response-dto/alias/alias-response.dto';
 import { ObjectLiteral } from '../../types';
 import { preloadSidebar } from '../thunk/sidebar.thunk';
 
@@ -38,21 +39,24 @@ export const sidebarStore = createSlice({
 
   extraReducers(builder) {
     builder.addCase(preloadSidebar.fulfilled, (state, { payload }) => {
-      for (const { name, anchor, icon, chapters } of payload.items) {
-        const chapter_id = chapters && nanoid();
-        state.items.push({ name, anchor, icon, chapter_id });
+      console.log('FIXME: Sidebar');
 
-        if (!chapter_id) continue;
-        (function unwrap(id: string, items: NavBarItemT[]) {
-          state.chapters[id] = [];
-          for (const { name, anchor, icon, chapters } of items) {
-            const chapter_id = chapters && nanoid();
-            state.chapters[id].push({ name, anchor, icon, chapter_id });
+      for (const k of ObjectService.keys(payload)) {
+        const chapter_id = nanoid();
+        state.items.push({ name: k, anchor: k, chapter_id });
 
-            if (!chapter_id) continue;
-            unwrap(chapter_id, chapters);
+        // FIXME: Fix logic of this
+        (function unwrap(parent_id: string, items: AliasResponseDto[]) {
+          state.chapters[parent_id] = [];
+          for (const { id, alias: name, children } of items) {
+            // const chapter_id = children?.alias?.length ? nanoid() : null;
+            // state.chapters[parent_id].push({ name, anchor: id, chapter_id });
+            state.chapters[parent_id].push({ name, anchor: id });
+
+            // if (!chapter_id) continue;
+            // unwrap(chapter_id, children.alias);
           }
-        })(chapter_id, chapters);
+        })(chapter_id, payload[k].items);
       }
     });
   },

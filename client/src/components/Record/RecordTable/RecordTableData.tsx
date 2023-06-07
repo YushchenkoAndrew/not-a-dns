@@ -1,20 +1,18 @@
-import { faStar as farStar } from '@fortawesome/free-regular-svg-icons';
-import { faStar } from '@fortawesome/free-solid-svg-icons';
+import { faQuestion } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { actionStore } from '../../../redux/reducer/action.reducer';
 import { StoreT, useAppDispatch, useAppSelector } from '../../../redux/storage';
+import { CommonResponseDto } from '../../../response-dto/common.response-dto';
 
-export type TableT<T = string> = {
+export type TableT = {
   columns: string[];
   rows: string[][];
-
-  ignore: T[];
 };
 
 export interface RecordT {
   loaded?: boolean;
-  items: { id: string }[];
+  items: (CommonResponseDto & { id: string })[];
   table: TableT;
 }
 
@@ -56,7 +54,9 @@ export default function RecordTableData<
           {table.columns.map((name, index) => (
             <th
               key={`${isStore(props) ? props.store : ''}_thead_${index}`}
-              className="font-semibold text-gray-900 dark:text-gray-100 px-4 py-2 text-left"
+              className={`font-semibold text-gray-900 dark:text-gray-100 px-4 py-2 text-left ${
+                items[index]?.options[table.columns[index]]?.className ?? ''
+              }`}
             >
               {loaded === false ? (
                 <span className="animate-pulse block w-full h-2 my-2 rounded-full" />
@@ -77,7 +77,6 @@ export default function RecordTableData<
                 ? null
                 : dispatch(
                     actionStore.actions.onSelect({
-                      ignore: table.ignore,
                       optional: {
                         id: items[index].id,
                         className: props.className,
@@ -90,15 +89,27 @@ export default function RecordTableData<
             {row.map((value, index) => (
               <td
                 key={`${isStore(props) ? props.store : ''}_tbody_td_${index}`}
-                className="p-4 decoration-2"
+                className="p-4 decoration-2 truncate max-w-xs xl:max-w-xl"
               >
                 {loaded === false ? (
                   <span className="animate-pulse block w-full h-2 bg-gray-200 rounded-full dark:bg-gray-700" />
                 ) : typeof value == 'boolean' ? (
-                  <FontAwesomeIcon
-                    className={value ? 'text-amber-400' : ''}
-                    icon={value ? faStar : farStar}
-                  />
+                  items[index].options[table.columns[index]]?.icon ? (
+                    <FontAwesomeIcon
+                      className={value ? 'text-blue-500' : ''}
+                      icon={
+                        items[index].options[table.columns[index]].icon[
+                          value
+                        ] ?? faQuestion
+                      }
+                    />
+                  ) : (
+                    <input
+                      type="checkbox"
+                      className="w-4 h-4 text-blue-500 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                      checked={value}
+                    />
+                  )
                 ) : (
                   value
                 )}

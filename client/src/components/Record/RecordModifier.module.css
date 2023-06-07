@@ -13,3 +13,7 @@
 .record-modifier td > input {
   @apply border-red-300;
 } */
+
+/* .record-modifier::-webkit-scrollbar-track {
+   @apply p-11;
+} */

@@ -25,7 +25,6 @@ export const upsertLinks = createAsyncThunk(
   async ({ body, id }: { body: LinksResponseDto; id?: string }) => {
     return new LinksResponseDto().build(
       await fetch(`${API_URL}/links${id ? '' : `/${id}`}`, {
-        mode: 'cors',
         method: id ? 'POST' : 'PUT',
         body: JSON.stringify(new LinksResponseDto().build(body)),
         headers: { 'Content-Type': 'application/json' },

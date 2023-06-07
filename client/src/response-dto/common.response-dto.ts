@@ -4,6 +4,7 @@ import {
   ResponsePropKey,
   ResponseProps,
 } from '../decorators/response-property';
+import { ObjectLiteral } from '../types';
 
 export class CommonResponseDto {
   // static assign<T extends CommonResponseDto>(src: Partial<T>, dst: T) {
@@ -60,10 +61,8 @@ export class CommonResponseDto {
       const props: ResponseProps = this.getGlobal(ResponsePropKey.props, k);
 
       this[k] =
-        transformer(
-          entity,
-          new ResponseProps({ ...props, self: this, key: k }),
-        ) ?? props.default;
+        transformer(entity, new ResponseProps({ ...props, self: this })) ??
+        props.default;
     }
 
     return this;
@@ -102,5 +101,24 @@ export class CommonResponseDto {
 
   private setLocal(type: ResponsePropKey, value: any, key: string) {
     return Reflect.defineMetadata(type, value, this, key);
+  }
+
+  private static _options: ObjectLiteral<ResponseProps>;
+  static get options(): ObjectLiteral<ResponseProps> {
+    const saved = this.prototype.constructor['_options'];
+    if (saved) return saved;
+
+    const options = {};
+    const self = new (this.prototype.constructor as any)();
+
+    for (const k of self.getGlobal(ResponsePropKey.keys) || []) {
+      const props = self.getGlobal(ResponsePropKey.props, k);
+      if (props) options[k] = props;
+    }
+    return (this.prototype.constructor['_options'] = options);
+  }
+
+  get options(): ObjectLiteral<ResponseProps> {
+    return this.constructor['options'];
   }
 }

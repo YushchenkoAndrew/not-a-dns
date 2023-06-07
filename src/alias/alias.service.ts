@@ -3,9 +3,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import {
   FindManyOptions,
   FindOptionsRelations,
+  FindOptionsWhere,
+  ILike,
   In,
   IsNull,
-  Like,
   Not,
   Repository,
 } from 'typeorm';
@@ -31,18 +32,23 @@ export class AliasService {
   ) {}
 
   async getAll(dto: AliasDto): Promise<AliasPageResponseDto> {
+    const condition: FindOptionsWhere<AliasEntity> = {
+      id: Not(IsNull()),
+      favorite: dto.favorite,
+      secret:
+        typeof dto.secret != 'boolean'
+          ? undefined
+          : dto.secret
+          ? Not(IsNull())
+          : IsNull(),
+    };
+
     const [alias, total] = await this.repository.findAndCount({
-      where: {
-        // TODO: Add OR condition with name
-        alias: dto.query && Like(dto.query),
-        favorite: dto.favorite,
-        secret:
-          typeof dto.secret != 'boolean'
-            ? undefined
-            : dto.secret
-            ? Not(IsNull())
-            : IsNull(),
-      },
+      where: [
+        { alias: dto.query && ILike(dto.query) },
+        { name: dto.query && ILike(dto.query) },
+        { value: dto.query && ILike(dto.query) },
+      ].map((item) => ({ ...condition, ...item })),
       take: dto.per_page,
       skip: dto.skip,
     });
