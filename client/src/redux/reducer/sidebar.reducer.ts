@@ -2,8 +2,8 @@ import { createSlice, nanoid, PayloadAction } from '@reduxjs/toolkit';
 
 import { SideBarChapterProps } from '../../components/SideBar/SideBarChapter.';
 import { SideBarItemProps } from '../../components/SideBar/SideBarItem';
+import { AliasEntity } from '../../entities/alias/alias.entity';
 import { ObjectService } from '../../lib';
-import { AliasResponseDto } from '../../response-dto/alias/alias-response.dto';
 import { ObjectLiteral } from '../../types';
 import { preloadSidebar } from '../thunk/sidebar.thunk';
 
@@ -46,7 +46,7 @@ export const sidebarStore = createSlice({
         state.items.push({ name: k, anchor: k, chapter_id });
 
         // FIXME: Fix logic of this
-        (function unwrap(parent_id: string, items: AliasResponseDto[]) {
+        (function unwrap(parent_id: string, items: AliasEntity[]) {
           state.chapters[parent_id] = [];
           for (const { id, alias: name, children } of items) {
             // const chapter_id = children?.alias?.length ? nanoid() : null;

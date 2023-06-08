@@ -1,8 +1,8 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 
 import { API_URL } from '../../config';
+import { SettingResponseDto } from '../../entities/setting/general-setting.response-dto';
 import { ErrorService } from '../../lib';
-import { SettingResponseDto } from '../../response-dto/setting/general-setting.response-dto';
 
 export const preloadGeneral = createAsyncThunk('general/preload', async () => {
   return new SettingResponseDto().build(

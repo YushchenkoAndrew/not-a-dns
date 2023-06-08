@@ -1,7 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 import { TableT } from '../../components/Record/RecordTable/RecordTableData';
-import { LinksPageResponseDto } from '../../response-dto/links/links-page-response.dto';
+import { LinksPageResponseDto } from '../../entities/links/links-page-response.dto';
 import { PageType, QueryType } from '../../types/request.type';
 import { loadLinks } from '../thunk/links.thunk';
 

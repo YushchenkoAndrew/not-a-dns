@@ -1,7 +1,10 @@
 import { ResponseProperty } from '../decorators/response-property';
-import { CommonResponseDto } from './common.response-dto';
+import { CommonEntity } from './common.entity';
 
-export class InfoResponseDto extends CommonResponseDto {
+/**
+ * @deprecated
+ */
+export class InfoResponseDto extends CommonEntity {
   constructor(init?: Partial<InfoResponseDto>) {
     super();
     this.assign(init, this);

@@ -1,9 +1,9 @@
 import { faQuestion } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
+import { CommonEntity } from '../../../entities/common.entity';
 import { actionStore } from '../../../redux/reducer/action.reducer';
 import { StoreT, useAppDispatch, useAppSelector } from '../../../redux/storage';
-import { CommonResponseDto } from '../../../response-dto/common.response-dto';
 
 export type TableT = {
   columns: string[];
@@ -12,7 +12,7 @@ export type TableT = {
 
 export interface RecordT {
   loaded?: boolean;
-  items: (CommonResponseDto & { id: string })[];
+  items: (CommonEntity & { id: string })[];
   table: TableT;
 }
 
@@ -55,7 +55,9 @@ export default function RecordTableData<
             <th
               key={`${isStore(props) ? props.store : ''}_thead_${index}`}
               className={`font-semibold text-gray-900 dark:text-gray-100 px-4 py-2 text-left ${
-                items[index]?.options[table.columns[index]]?.className ?? ''
+                loaded === false
+                  ? ''
+                  : items[index]?.columns[table.columns[index]]?.className ?? ''
               }`}
             >
               {loaded === false ? (
@@ -76,13 +78,14 @@ export default function RecordTableData<
               loaded === false
                 ? null
                 : dispatch(
-                    actionStore.actions.onSelect({
-                      optional: {
-                        id: items[index].id,
-                        className: props.className,
-                      },
-                      data: items[index],
-                    }),
+                    items[index].findOne(),
+                    // actionStore.actions.onSelect({
+                    //   optional: {
+                    //     id: items[index].id,
+                    //     className: props.className,
+                    //   },
+                    //   data: items[index],
+                    // }),
                   )
             }
           >
@@ -94,11 +97,11 @@ export default function RecordTableData<
                 {loaded === false ? (
                   <span className="animate-pulse block w-full h-2 bg-gray-200 rounded-full dark:bg-gray-700" />
                 ) : typeof value == 'boolean' ? (
-                  items[index].options[table.columns[index]]?.icon ? (
+                  items[index].columns[table.columns[index]]?.icon ? (
                     <FontAwesomeIcon
                       className={value ? 'text-blue-500' : ''}
                       icon={
-                        items[index].options[table.columns[index]].icon[
+                        items[index].columns[table.columns[index]].icon[
                           value
                         ] ?? faQuestion
                       }

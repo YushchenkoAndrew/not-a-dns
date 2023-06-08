@@ -1,7 +1,7 @@
 import { ResponseProperty } from '../../decorators/response-property';
-import { CommonResponseDto } from '../common.response-dto';
+import { CommonEntity } from '../common.entity';
 
-export class LinksResponseDto extends CommonResponseDto {
+export class LinksResponseDto extends CommonEntity {
   @ResponseProperty()
   favorite: boolean = false;
 

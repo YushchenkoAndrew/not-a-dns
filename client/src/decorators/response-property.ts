@@ -1,8 +1,6 @@
 import 'reflect-metadata';
 
-import { IconProp } from '@fortawesome/fontawesome-svg-core';
-
-import { CommonResponseDto } from '../response-dto/common.response-dto';
+import { CommonEntity } from '../entities/common.entity';
 
 export enum ResponsePropKey {
   type = 'RESPONSE',
@@ -18,13 +16,13 @@ export class ResponseProps {
 
   /**
    * This variable contains current ```this```
-   * This value will be defined dynamically in {@link CommonResponseDto#build}
+   * This value will be defined dynamically in {@link CommonEntity#build}
    */
-  self: CommonResponseDto;
+  self: CommonEntity;
 
   /**
    * This variable contains current key name
-   * This value will be defined dynamically in {@link CommonResponseDto#build}
+   * This value will be defined dynamically in {@link CommonEntity#build}
    */
   key: string;
 
@@ -38,36 +36,6 @@ export class ResponseProps {
    * If set to ```true``` then will overwrite property to {@link default} value
    */
   overwrite: true;
-
-  /**
-   * Entity property
-   * Will hide this field to user
-   */
-  hidden: true;
-
-  /**
-   * Entity property
-   * If set then it will displayed in related block
-   */
-  related: true;
-
-  /**
-   * Entity property
-   * Will show specified icon depends on a state
-   */
-  icon: { [state: string]: IconProp };
-
-  /**
-   * Entity property
-   * Will show this value based on index
-   */
-  index: number;
-
-  /**
-   * Entity property
-   * Will display column with the next width
-   */
-  className: string;
 }
 
 type TransformerT = (entity: any, props: ResponseProps) => any;

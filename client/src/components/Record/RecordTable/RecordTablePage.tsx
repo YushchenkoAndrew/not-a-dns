@@ -1,8 +1,8 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useEffect, useMemo, useState } from 'react';
 
+import { CommonPageResponseDto } from '../../../entities/common-page.response-dto';
 import { StoreT, useAppSelector } from '../../../redux/storage';
-import { CommonPageResponseDto } from '../../../response-dto/common-page.response-dto';
 
 export interface RecordTablePageProps<
   K extends keyof StoreT,

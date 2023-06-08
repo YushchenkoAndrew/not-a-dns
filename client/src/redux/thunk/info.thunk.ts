@@ -1,8 +1,8 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 
 import { API_URL } from '../../config';
+import { InfoResponseDto } from '../../entities/info.response-dto';
 import { ErrorService } from '../../lib';
-import { InfoResponseDto } from '../../response-dto/info.response-dto';
 
 export const getInfo = createAsyncThunk('info/load', async (id: string) => {
   return new InfoResponseDto(

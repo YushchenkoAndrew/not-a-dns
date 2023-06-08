@@ -1,8 +1,8 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 
 import { API_URL } from '../../config';
+import { AliasPageResponseDto } from '../../entities/alias/alias-page-response.dto';
 import { ErrorService, StringService } from '../../lib';
-import { AliasPageResponseDto } from '../../response-dto/alias/alias-page-response.dto';
 
 export const preloadNavbar = createAsyncThunk('navbar/preload', async () => {
   return new AliasPageResponseDto().build(

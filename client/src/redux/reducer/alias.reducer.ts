@@ -1,8 +1,8 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 import { TableT } from '../../components/Record/RecordTable/RecordTableData';
-import { AliasPageResponseDto } from '../../response-dto/alias/alias-page-response.dto';
-import { AliasResponseDto } from '../../response-dto/alias/alias-response.dto';
+import { AliasPageResponseDto } from '../../entities/alias/alias-page-response.dto';
+import { AliasEntity } from '../../entities/alias/alias.entity';
 import { PageType, QueryType } from '../../types/request.type';
 import { loadAlias } from '../thunk/alias.thunk';
 
@@ -43,14 +43,14 @@ export const aliasStore = createSlice({
       state.per_page = payload.res.per_page;
       state.total = payload.res.total;
 
-      const options = AliasResponseDto.options;
+      const columns = AliasEntity.columns;
 
       state.table.rows = [];
-      state.table.columns = Object.keys(payload.res.items[0] ?? {})
-        .filter((k: any) => !options[k]?.hidden)
+      state.table.columns = Object.keys(columns)
+        .filter((k: any) => !columns[k]?.hidden)
         .sort(
           (a, b) =>
-            (options[a]?.index ?? Infinity) - (options[b]?.index ?? Infinity),
+            (columns[a]?.index ?? Infinity) - (columns[b]?.index ?? Infinity),
         );
 
       for (const item of payload.res.items) {

@@ -1,6 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
 
-import { SettingResponseDto } from '../../response-dto/setting/general-setting.response-dto';
+import { SettingResponseDto } from '../../entities/setting/general-setting.response-dto';
 import { invertMode, preloadGeneral } from '../thunk/general.thunk';
 
 function State2Mode(state: boolean) {

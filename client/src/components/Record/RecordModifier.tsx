@@ -11,17 +11,15 @@ import RecordTable from './RecordTable/RecordTable';
 import RecordTableData from './RecordTable/RecordTableData';
 
 export interface RecordModifierProps {
-  onSubmit: (prop: ActionOptions, res: ObjectLiteral) => void;
-  onDelete: (prop: ActionOptions) => void;
+  // // onSubmit: (prop: ActionOptions, res: ObjectLiteral) => void;
+  // // onDelete: (prop: ActionOptions) => void;
 }
 
 export default function RecordModifier(props: RecordModifierProps) {
   const popupRef = useRef(null);
 
   const dispatch = useAppDispatch();
-  const { options, table, original, additional } = useAppSelector(
-    (state) => state.action,
-  );
+  const { options, table, original } = useAppSelector((state) => state.action);
 
   useEffect(() => {
     const handler = {
@@ -99,13 +97,13 @@ export default function RecordModifier(props: RecordModifierProps) {
                         Delete record
                       </>
                     ),
-                    hidden:
-                      options.id === undefined ||
-                      Object.values(additional).find(
-                        ({ table: { rows } }) => rows.length,
-                      ) !== undefined,
+                    // hidden:
+                    //   options.id === undefined ||
+                    //   Object.values(additional).find(
+                    //     ({ table: { rows } }) => rows.length,
+                    //   ) !== undefined,
                     onClick: () => (
-                      props.onDelete(options),
+                      dispatch(original.delete()).unwrap(),
                       dispatch(actionStore.actions.unfocus())
                     ),
                   },
@@ -143,7 +141,7 @@ export default function RecordModifier(props: RecordModifierProps) {
                         key={`modifier_tbody_td_${index}`}
                         className="p-4 decoration-2"
                       >
-                        {/* TODO: Add auto suggestion and linking */}
+                        {/* //TODO: Add auto suggestion and linking */}
                         <input
                           name={table.columns[index]}
                           value={value}
@@ -167,7 +165,7 @@ export default function RecordModifier(props: RecordModifierProps) {
             </table>
           </form>
 
-          {Object.values(original.options)
+          {Object.values(original.columns)
             .filter(({ related }) => related)
             .map(({ key }) =>
               Object.entries(original[key] || []).map((res) => [key, res]),
@@ -184,29 +182,31 @@ export default function RecordModifier(props: RecordModifierProps) {
                     um, a conversation starter?'
                   </p>
 
-                  <RecordTableData
-                    key={index}
-                    className={`${RECORD_TABLE_COLOR_TYPE[5]} last:mb-0 mb-6`}
-                    table={(function () {
-                      const columns = Object.keys(items[0] ?? {})
-                        .filter((k: any) => !items[0].options[k]?.hidden)
-                        .sort(
-                          (a, b) =>
-                            (items[0].options[a]?.index ?? Infinity) -
-                            (items[0].options[b]?.index ?? Infinity),
-                        );
+                  {items[0] && (
+                    <RecordTableData
+                      key={index}
+                      className={`${RECORD_TABLE_COLOR_TYPE[5]}`}
+                      table={(function () {
+                        const columns = Object.keys(items[0].columns)
+                          .filter((k: any) => !items[0].columns[k]?.hidden)
+                          .sort(
+                            (a, b) =>
+                              (items[0].columns[a]?.index ?? Infinity) -
+                              (items[0].columns[b]?.index ?? Infinity),
+                          );
 
-                      const rows = [];
-                      for (const item of items) {
-                        rows.push(columns.map((k) => item[k]));
-                      }
+                        const rows = [];
+                        for (const item of items) {
+                          rows.push(columns.map((k) => item[k]));
+                        }
 
-                      console.log({ columns, rows });
+                        console.log({ columns, rows });
 
-                      return { columns, rows };
-                    })()}
-                    items={items}
-                  />
+                        return { columns, rows };
+                      })()}
+                      items={items}
+                    />
+                  )}
                 </RecordTable>
               </div>
             ))}

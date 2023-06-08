@@ -15,6 +15,10 @@ export class StringService {
     return name.replace(/ /g, '_').replace(/\//g, '').toLowerCase();
   }
 
+  static route(str: string) {
+    return str.replace(/\$/, '');
+  }
+
   static toQuery(obj: ObjectLiteral = {}) {
     const params = [] as string[];
 
