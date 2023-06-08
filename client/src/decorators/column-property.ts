@@ -42,6 +42,12 @@ export class ColumnProps {
 
   /**
    * Entity property
+   * If set then it will be required aka not empty
+   */
+  required: true;
+
+  /**
+   * Entity property
    * Will show specified icon depends on a state
    */
   icon: { [state: string]: IconProp };

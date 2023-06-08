@@ -15,9 +15,9 @@ import SideBarItem from './components/SideBar/SideBarItem';
 import { StringService } from './lib';
 import { isSideBarChapter } from './redux/reducer/sidebar.reducer';
 import { useAppDispatch, useAppSelector } from './redux/storage';
-import { preloadGeneral } from './redux/thunk/general.thunk';
 import { preloadNavbar } from './redux/thunk/navbar.thunk';
 import { preloadSidebar } from './redux/thunk/sidebar.thunk';
+import { SettingEntity } from './entities/setting/setting.entity';
 
 library.add(fas);
 
@@ -29,7 +29,7 @@ export default function App() {
       try {
         await dispatch(preloadNavbar()).unwrap();
         await dispatch(preloadSidebar()).unwrap();
-        await dispatch(preloadGeneral()).unwrap();
+        await dispatch(SettingEntity.self.findOne()).unwrap();
       } catch (err) {
         toast(StringService.errToMsg(err), { type: 'error' });
       }

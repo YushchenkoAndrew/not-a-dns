@@ -41,6 +41,9 @@ export const sidebarStore = createSlice({
     builder.addCase(preloadSidebar.fulfilled, (state, { payload }) => {
       console.log('FIXME: Sidebar');
 
+      state.items = [];
+      state.chapters = {};
+
       for (const k of ObjectService.keys(payload)) {
         const chapter_id = nanoid();
         state.items.push({ name: k, anchor: k, chapter_id });

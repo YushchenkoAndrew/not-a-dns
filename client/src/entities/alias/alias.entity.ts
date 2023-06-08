@@ -2,13 +2,17 @@ import { faStar as farStar } from '@fortawesome/free-regular-svg-icons';
 import { faStar } from '@fortawesome/free-solid-svg-icons';
 import { ColumnProperty } from '../../decorators/column-property';
 import { RequestEntity } from '../../decorators/request-entity';
-
 import { ResponseProperty } from '../../decorators/response-property';
 import { CommonEntity } from '../common.entity';
-import { AliasLinksResponseDto } from './alias-links-response.dto';
+import { AliasLinksEntity } from './alias-links.entity';
 
 @RequestEntity({ route: 'alias' })
 export class AliasEntity extends CommonEntity {
+  constructor(init?: Partial<AliasEntity>) {
+    super();
+    this.assign(init, this);
+  }
+
   @ResponseProperty()
   id: string;
 
@@ -20,11 +24,11 @@ export class AliasEntity extends CommonEntity {
   name: string;
 
   @ResponseProperty()
-  @ColumnProperty({ index: 3, className: 'w-min' })
+  @ColumnProperty({ index: 3, className: 'w-min', required: true })
   alias: string;
 
   @ResponseProperty()
-  @ColumnProperty({ index: 4, className: 'w-min' })
+  @ColumnProperty({ index: 4, className: 'w-min', required: true })
   value: string;
 
   @ResponseProperty()
@@ -39,11 +43,11 @@ export class AliasEntity extends CommonEntity {
   @ColumnProperty({ hidden: true })
   secrete: boolean;
 
-  @ResponseProperty((e) => new AliasLinksResponseDto().build(e.children))
+  @ResponseProperty((e) => new AliasLinksEntity().build(e.children ?? {}))
   @ColumnProperty({ hidden: true, related: true })
-  children: AliasLinksResponseDto;
+  children: AliasLinksEntity;
 
-  @ResponseProperty((e) => new AliasLinksResponseDto().build(e.parent))
+  @ResponseProperty((e) => new AliasLinksEntity().build(e.parent ?? {}))
   @ColumnProperty({ hidden: true, related: true })
-  parent: AliasLinksResponseDto;
+  parent: AliasLinksEntity;
 }

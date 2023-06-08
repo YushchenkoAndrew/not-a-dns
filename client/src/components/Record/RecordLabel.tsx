@@ -12,7 +12,6 @@ export default function RecordLabel(props: RecordLabelProps) {
       <p className="group text-2xl font-bold my-2">
         <a
           className="text-gray-900 dark:text-white"
-          // TODO:
           // name={props.section}
           href={props.anchor ? `#${props.anchor}` : undefined}
           onClick={props.onClick}

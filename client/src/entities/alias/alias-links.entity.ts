@@ -3,7 +3,7 @@ import { CommonEntity } from '../common.entity';
 import { LinksResponseDto } from '../links/links-response.dto';
 import { AliasEntity } from './alias.entity';
 
-export class AliasLinksResponseDto extends CommonEntity {
+export class AliasLinksEntity extends CommonEntity {
   @ResponseProperty((e) => new AliasEntity().buildAll(e.alias))
   alias: AliasEntity[];
 

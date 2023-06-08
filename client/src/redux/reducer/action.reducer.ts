@@ -1,11 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-
-import {
-  RecordT,
-  TableT,
-} from '../../components/Record/RecordTable/RecordTableData';
+import { TableT } from '../../components/Record/RecordTable/RecordTableData';
 import { CommonEntity } from '../../entities/common.entity';
-import { ObjectLiteral } from '../../types';
 import { ACTION_TYPES } from '../../types/action.types';
 
 type OptionalT = ({ id: string } | { type: (typeof ACTION_TYPES)[number] }) & {
@@ -59,8 +54,16 @@ export const actionStore = createSlice({
       state.original = payload.data;
 
       state.table = { columns: [], rows: [] };
-      state.table.rows = [];
-      state.table.columns = Object.keys(payload.data ?? {})
+      // state.table.rows = [];
+      // state.table.columns = Object.keys(payload.data ?? {})
+      //   .filter((k: any) => !state.original.columns[k]?.hidden)
+      //   .sort(
+      //     (a, b) =>
+      //       (state.original.columns[a]?.index ?? Infinity) -
+      //       (state.original.columns[b]?.index ?? Infinity),
+      //   );
+
+      state.table.columns = Object.keys(state.original.columns)
         .filter((k: any) => !state.original.columns[k]?.hidden)
         .sort(
           (a, b) =>

@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-import { AliasPageResponseDto } from '../../entities/alias/alias-page-response.dto';
+import { AliasPageEntity } from '../../entities/alias/alias-page.entity';
 import { AliasEntity } from '../../entities/alias/alias.entity';
 import { preloadNavbar } from '../thunk/navbar.thunk';
 
@@ -14,11 +14,11 @@ export const navbarStore = createSlice({
     items: [] as AliasEntity[],
   } as NavbarStoreT,
   reducers: {
-    addFavorite: (state, action: PayloadAction<AliasPageResponseDto>) => {
+    addFavorite: (state, action: PayloadAction<AliasPageEntity>) => {
       // state.items.push(...action.payload.items);
     },
 
-    deleteFavorite: (state, action: PayloadAction<AliasPageResponseDto>) => {
+    deleteFavorite: (state, action: PayloadAction<AliasPageEntity>) => {
       // TODO:
       // state.items.push(action.payload);
     },

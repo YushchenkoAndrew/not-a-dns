@@ -1,7 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
 
-import { SettingResponseDto } from '../../entities/setting/general-setting.response-dto';
-import { invertMode, preloadGeneral } from '../thunk/general.thunk';
+import { SettingEntity } from '../../entities/setting/setting.entity';
 
 function State2Mode(state: boolean) {
   return state
@@ -13,7 +12,7 @@ type GeneralStoreT = {
   loaded: boolean;
 
   mode: ReturnType<typeof State2Mode>;
-  res: SettingResponseDto;
+  res: SettingEntity;
 };
 
 export const generalStore = createSlice({
@@ -25,23 +24,24 @@ export const generalStore = createSlice({
     res: null,
   } as GeneralStoreT,
   reducers: {
-    // invertMode: (state) => {
-    // },
+    invertMode: (state) => {
+      state.mode = State2Mode(!state.mode.state);
+    },
   },
   extraReducers(builder) {
-    builder.addCase(preloadGeneral.fulfilled, (state, { payload }) => {
-      state.loaded = true;
+    builder.addCase(
+      SettingEntity.self.findOne.fulfilled,
+      (state, { payload }) => {
+        const res: SettingEntity = payload as any;
+        state.loaded = true;
 
-      state.res = payload;
-      state.mode = State2Mode(payload.mode);
-    });
+        state.res = res;
+        state.mode = State2Mode(res.mode);
+      },
+    );
 
-    builder.addCase(invertMode.pending, (state) => {
-      state.mode = State2Mode(!state.mode.state);
-    });
-
-    builder.addCase(invertMode.fulfilled, (state, { payload }) => {
-      state.res = payload;
+    builder.addCase(SettingEntity.self.save.fulfilled, (state, { payload }) => {
+      state.res = payload as any;
     });
   },
 });

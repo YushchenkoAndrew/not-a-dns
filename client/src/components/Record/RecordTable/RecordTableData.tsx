@@ -2,7 +2,6 @@ import { faQuestion } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { CommonEntity } from '../../../entities/common.entity';
-import { actionStore } from '../../../redux/reducer/action.reducer';
 import { StoreT, useAppDispatch, useAppSelector } from '../../../redux/storage';
 
 export type TableT = {
@@ -72,6 +71,7 @@ export default function RecordTableData<
       <tbody>
         {table.rows.map((row, index) => (
           <tr
+            id={items[index]?.id ?? undefined}
             key={`${isStore(props) ? props.store : ''}_tbody_${index}`}
             className="cursor-pointer text-gray-900 dark:text-gray-100"
             onClick={() =>

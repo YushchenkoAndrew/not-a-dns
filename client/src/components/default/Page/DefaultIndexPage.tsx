@@ -2,13 +2,15 @@ import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useEffect } from 'react';
 import { toast } from 'react-toastify';
+import { AliasPageEntity } from '../../../entities/alias/alias-page.entity';
 
 import { AliasEntity } from '../../../entities/alias/alias.entity';
 import { StringService } from '../../../lib';
 import { actionStore } from '../../../redux/reducer/action.reducer';
 import { useAppDispatch, useAppSelector } from '../../../redux/storage';
-import { loadAlias } from '../../../redux/thunk/alias.thunk';
 import { loadLinks } from '../../../redux/thunk/links.thunk';
+import { preloadNavbar } from '../../../redux/thunk/navbar.thunk';
+import { preloadSidebar } from '../../../redux/thunk/sidebar.thunk';
 import RecordLabel from '../../Record/RecordLabel';
 import RecordModifier from '../../Record/RecordModifier';
 import RecordTable from '../../Record/RecordTable/RecordTable';
@@ -26,52 +28,18 @@ export default function DefaultIndexPage(props: DefaultIndexPageProps) {
   const action = useAppSelector((state) => state.action);
 
   useEffect(() => {
-    (async function () {
-      await Promise.all([
-        dispatch(loadAlias({})).unwrap(),
-        dispatch(loadLinks({})).unwrap(),
-      ]);
-    })().catch((err) => toast(StringService.errToMsg(err), { type: 'error' }));
+    Promise.all([
+      dispatch(AliasPageEntity.self.select({})).unwrap(),
+      dispatch(loadLinks({})).unwrap(),
+      dispatch(preloadNavbar()).unwrap(),
+      dispatch(preloadSidebar()).unwrap(),
+    ]).catch((err) => toast(StringService.errToMsg(err), { type: 'error' }));
   }, [action.focused]);
-
-  // const eventHandler = async (options: ActionOptions, body?: ObjectLiteral) => {
-  //   const { type } = options.type
-  //     ? options
-  //     : await dispatch(getInfo(options.id)).unwrap();
-
-  //   switch (type as (typeof ACTION_TYPES)[number]) {
-  //     case 'alias':
-  //       return (
-  //         body
-  //           ? dispatch(upsertAlias({ body: body as any, id: options.id }))
-  //           : dispatch(deleteAlias(options.id))
-  //       )
-  //         .unwrap()
-  //         .then(() => dispatch(loadAlias(alias.query)).unwrap())
-  //         .then(() => dispatch(preloadSidebar()).unwrap());
-
-  //     case 'links':
-  //       return (
-  //         body
-  //           ? dispatch(upsertLinks({ body: body as any, id: options.id }))
-  //           : dispatch(deleteLinks(options.id))
-  //       )
-  //         .unwrap()
-  //         .then(() => dispatch(loadLinks(alias.query)).unwrap())
-  //         .then(() => dispatch(preloadNavbar()).unwrap());
-
-  //     default:
-  //       throw new Error('Unknown type');
-  //   }
-  // };
 
   return (
     <>
       {/* //TODO: Add relation with auto suggestions */}
-      <RecordModifier
-      // onDelete={(options) => eventHandler(options)}
-      // onSubmit={(options, body) => eventHandler(options, body)}
-      />
+      <RecordModifier />
 
       <div className="w-full h-full p-4 overflow-y-auto">
         <div className="flex flex-col items-center justify-center py-2">
@@ -107,19 +75,24 @@ export default function DefaultIndexPage(props: DefaultIndexPageProps) {
                           type: 'alias',
                           className: 'record-table-red',
                         },
+                        // FIXME: Make this based on property
                         data: new AliasEntity(),
                       }),
                     ),
                 },
               }}
               onSearch={(query) =>
-                dispatch(loadAlias({ ...alias.query, query })).unwrap()
+                dispatch(
+                  AliasPageEntity.self.select({ ...alias.query, query }),
+                ).unwrap()
               }
             />
             <RecordTableData className="record-table-red" store="alias" />
             <RecordTablePage
               store="alias"
-              onClick={(page) => dispatch(loadAlias({ ...alias.query, page }))}
+              onClick={(page) =>
+                dispatch(AliasPageEntity.self.select({ ...alias.query, page }))
+              }
             />
           </RecordTable>
 

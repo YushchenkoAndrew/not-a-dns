@@ -1,14 +1,16 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useEffect, useRef } from 'react';
+import { CommonEntity } from '../../entities/common.entity';
 
 import { StringService } from '../../lib';
-import { ActionOptions, actionStore } from '../../redux/reducer/action.reducer';
+import { actionStore } from '../../redux/reducer/action.reducer';
 import { useAppDispatch, useAppSelector } from '../../redux/storage';
-import { ObjectLiteral } from '../../types';
 import { RECORD_TABLE_COLOR_TYPE } from '../../types/record-table-color.type';
 import DropdownButton from '../DropdownButton';
 import RecordTable from './RecordTable/RecordTable';
 import RecordTableData from './RecordTable/RecordTableData';
+
+type SectionT = [string, [string, CommonEntity[]]];
 
 export interface RecordModifierProps {
   // // onSubmit: (prop: ActionOptions, res: ObjectLiteral) => void;
@@ -68,28 +70,35 @@ export default function RecordModifier(props: RecordModifierProps) {
                 return;
               }
 
-              console.log('FIXME: ON SUBMIT');
-              // props.onSubmit(options, { ...original, ...data });
-              dispatch(actionStore.actions.unfocus());
+              const data = table.columns.reduce(
+                (acc, k, index) => ((acc[k] = table.rows[0][index]), acc),
+                {},
+              );
+
+              dispatch(
+                original.save(original.newInstance(data).build(original)),
+              )
+                .unwrap()
+                .then(() => dispatch(actionStore.actions.unfocus()));
             }}
           >
             <div className="py-3 flex items-center justify-between">
               <DropdownButton
                 actions={{
-                  // favorite: {
-                  //   name: (
-                  //     <>
-                  //     FIXME:
-                  //       {/* <FontAwesomeIcon icon="star" className="mr-2" />
-                  //       {options.isFavorite
-                  //         ? 'Unset from favorite'
-                  //         : 'Set as favorite'} */}
-                  //     </>
-                  //   ),
-                  //   // hidden: options.isFavorite === undefined,
-                  //   // onClick: () =>
-                  //   //   dispatch(actionStore.actions.toggleFavorite()),
-                  // },
+                  //- favorite: {
+                  //-   name: (
+                  //-     <>
+                  //-     FIXME:
+                  //-       {/* <FontAwesomeIcon icon="star" className="mr-2" />
+                  //-       {options.isFavorite
+                  //-         ? 'Unset from favorite'
+                  //-         : 'Set as favorite'} */}
+                  //-     </>
+                  //-   ),
+                  //- hidden: options.isFavorite === undefined,
+                  //- onClick: () =>
+                  //-   dispatch(actionStore.actions.toggleFavorite()),
+                  //- },
                   delete: {
                     name: (
                       <>
@@ -97,15 +106,11 @@ export default function RecordModifier(props: RecordModifierProps) {
                         Delete record
                       </>
                     ),
-                    // hidden:
-                    //   options.id === undefined ||
-                    //   Object.values(additional).find(
-                    //     ({ table: { rows } }) => rows.length,
-                    //   ) !== undefined,
-                    onClick: () => (
-                      dispatch(original.delete()).unwrap(),
-                      dispatch(actionStore.actions.unfocus())
-                    ),
+                    hidden: options.id === undefined,
+                    onClick: () =>
+                      dispatch(original.delete())
+                        .unwrap()
+                        .then(() => dispatch(actionStore.actions.unfocus())),
                   },
                 }}
               />
@@ -141,11 +146,14 @@ export default function RecordModifier(props: RecordModifierProps) {
                         key={`modifier_tbody_td_${index}`}
                         className="p-4 decoration-2"
                       >
-                        {/* //TODO: Add auto suggestion and linking */}
+                        {/* // TODO: Add auto suggestion and linking */}
+                        {/* // TODO: Add ability to display boolean values */}
                         <input
                           name={table.columns[index]}
                           value={value}
-                          // required={options.required?.includes(name)}
+                          required={
+                            original.columns[table.columns[index]]?.required
+                          }
                           className="pt-1 pb-1 px-3 w-full border-b-2 focus:border-b-4 last:border-r-0 dark:bg-gray-800 dark:focus:bg-gray-700 focus:outline-none"
                           placeholder="Insert value"
                           onChange={(event) =>
@@ -171,7 +179,7 @@ export default function RecordModifier(props: RecordModifierProps) {
               Object.entries(original[key] || []).map((res) => [key, res]),
             )
             .flat()
-            .map(([section, [name, items]]: any, index) => (
+            .map(([section, [name, items]]: SectionT, index) => (
               <div className="flex flex-col p-6">
                 <RecordTable
                   label={`${StringService.capitalize(section)} ${name} items`}
@@ -195,16 +203,13 @@ export default function RecordModifier(props: RecordModifierProps) {
                               (items[0].columns[b]?.index ?? Infinity),
                           );
 
-                        const rows = [];
-                        for (const item of items) {
-                          rows.push(columns.map((k) => item[k]));
-                        }
-
-                        console.log({ columns, rows });
+                        const rows = items.map((item) =>
+                          columns.map((k) => item[k]),
+                        );
 
                         return { columns, rows };
                       })()}
-                      items={items}
+                      items={items as any}
                     />
                   )}
                 </RecordTable>

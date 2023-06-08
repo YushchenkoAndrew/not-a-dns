@@ -16,7 +16,7 @@ export class StringService {
   }
 
   static route(str: string) {
-    return str.replace(/\$/, '');
+    return str.replace(/\/$/, '');
   }
 
   static toQuery(obj: ObjectLiteral = {}) {

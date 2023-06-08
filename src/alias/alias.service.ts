@@ -117,7 +117,7 @@ export class AliasService {
             secret: true,
             alias_link: { linkable_alias: true },
           })
-        : this.repository.create();
+        : this.repository.create({});
 
     const parent = {
       toInsert: {} as ObjectLiteral<true>,
@@ -145,6 +145,9 @@ export class AliasService {
       const alias = await repo.alias.save(
         repo.alias.create({
           ...entity,
+          name: body.name,
+          alias: body.alias,
+          favorite: body.favorite,
           value: body.secret ? null : body.value,
           secret: body.secret
             ? await repo.secret.save(repo.secret.create({ value: body.value }))

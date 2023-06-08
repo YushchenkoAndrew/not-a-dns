@@ -10,9 +10,12 @@ import {
 import { AliasLinksBodyDto } from './alias-links-body.dto copy';
 
 export class AliasBodyDto {
+  @IsOptional()
+  name: string;
+
   @IsDefined()
   @IsNotEmpty()
-  name: string;
+  alias: string;
 
   @IsDefined()
   @IsNotEmpty()

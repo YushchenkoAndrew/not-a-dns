@@ -1,14 +1,14 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useEffect, useMemo, useState } from 'react';
 
-import { CommonPageResponseDto } from '../../../entities/common-page.response-dto';
+import { CommonPageEntity } from '../../../entities/common-page.entity';
 import { StoreT, useAppSelector } from '../../../redux/storage';
 
 export interface RecordTablePageProps<
   K extends keyof StoreT,
   V extends StoreT[K],
 > {
-  store: V extends Omit<CommonPageResponseDto, 'items'> ? K : never;
+  store: V extends Omit<CommonPageEntity, 'items'> ? K : never;
   onClick: (page: number) => void;
 
   pages?: number;
@@ -18,7 +18,7 @@ export default function RecordTablePage<
   K extends keyof StoreT,
   V extends StoreT[K],
 >(props: RecordTablePageProps<K, V>) {
-  const { page, per_page, total } = useAppSelector<CommonPageResponseDto>(
+  const { page, per_page, total } = useAppSelector<CommonPageEntity>(
     (state) => state[props.store as string],
   );
 

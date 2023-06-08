@@ -7,7 +7,11 @@ import {
   ColumnProps,
   ColumnProperty,
 } from '../decorators/column-property';
-import { RequestPropKey, RequestProps } from '../decorators/request-entity';
+import {
+  RequestEntity,
+  RequestPropKey,
+  RequestProps,
+} from '../decorators/request-entity';
 import {
   ResponsePropKey,
   ResponseProps,
@@ -16,6 +20,7 @@ import {
 import { ErrorService, StringService } from '../lib';
 import { ObjectLiteral } from '../types';
 
+@RequestEntity()
 export class CommonEntity {
   assign<T extends CommonEntity>(src: Partial<T>, dst: T) {
     for (const k in src || {}) {
@@ -102,8 +107,6 @@ export class CommonEntity {
       if (props) options[k] = props;
     }
 
-    console.log(options);
-
     return (this.prototype.constructor['_columns'] = options);
   }
 
@@ -114,70 +117,90 @@ export class CommonEntity {
   }
 
   get select() {
-    return createAsyncThunk('action/load', async (query?: ObjectLiteral) => {
-      const options: RequestProps = this.getGlobal(RequestPropKey.props);
-      if (!options) return null;
+    const options: RequestProps = this.getGlobal(RequestPropKey.props);
+    if (!options) return null;
 
-      return {
-        options: query,
-        res: this.newInstance().build(
-          await fetch(
-            `${API_URL}/${options.route}?${StringService.toQuery(query)}`,
-          ).then((res) => (ErrorService.validate(res), res.json())),
-        ),
-      };
-    });
+    return createAsyncThunk(
+      options.action?.select ?? 'action/load',
+      async (query: ObjectLiteral) => {
+        return {
+          options: query,
+          res: this.newInstance().build(
+            await fetch(
+              `${API_URL}/${options.route}?${StringService.toQuery(query)}`,
+            ).then((res) => (ErrorService.validate(res), res.json())),
+          ),
+        };
+      },
+    );
   }
 
   get findOne() {
-    return createAsyncThunk('action/load', async () => {
-      const options: RequestProps = this.getGlobal(RequestPropKey.props);
-      if (!options) return null;
+    const options: RequestProps = this.getGlobal(RequestPropKey.props);
+    if (!options) return null;
 
-      return this.newInstance().build(
-        await fetch(
-          StringService.route(
-            `${API_URL}/${options.route}/${(this as any).id ?? ''}`,
-          ),
-        ).then((res) => (ErrorService.validate(res), res.json())),
-      );
-    });
+    return createAsyncThunk(
+      options.action?.findOne ?? 'action/findOne',
+      async () => {
+        return this.newInstance().build(
+          await fetch(
+            StringService.route(
+              `${API_URL}/${options.route}/${
+                options.id ?? (this as any).id ?? ''
+              }`,
+            ),
+          ).then((res) => (ErrorService.validate(res), res.json())),
+        );
+      },
+    );
   }
 
   get save() {
-    return createAsyncThunk('action/upsert', async () => {
-      const options: RequestProps = this.getGlobal(RequestPropKey.props);
-      if (!options) return null;
+    const options: RequestProps = this.getGlobal(RequestPropKey.props);
+    if (!options) return null;
 
-      return this.newInstance().build(
-        await fetch(
-          StringService.route(
-            `${API_URL}/${options.route}/${(this as any).id ?? ''}`,
-          ),
-          {
-            method: (this as any).id ? 'POST' : 'PUT',
-            body: JSON.stringify(this.newInstance().build(this)),
-            headers: { 'Content-Type': 'application/json' },
-          },
-        ).then((res) => (ErrorService.validate(res), res.json())),
-      );
-    });
+    return createAsyncThunk(
+      options.action?.save ?? 'action/save',
+      async (init: ObjectLiteral) => {
+        console.log(init);
+
+        return this.newInstance().build(
+          await fetch(
+            StringService.route(
+              `${API_URL}/${options.route}/${
+                options.id ?? (this as any).id ?? ''
+              }`,
+            ),
+            {
+              method: options.id ?? (this as any).id ? 'PUT' : 'POST',
+              body: JSON.stringify(this.newInstance(init).build(this)),
+              headers: { 'Content-Type': 'application/json' },
+            },
+          ).then((res) => (ErrorService.validate(res), res.json())),
+        );
+      },
+    );
   }
 
   get delete() {
-    return createAsyncThunk('action/delete', async () => {
-      const options: RequestProps = this.getGlobal(RequestPropKey.props);
-      if (!options) return null;
+    const options: RequestProps = this.getGlobal(RequestPropKey.props);
+    if (!options) return null;
 
-      return this.newInstance().build(
-        await fetch(
-          StringService.route(
-            `${API_URL}/${options.route}/${(this as any).id ?? ''}`,
-          ),
-          { method: 'DELETE' },
-        ).then((res) => (ErrorService.validate(res), res.json())),
-      );
-    });
+    return createAsyncThunk(
+      options.action?.delete ?? 'action/delete',
+      async () => {
+        return this.newInstance().build(
+          await fetch(
+            StringService.route(
+              `${API_URL}/${options.route}/${
+                options.id ?? (this as any).id ?? ''
+              }`,
+            ),
+            { method: 'DELETE' },
+          ).then((res) => (ErrorService.validate(res), res.json())),
+        );
+      },
+    );
   }
 
   protected getGlobal(type: string, key?: string) {

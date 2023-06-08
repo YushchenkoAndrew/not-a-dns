@@ -1,7 +1,7 @@
 import { ResponseProperty } from '../decorators/response-property';
 import { CommonEntity } from './common.entity';
 
-export abstract class CommonPageResponseDto extends CommonEntity {
+export abstract class CommonPageEntity extends CommonEntity {
   @ResponseProperty()
   page: number;
 

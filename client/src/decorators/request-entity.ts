@@ -16,6 +16,21 @@ export class RequestProps {
    * Default route to send all request
    */
   route: string;
+
+  /**
+   * Default route to send all request
+   */
+  id: string;
+
+  /**
+   * Default action event name
+   */
+  action: Partial<{
+    select: string;
+    findOne: string;
+    save: string;
+    delete: string;
+  }>;
 }
 
 export function RequestEntity(props?: Partial<RequestProps>) {
