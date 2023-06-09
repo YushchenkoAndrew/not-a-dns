@@ -9,6 +9,6 @@ export class AliasPageResponseDto extends PageResponseDto {
     this.assign(init, this);
   }
 
-  @ResponseProperty((e) => new AliasLinksResponseDto().build(e))
+  @ResponseProperty((e) => new AliasLinksResponseDto().buildAll(e))
   items: AliasResponseDto[] = [];
 }

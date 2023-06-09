@@ -1,8 +1,10 @@
 import { AliasLinksResponseDto } from '../../alias/response-dto/alias-links-response.dto';
+import { AliasResponseDto } from '../../alias/response-dto/alias-response.dto';
+import { ArrayService } from '../../common/common.service';
 import { ResponseProperty } from '../../common/decorators/response-property';
 import { CommonResponseDto } from '../../common/response-dto/common-response.dto';
+import { LinksEntity } from '../entities/links.entity';
 
-// TODO:
 export class LinksResponseDto extends CommonResponseDto {
   constructor(init?: Partial<LinksResponseDto>) {
     super();
@@ -15,15 +17,34 @@ export class LinksResponseDto extends CommonResponseDto {
   @ResponseProperty()
   name: string = '';
 
-  // @ResponseProperty((e) => e.value || e.secret?.value || '')
-  // value: string = '';
+  @ResponseProperty()
+  url: string = '';
 
   @ResponseProperty()
   favorite: boolean = false;
 
-  @ResponseProperty((e) => new AliasLinksResponseDto().build(e))
+  // NOTE: Not supported for now
+  // @ResponseProperty((e: LinksEntity) =>
+  //   new AliasLinksResponseDto({
+  //     alias: new AliasResponseDto({ parent: undefined }).buildAll(
+  //       ArrayService.extractAndFilter(e.alias_link, 'linkable_alias'),
+  //     ),
+  //     links: new LinksResponseDto({ parent: undefined }).buildAll(
+  //       ArrayService.extractAndFilter(e.alias_link, 'linkable_links'),
+  //     ),
+  //   }).build(e),
+  // )
   children: AliasLinksResponseDto = null;
 
-  @ResponseProperty((e) => new AliasLinksResponseDto().build(e))
+  @ResponseProperty(
+    (e: LinksEntity) =>
+      new AliasLinksResponseDto({
+        alias: new AliasResponseDto({ parent: undefined }).buildAll(
+          ArrayService.extractAndFilter(e.alias_link, 'alias'),
+        ),
+        // NOTE: For now paren relation with link is not supported
+        // links: [],
+      }),
+  )
   parent: AliasLinksResponseDto = null;
 }

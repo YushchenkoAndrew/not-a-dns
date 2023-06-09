@@ -20,10 +20,4 @@ export class SettingsController {
   ): Promise<SettingsResponseDto> {
     return this.settingsService.putSetting(name, body);
   }
-
-  // TODO:
-  @Get('info/:id')
-  get(@Param('type') type: string) {
-    return { type: 'alias' };
-  }
 }

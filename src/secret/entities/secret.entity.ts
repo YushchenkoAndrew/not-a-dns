@@ -32,25 +32,30 @@ export class SecretEntity extends NanoidEntity {
 
   @AfterLoad()
   async afterLoad() {
-    this.is_encrypted ??= true;
-    if (!this.is_encrypted) return;
+    try {
+      this.is_encrypted ??= true;
+      if (!this.is_encrypted) return;
 
-    const salt = Buffer.from(this.salt, 'hex');
-    const iv = Buffer.from(this.iv, 'hex');
+      const salt = Buffer.from(this.salt, 'hex');
+      const iv = Buffer.from(this.iv, 'hex');
 
-    const key = scryptSync(Config.self.dynamic.secret, salt, 32);
-    const authTag = this.auth_tag ? Buffer.from(this.auth_tag, 'hex') : null;
+      const key = scryptSync(Config.self.dynamic.secret, salt, 32);
+      const authTag = this.auth_tag ? Buffer.from(this.auth_tag, 'hex') : null;
 
-    if (!authTag) throw new Error('Not supported');
-    const decipher = (
-      createDecipheriv(this.algorithm, key, iv) as DecipherGCM
-    ).setAuthTag(authTag);
+      if (!authTag) throw new Error('Not supported');
+      const decipher = (
+        createDecipheriv(this.algorithm, key, iv) as DecipherGCM
+      ).setAuthTag(authTag);
 
-    this.is_encrypted = false;
-    this.value = Buffer.concat([
-      decipher.update(Buffer.from(this.value, 'hex')),
-      decipher.final(),
-    ]).toString('utf-8');
+      this.is_encrypted = false;
+      this.value = Buffer.concat([
+        decipher.update(Buffer.from(this.value, 'hex')),
+        decipher.final(),
+      ]).toString('utf-8');
+    } catch (_) {
+      this.is_encrypted = false;
+      this.value = randomBytes(16).toString('hex');
+    }
   }
 
   @BeforeInsert()

@@ -4,6 +4,7 @@ import { In, MigrationInterface, QueryRunner } from 'typeorm';
 import { AliasLinksEntity } from '../../alias/entities/alias-links.entity';
 import { AliasEntity } from '../../alias/entities/alias.entity';
 import { LinkableTypeEnum } from '../../alias/types/linkable-type.enum';
+import { LinksEntity } from '../../links/entities/links.entity';
 import { SecretEntity } from '../../secret/entities/secret.entity';
 
 export class InsertDefaultData1685617654359 implements MigrationInterface {
@@ -11,6 +12,7 @@ export class InsertDefaultData1685617654359 implements MigrationInterface {
     const repo = {
       alias: query.manager.getRepository(AliasEntity),
       alias_links: query.manager.getRepository(AliasLinksEntity),
+      links: query.manager.getRepository(LinksEntity),
       secret: query.manager.getRepository(SecretEntity)
     };
 
@@ -29,11 +31,20 @@ export class InsertDefaultData1685617654359 implements MigrationInterface {
     ]);
 
 
+    const link = await repo.links.save([
+      repo.links.create({ name: "test", url: '{{ BOT_URL }}/test', favorite: true }),
+      repo.links.create({ name: "test2", url: '{{ API_URL }}/test', favorite: true }),
+    ]);
+
     await repo.alias_links.save([
       repo.alias_links.create({ alias: res[0], linkable_type: LinkableTypeEnum.alias, linkable_id: res[1].id }),
       repo.alias_links.create({ alias: res[1], linkable_type: LinkableTypeEnum.alias, linkable_id: res[2].id }),
       repo.alias_links.create({ alias: res[2], linkable_type: LinkableTypeEnum.alias, linkable_id: res[3].id }),
+
+      repo.alias_links.create({ alias: res[3], linkable_type: LinkableTypeEnum.links, linkable_id: link[0].id }),
+      repo.alias_links.create({ alias: res[1], linkable_type: LinkableTypeEnum.links, linkable_id: link[1].id }),
     ])
+
 
     await repo.alias.save([
       repo.alias.create({ 

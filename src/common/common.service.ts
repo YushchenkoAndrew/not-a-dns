@@ -1,4 +1,4 @@
-import { ObjectLiteral } from '../../client/src/types';
+import { ObjectLiteral } from './types';
 
 export class ArrayService {
   static values<T>(arr: T[]): T[] {
@@ -24,7 +24,7 @@ export class ArrayService {
     key: K,
   ): T[K][] {
     return arr
-      .reduce((acc, curr) => (acc.push(curr[key as string]), acc), [])
+      .reduce((acc, curr) => (acc.push(curr?.[key as string]), acc), [])
       .filter((item) => item);
   }
 }
