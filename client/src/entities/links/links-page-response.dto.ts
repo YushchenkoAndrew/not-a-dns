@@ -1,8 +1,8 @@
-import { ResponseProperty } from '../../decorators/response-property';
+import { Column } from '../../decorators/column';
 import { CommonPageEntity } from '../common-page.entity';
 import { LinksResponseDto } from './links-response.dto';
 
 export class LinksPageResponseDto extends CommonPageEntity {
-  @ResponseProperty((e) => new LinksResponseDto().buildAll(e.items))
+  @Column((e) => new LinksResponseDto().buildAll(e.items))
   items: LinksResponseDto[];
 }

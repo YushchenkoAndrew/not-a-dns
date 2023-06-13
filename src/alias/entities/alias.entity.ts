@@ -40,8 +40,8 @@ export class AliasEntity extends NanoidEntity {
 
   @AfterLoad()
   afterLoad() {
-    this.secret?.afterLoad();
-    this.alias_link?.forEach((item) => item?.afterLoad());
+    this.secret?.afterLoad?.();
+    this.alias_link?.forEach((item) => item?.afterLoad?.());
   }
 
   unwrap(e: AliasEntity = this) {

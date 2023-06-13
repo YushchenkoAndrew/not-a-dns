@@ -112,13 +112,16 @@ export class AliasRepository extends Repository<AliasEntity> {
       toInsert: {} as ObjectLiteral<true>,
       toDelete:
         entity.alias_link?.reduce(
-          (acc, curr) => ((acc[curr.linkable_alias.nanoid] = curr.id), acc),
+          (acc, curr) =>
+            curr.linkable_alias
+              ? ((acc[curr.linkable_alias.nanoid] = curr.id), acc)
+              : acc,
           {} as ObjectLiteral<number>,
         ) || {},
     };
 
     for (const id of ArrayService.unique(
-      ArrayService.extract(entity.parent, 'id'),
+      ArrayService.extract(entity.parent || [], 'id'),
     )) {
       if (parent.toDelete[id]) delete parent.toDelete[id];
       else parent.toInsert[id] = true;

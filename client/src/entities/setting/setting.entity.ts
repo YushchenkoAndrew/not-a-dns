@@ -1,8 +1,8 @@
-import { RequestEntity } from '../../decorators/request-entity';
-import { ResponseProperty } from '../../decorators/response-property';
+import { Entity } from '../../decorators/request-entity';
+import { Column } from '../../decorators/column';
 import { CommonEntity } from '../common.entity';
 
-@RequestEntity({
+@Entity({
   route: 'setting',
   id: 'default',
   action: { findOne: 'general/preload', save: 'general/save' },
@@ -13,12 +13,12 @@ export class SettingEntity extends CommonEntity {
     this.assign(init, this);
   }
 
-  @ResponseProperty()
+  @Column()
   id: string;
 
-  @ResponseProperty()
+  @Column()
   name: string;
 
-  @ResponseProperty()
+  @Column()
   mode: boolean;
 }

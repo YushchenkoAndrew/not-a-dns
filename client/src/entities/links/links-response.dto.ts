@@ -1,8 +1,8 @@
-import { ResponseProperty } from '../../decorators/response-property';
+import { Column } from '../../decorators/column';
 import { CommonEntity } from '../common.entity';
 
 export class LinksResponseDto extends CommonEntity {
-  @ResponseProperty()
+  @Column()
   favorite: boolean = false;
 
   // @ResponseProperty()

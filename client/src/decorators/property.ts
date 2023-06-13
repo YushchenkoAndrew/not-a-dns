@@ -4,15 +4,15 @@ import { IconProp } from '@fortawesome/fontawesome-svg-core';
 
 import { CommonEntity } from '../entities/common.entity';
 
-export enum ColumnPropKey {
-  type = 'COLUMN',
-  props = 'COLUMN_PROPS',
-  defined = 'COLUMN_DEFINED',
-  keys = 'COLUMN_KEYS',
+export enum PropertyKey {
+  type = 'PROPERTY',
+  props = 'PROPERTY_PROPS',
+  defined = 'PROPERTY_DEFINED',
+  keys = 'PROPERTY_KEYS',
 }
 
-export class ColumnProps {
-  constructor(init?: Partial<ColumnProps>) {
+export class PropertyProps {
+  constructor(init?: Partial<PropertyProps>) {
     for (const k in init || {}) this[k] = init[k];
   }
 
@@ -65,27 +65,24 @@ export class ColumnProps {
   className: string;
 }
 
-type TransformerT = (entity: any, props: ColumnProps) => any;
-type PropsT = Partial<Omit<ColumnProps, 'self' | 'key'>>;
+type TransformerT = (entity: any, props: PropertyProps) => any;
+type PropsT = Partial<Omit<PropertyProps, 'self' | 'key'>>;
 
-export function ColumnProperty(
-  transformer?: TransformerT | PropsT,
-  props?: PropsT,
-) {
+export function Property(transformer?: TransformerT | PropsT, props?: PropsT) {
   return function (target: any, key: string) {
-    const set = (flag: ColumnPropKey, value: any) =>
+    const set = (flag: PropertyKey, value: any) =>
       Reflect.defineMetadata(flag, value, target, key);
 
-    const keys = Reflect.getMetadata(ColumnPropKey.keys, target) || [];
-    Reflect.defineMetadata(ColumnPropKey.keys, [...keys, key], target);
+    const keys = Reflect.getMetadata(PropertyKey.keys, target) || [];
+    Reflect.defineMetadata(PropertyKey.keys, [...keys, key], target);
 
     if (typeof transformer == 'function' || typeof transformer == 'undefined') {
-      set(ColumnPropKey.type, transformer ?? true);
-      set(ColumnPropKey.props, new ColumnProps({ ...(props || {}), key }));
+      set(PropertyKey.type, transformer ?? true);
+      set(PropertyKey.props, new PropertyProps({ ...(props || {}), key }));
       return;
     }
 
-    set(ColumnPropKey.type, true);
-    set(ColumnPropKey.props, new ColumnProps({ ...transformer, key }));
+    set(PropertyKey.type, true);
+    set(PropertyKey.props, new PropertyProps({ ...transformer, key }));
   };
 }
