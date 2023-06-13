@@ -2,33 +2,25 @@ import { createAsyncThunk } from '@reduxjs/toolkit';
 import 'reflect-metadata';
 import { API_URL } from '../config';
 
+import { PropertyKey, PropertyProps, Property } from '../decorators/property';
 import {
-  ColumnPropKey,
-  ColumnProps,
-  ColumnProperty,
-} from '../decorators/column-property';
-import {
-  RequestEntity,
+  Entity,
   RequestPropKey,
   RequestProps,
 } from '../decorators/request-entity';
-import {
-  ResponsePropKey,
-  ResponseProps,
-  ResponseProperty,
-} from '../decorators/response-property';
+import { ColumnKey, ColumnProps, Column } from '../decorators/column';
 import { ErrorService, StringService } from '../lib';
 import { ObjectLiteral } from '../types';
 
-@RequestEntity()
+@Entity()
 export class CommonEntity {
   assign<T extends CommonEntity>(src: Partial<T>, dst: T) {
     for (const k in src || {}) {
-      const enabled = this.getGlobal(ResponsePropKey.type, k);
+      const enabled = this.getGlobal(ColumnKey.type, k);
 
       if (!enabled) continue;
       dst[k] = src[k];
-      this.setLocal(ResponsePropKey.defined, true, k);
+      this.setLocal(ColumnKey.defined, true, k);
     }
 
     return dst;
@@ -36,27 +28,28 @@ export class CommonEntity {
 
   /**
    * This method will build response-dto/request-dto
-   * @see {@link ResponseProperty}
+   * @see {@link Column}
    */
-  build<T>(entity: T): this {
+  build<T>(entity: T, request?: true): this {
     if (!entity) return null;
     // const res = new (this as any).constructor();
 
-    for (const k of this.getGlobal(ResponsePropKey.keys) || []) {
-      const transformer = this.getGlobal(ResponsePropKey.type, k);
+    for (const k of this.getGlobal(ColumnKey.keys) || []) {
+      const req = request && this.getGlobal(ColumnKey.request, k);
+      const transformer = req || this.getGlobal(ColumnKey.type, k);
 
-      const defined = this.getLocal(ResponsePropKey.defined, k);
-      if (defined) continue;
+      const defined = this.getLocal(ColumnKey.defined, k);
+      if (defined && !req) continue;
 
       if (typeof transformer !== 'function') {
         this[k] = entity[k as string];
         continue;
       }
 
-      const props: ResponseProps = this.getGlobal(ResponsePropKey.props, k);
+      const props: ColumnProps = this.getGlobal(ColumnKey.props, k);
 
       this[k] =
-        transformer(entity, new ResponseProps({ ...props, self: this })) ??
+        transformer(entity, new PropertyProps({ ...props, self: this })) ??
         props.default;
     }
 
@@ -65,11 +58,13 @@ export class CommonEntity {
 
   /**
    * This method will build response-dto/request-dto
-   * @see {@link ResponseProperty}
+   * @see {@link Column}
    */
-  buildAll<T>(entities: T[]): this[] {
+  buildAll<T>(entities: T[], request?: true): this[] {
     return entities?.length
-      ? entities.map((item) => this.newInstance(this.defined()).build(item))
+      ? entities.map((item) =>
+          this.newInstance(this.defined()).build(item, request),
+        )
       : [];
   }
 
@@ -77,7 +72,7 @@ export class CommonEntity {
     const res = this.newInstance();
 
     for (const k in res) {
-      const isDefined = this.getLocal(ResponsePropKey.defined, k);
+      const isDefined = this.getLocal(ColumnKey.defined, k);
       if (isDefined) res[k] = this[k];
       else delete res[k];
     }
@@ -95,15 +90,15 @@ export class CommonEntity {
 
   /**
    * This method will return info about Column
-   * @see {@link ColumnProperty}
+   * @see {@link Property}
    */
-  static get columns(): ObjectLiteral<ColumnProps> {
+  static get columns(): ObjectLiteral<PropertyProps> {
     const saved = this.prototype.constructor['_columns'];
     if (saved) return saved;
 
     const options = {};
-    for (const k of this.self.getGlobal(ColumnPropKey.keys) || []) {
-      const props = this.self.getGlobal(ColumnPropKey.props, k);
+    for (const k of this.self.getGlobal(PropertyKey.keys) || []) {
+      const props = this.self.getGlobal(PropertyKey.props, k);
       if (props) options[k] = props;
     }
 
@@ -111,8 +106,8 @@ export class CommonEntity {
   }
 
   // NOTE: Singleton
-  private static _columns: ObjectLiteral<ColumnProps>;
-  get columns(): ObjectLiteral<ColumnProps> {
+  private static _columns: ObjectLiteral<PropertyProps>;
+  get columns(): ObjectLiteral<PropertyProps> {
     return this.constructor['columns'];
   }
 
@@ -173,7 +168,7 @@ export class CommonEntity {
             ),
             {
               method: options.id ?? (this as any).id ? 'PUT' : 'POST',
-              body: JSON.stringify(this.newInstance(init).build(this)),
+              body: JSON.stringify(this.newInstance(init).build(this, true)),
               headers: { 'Content-Type': 'application/json' },
             },
           ).then((res) => (ErrorService.validate(res), res.json())),

@@ -1,16 +1,16 @@
-import { ResponseProperty } from '../decorators/response-property';
+import { Column } from '../decorators/column';
 import { CommonEntity } from './common.entity';
 
 export abstract class CommonPageEntity extends CommonEntity {
-  @ResponseProperty()
+  @Column()
   page: number;
 
-  @ResponseProperty()
+  @Column()
   per_page: number;
 
-  @ResponseProperty()
+  @Column()
   total: number;
 
-  @ResponseProperty()
+  @Column()
   abstract items: unknown[];
 }

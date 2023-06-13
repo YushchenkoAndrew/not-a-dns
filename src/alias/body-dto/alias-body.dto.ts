@@ -7,7 +7,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 
-import { AliasLinksBodyDto } from './alias-links-body.dto copy';
+import { AliasLinksBodyDto } from './alias-links-body.dto';
 
 export class AliasBodyDto {
   @IsOptional()
